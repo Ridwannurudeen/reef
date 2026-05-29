@@ -1,0 +1,167 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import {IAgentVault} from "./interfaces/IAgentVault.sol";
+import {IStrategyAdapter} from "./interfaces/IStrategyAdapter.sol";
+import {AgentIdentity} from "./AgentIdentity.sol";
+
+/// @title AgentVault
+/// @notice Per-agent vault. Operator deploys capital into approved StrategyAdapters
+/// — funds always move vault→adapter, never to the operator wallet. Each cycle the
+/// operator publishes a strict-sequence receipt; the cumulative PnL flows into the
+/// agent's ERC-8004 reputation via AgentIdentity.giveFeedback.
+contract AgentVault is IAgentVault {
+    IERC20 public immutable asset;
+    uint256 public immutable override agentId;
+    AgentIdentity public immutable identity;
+
+    // --- Share accounting ---
+
+    mapping(address => uint256) public balanceOf;
+    uint256 public totalShares;
+
+    // --- Strategy state ---
+
+    /// @dev Single active strategy at a time keeps v1 simple. Switching strategies
+    /// requires a full recall first; the AgentIndex sees this as a transient pause.
+    address public currentStrategy;
+    mapping(address => bool) public approvedStrategies;
+
+    // --- Receipt state ---
+
+    uint256 public nextReceiptSeq;
+    bytes32 public lastReceiptEvidenceHash;
+    uint64 public lastReceiptAt;
+
+    event StrategyApproved(address indexed adapter);
+
+    modifier onlyOperator() {
+        require(identity.getAgentWallet(agentId) == msg.sender, "not operator");
+        _;
+    }
+
+    constructor(address asset_, uint256 agentId_, address identity_) {
+        require(asset_ != address(0) && identity_ != address(0), "zero addr");
+        require(AgentIdentity(identity_).getAgentWallet(agentId_) != address(0), "no agent");
+        asset = IERC20(asset_);
+        agentId = agentId_;
+        identity = AgentIdentity(identity_);
+    }
+
+    // --- Deposit / Withdraw ---
+
+    function deposit(uint256 assets) external override returns (uint256 shares) {
+        require(assets > 0, "zero assets");
+        uint256 total = totalAssets();
+        shares = totalShares == 0 ? assets : (assets * totalShares) / total;
+        require(shares > 0, "zero shares");
+        require(asset.transferFrom(msg.sender, address(this), assets), "transfer in");
+        balanceOf[msg.sender] += shares;
+        totalShares += shares;
+        emit Deposited(msg.sender, assets, shares);
+    }
+
+    function withdraw(uint256 shares) external override returns (uint256 assets) {
+        require(shares > 0, "zero shares");
+        require(balanceOf[msg.sender] >= shares, "insufficient shares");
+        assets = (shares * totalAssets()) / totalShares;
+        require(assets > 0, "zero assets");
+
+        uint256 idle = asset.balanceOf(address(this));
+        if (idle < assets) {
+            require(currentStrategy != address(0), "insufficient liquidity");
+            IStrategyAdapter(currentStrategy).recall(assets - idle);
+        }
+
+        balanceOf[msg.sender] -= shares;
+        totalShares -= shares;
+        require(asset.transfer(msg.sender, assets), "transfer out");
+        emit Withdrawn(msg.sender, assets, shares);
+    }
+
+    // --- Strategy ---
+
+    function approveStrategy(address adapter) external onlyOperator {
+        require(adapter != address(0), "zero adapter");
+        require(IStrategyAdapter(adapter).asset() == address(asset), "wrong asset");
+        require(IStrategyAdapter(adapter).vault() == address(this), "wrong vault");
+        approvedStrategies[adapter] = true;
+        emit StrategyApproved(adapter);
+    }
+
+    function deployToStrategy(address adapter, uint256 amount) external override onlyOperator {
+        require(approvedStrategies[adapter], "not approved");
+        require(currentStrategy == address(0) || currentStrategy == adapter, "recall current first");
+        require(amount <= asset.balanceOf(address(this)), "amount > idle");
+        currentStrategy = adapter;
+        require(asset.transfer(adapter, amount), "transfer to adapter");
+        IStrategyAdapter(adapter).deploy(amount);
+        emit StrategyDeployed(adapter, amount);
+    }
+
+    function recallFromStrategy(address adapter, uint256 amount) external override onlyOperator {
+        require(adapter == currentStrategy, "not current");
+        IStrategyAdapter(adapter).recall(amount);
+        emit StrategyRecalled(adapter, amount);
+        // When the strategy is fully drained, clear the slot so a new one can be set.
+        if (IStrategyAdapter(adapter).totalUnderlying() == 0) currentStrategy = address(0);
+    }
+
+    // --- Receipts ---
+
+    /// @notice Operator publishes a strict-sequence receipt for the latest period.
+    /// @dev Payload layout (abi.encode): (uint256 seq, bytes32 evidenceHash, int256 navDelta, uint64 period)
+    function publishReceipt(bytes calldata eip712Receipt) external override onlyOperator {
+        (uint256 seq, bytes32 evidenceHash, int256 navDelta, uint64 period) =
+            abi.decode(eip712Receipt, (uint256, bytes32, int256, uint64));
+        require(seq == nextReceiptSeq, "bad seq");
+        require(evidenceHash != bytes32(0), "zero evidence");
+        require(period > 0, "zero period");
+
+        nextReceiptSeq = seq + 1;
+        lastReceiptEvidenceHash = evidenceHash;
+        lastReceiptAt = uint64(block.timestamp);
+
+        // Reputation = clipped PnL (int128 range), 18-decimal fixed point matching
+        // AgentIdentity's normalisation.
+        int128 clipped = _clipToInt128(navDelta);
+        identity.giveFeedback(agentId, clipped, 18);
+
+        emit ReceiptPublished(seq, evidenceHash, navDelta);
+    }
+
+    // --- Views ---
+
+    function totalAssets() public view returns (uint256) {
+        uint256 outstanding = currentStrategy == address(0) ? 0 : IStrategyAdapter(currentStrategy).totalUnderlying();
+        return asset.balanceOf(address(this)) + outstanding;
+    }
+
+    function nav() external view override returns (uint256) {
+        if (totalShares == 0) return 1e18;
+        return (totalAssets() * 1e18) / totalShares;
+    }
+
+    function snapshot() external view override returns (VaultView memory) {
+        uint256 idle = asset.balanceOf(address(this));
+        uint256 outstanding = currentStrategy == address(0) ? 0 : IStrategyAdapter(currentStrategy).totalUnderlying();
+        return VaultView({
+            agentId: agentId,
+            asset: address(asset),
+            totalAssets: idle + outstanding,
+            totalShares: totalShares,
+            idle: idle,
+            outstanding: outstanding,
+            lastReceiptAt: lastReceiptAt
+        });
+    }
+
+    // --- Internal ---
+
+    function _clipToInt128(int256 x) internal pure returns (int128) {
+        if (x > type(int128).max) return type(int128).max;
+        if (x < type(int128).min) return type(int128).min;
+        return int128(x);
+    }
+}

@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reef — autonomous AI yield agents on Mantle</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    margin: 0;
+    background: #0e1116;
+    color: #e6edf3;
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1100px; margin: 24px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+  .panel { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+  .panel:last-child { margin-bottom: 0; }
+  h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  h2 { font-size: 14px; margin: 0 0 12px; font-weight: 600; }
+  .header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .conn { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .conn-info { color: #8b949e; font-size: 12px; }
+  label { display: block; margin-top: 10px; color: #8b949e; font-size: 12px; }
+  input, select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    border-radius: 4px;
+    font: inherit;
+    margin-top: 4px;
+  }
+  button {
+    padding: 8px 14px;
+    border-radius: 4px;
+    font: inherit;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  button.primary { background: #238636; color: #fff; border-color: #238636; }
+  button.primary:hover:not(:disabled) { background: #2ea043; }
+  button.ghost { background: transparent; color: #e6edf3; border-color: #30363d; }
+  button.ghost:hover:not(:disabled) { background: #21262d; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 16px; }
+  .kv { display: grid; grid-template-columns: 180px 1fr; gap: 4px 12px; font-size: 12px; }
+  .kv .k { color: #8b949e; }
+  .kv .v { word-break: break-all; }
+  .toasts { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 6px; z-index: 100; max-width: 380px; }
+  .toast {
+    background: #161b22; border: 1px solid #30363d; border-left: 3px solid #238636;
+    padding: 8px 12px; border-radius: 4px; font-size: 12px; word-break: break-all;
+  }
+  .toast.err { border-left-color: #f85149; }
+  .toast.info { border-left-color: #1f6feb; }
+  a { color: #79c0ff; }
+  .muted { color: #8b949e; font-size: 12px; }
+  .hidden { display: none !important; }
+  .badge {
+    display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 11px;
+    background: #21262d; color: #e6edf3; border: 1px solid #30363d;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #21262d; }
+  th { color: #8b949e; font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.pos { color: #56d364; }
+  td.neg { color: #f85149; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px; }
+  .stat .label { color: #8b949e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat .value { font-size: 16px; margin-top: 4px; }
+  .toggle { display: inline-flex; border: 1px solid #30363d; border-radius: 4px; overflow: hidden; }
+  .toggle button { border-radius: 0; border: none; background: transparent; color: #e6edf3; }
+  .toggle button.on { background: #1f6feb; color: #fff; }
+  .feed { font-size: 12px; max-height: 360px; overflow-y: auto; }
+  .feed-row { padding: 6px 0; border-bottom: 1px solid #21262d; }
+  .feed-row:last-child { border-bottom: none; }
+  .feed-row .meta { color: #8b949e; font-size: 11px; }
+  svg.spark { width: 100%; height: 60px; display: block; margin-top: 8px; }
+  .small { font-size: 11px; color: #8b949e; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="panel header">
+    <h1>Reef — autonomous AI yield agents on Mantle</h1>
+    <div class="conn">
+      <span id="connInfo" class="conn-info">not connected</span>
+      <button id="connectBtn" class="primary">Connect wallet</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Config</h2>
+    <div class="grid2">
+      <div>
+        <label>RPC URL</label>
+        <input id="cfgRpc" placeholder="https://rpc.sepolia.mantle.xyz" />
+      </div>
+      <div>
+        <label>Asset (USDY) address</label>
+        <input id="cfgAsset" placeholder="0x..." />
+      </div>
+      <div>
+        <label>AgentIdentity address</label>
+        <input id="cfgIdentity" placeholder="0x..." />
+      </div>
+      <div>
+        <label>AgentIndex address</label>
+        <input id="cfgIndex" placeholder="0x..." />
+      </div>
+    </div>
+    <div class="row">
+      <button id="cfgSave" class="primary">Save</button>
+      <button id="cfgReload" class="ghost">Reload all</button>
+      <span id="cfgStatus" class="muted"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>AgentIndex</h2>
+    <div class="stats">
+      <div class="stat"><div class="label">Total assets</div><div class="value" id="idxTotalAssets">—</div></div>
+      <div class="stat"><div class="label">Total shares</div><div class="value" id="idxTotalShares">—</div></div>
+      <div class="stat"><div class="label">NAV / share</div><div class="value" id="idxNav">—</div></div>
+      <div class="stat"><div class="label">Vault count</div><div class="value" id="idxVaultCount">—</div></div>
+    </div>
+    <div class="stats" style="margin-top: 12px; grid-template-columns: repeat(2, 1fr);">
+      <div class="stat"><div class="label">Your shares</div><div class="value" id="idxYourShares">—</div></div>
+      <div class="stat"><div class="label">Your assets</div><div class="value" id="idxYourAssets">—</div></div>
+    </div>
+    <div class="grid2" style="margin-top: 12px;">
+      <div>
+        <label>Deposit (asset units)</label>
+        <input id="depAmt" placeholder="100" />
+        <div class="row">
+          <button id="depBtn" class="primary">Approve + Deposit</button>
+          <span id="depResult" class="muted"></span>
+        </div>
+      </div>
+      <div>
+        <label>Withdraw (shares)</label>
+        <input id="wdAmt" placeholder="100" />
+        <div class="row">
+          <button id="wdBtn" class="primary">Withdraw</button>
+          <span id="wdResult" class="muted"></span>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #21262d;">
+      <button id="rebalBtn" class="ghost">Rebalance (permissionless)</button>
+      <span id="rebalResult" class="muted"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Agent leaderboard</h2>
+    <table id="leaderboard">
+      <thead>
+        <tr>
+          <th>#</th><th>agentId</th><th>vault</th>
+          <th class="num">reputation</th><th class="num">NAV</th>
+          <th class="num">weight</th><th class="num">deployed</th>
+        </tr>
+      </thead>
+      <tbody id="lbBody"><tr><td colspan="7" class="muted">no data</td></tr></tbody>
+    </table>
+    <div class="small" style="margin-top: 12px;">Index NAV over last ~30 rebalances:</div>
+    <svg class="spark" id="navSpark" viewBox="0 0 600 60" preserveAspectRatio="none">
+      <path d="M0,30 L600,30" stroke="#30363d" fill="none" />
+    </svg>
+  </div>
+
+  <div class="panel">
+    <h2>Human vs. AI</h2>
+    <div class="row" style="margin-top: 0;">
+      <div class="toggle" id="hvaToggle">
+        <button data-mode="ai" class="on">AI Index</button>
+        <button data-mode="human">Human Twin</button>
+      </div>
+      <span id="hvaActive" class="muted">showing: AI Index</span>
+    </div>
+    <div class="stats" style="margin-top: 12px; grid-template-columns: repeat(3, 1fr);">
+      <div class="stat"><div class="label">AI Index NAV</div><div class="value" id="hvaAi">—</div></div>
+      <div class="stat"><div class="label">Human Twin NAV</div><div class="value" id="hvaHuman">—</div></div>
+      <div class="stat"><div class="label">Delta (bps)</div><div class="value" id="hvaDelta">—</div></div>
+    </div>
+    <div class="small" style="margin-top: 8px;">
+      Human Twin is a client-side simulation: equal-weight average of all vault NAVs.
+      Simulated comparison for demo purposes only.
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Activity feed</h2>
+    <div class="muted">last 20 events across AgentRegistered, ReceiptPublished, IndexDeposit, IndexWithdraw, Rebalanced (last ~5000 blocks)</div>
+    <div class="feed" id="feed"><div class="muted" style="padding: 8px 0;">no data</div></div>
+  </div>
+
+</div>
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+import {
+  createPublicClient, createWalletClient, custom, http,
+  parseEther, formatEther, decodeEventLog, getAddress, isAddress,
+  parseAbiItem, getContract,
+} from "https://esm.sh/viem@2.21.0?bundle";
+
+const NS = "reef.ui.v1";
+
+const MANTLE_SEPOLIA = {
+  chainIdHex: "0x138b", chainIdNum: 5003, name: "Mantle Sepolia",
+  rpc: "https://rpc.sepolia.mantle.xyz", symbol: "MNT", decimals: 18,
+  explorer: "https://explorer.sepolia.mantle.xyz",
+};
+const MANTLE_MAINNET = {
+  chainIdHex: "0x1388", chainIdNum: 5000, name: "Mantle",
+  rpc: "https://rpc.mantle.xyz", symbol: "MNT", decimals: 18,
+  explorer: "https://mantlescan.xyz",
+};
+
+// --- Minimal ABIs --------------------------------------------------------
+
+const ERC20_ABI = [
+  { type: "function", name: "approve", stateMutability: "nonpayable",
+    inputs: [{ name: "spender", type: "address" }, { name: "amount", type: "uint256" }],
+    outputs: [{ type: "bool" }] },
+  { type: "function", name: "allowance", stateMutability: "view",
+    inputs: [{ name: "owner", type: "address" }, { name: "spender", type: "address" }],
+    outputs: [{ type: "uint256" }] },
+  { type: "function", name: "balanceOf", stateMutability: "view",
+    inputs: [{ name: "owner", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "decimals", stateMutability: "view",
+    inputs: [], outputs: [{ type: "uint8" }] },
+  { type: "function", name: "symbol", stateMutability: "view",
+    inputs: [], outputs: [{ type: "string" }] },
+];
+
+const IDENTITY_ABI = [
+  { type: "function", name: "getAgentWallet", stateMutability: "view",
+    inputs: [{ name: "agentId", type: "uint256" }], outputs: [{ type: "address" }] },
+  { type: "function", name: "getAgentURI", stateMutability: "view",
+    inputs: [{ name: "agentId", type: "uint256" }], outputs: [{ type: "string" }] },
+  { type: "function", name: "getSummary", stateMutability: "view",
+    inputs: [{ name: "agentId", type: "uint256" }],
+    outputs: [{ name: "cumulative", type: "int256" }, { name: "count", type: "uint256" }] },
+  { type: "event", name: "AgentRegistered", inputs: [
+    { name: "agentId", type: "uint256", indexed: true },
+    { name: "wallet", type: "address", indexed: true },
+    { name: "agentURI", type: "string", indexed: false },
+  ] },
+  { type: "event", name: "AgentWalletUpdated", inputs: [
+    { name: "agentId", type: "uint256", indexed: true },
+    { name: "wallet", type: "address", indexed: true },
+  ] },
+  { type: "event", name: "FeedbackGiven", inputs: [
+    { name: "agentId", type: "uint256", indexed: true },
+    { name: "source", type: "address", indexed: true },
+    { name: "value", type: "int128", indexed: false },
+    { name: "decimals", type: "uint8", indexed: false },
+  ] },
+];
+
+const VAULT_ABI = [
+  { type: "function", name: "nav", stateMutability: "view",
+    inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "totalAssets", stateMutability: "view",
+    inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "totalShares", stateMutability: "view",
+    inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "agentId", stateMutability: "view",
+    inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "balanceOf", stateMutability: "view",
+    inputs: [{ name: "owner", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "event", name: "ReceiptPublished", inputs: [
+    { name: "seq", type: "uint256", indexed: true },
+    { name: "evidenceHash", type: "bytes32", indexed: false },
+    { name: "navDelta", type: "int256", indexed: false },
+  ] },
+];
+
+const INDEX_ABI = [
+  { type: "function", name: "totalAssets", stateMutability: "view",
+    inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "totalShares", stateMutability: "view",
+    inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "balanceOf", stateMutability: "view",
+    inputs: [{ name: "owner", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "vaultCount", stateMutability: "view",
+    inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "vaults", stateMutability: "view",
+    inputs: [{ name: "i", type: "uint256" }], outputs: [{ type: "address" }] },
+  { type: "function", name: "getAllocation", stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "tuple[]", components: [
+      { name: "agentId", type: "uint256" },
+      { name: "vault", type: "address" },
+      { name: "weightBps", type: "uint256" },
+      { name: "deployed", type: "uint256" },
+    ] }] },
+  { type: "function", name: "deposit", stateMutability: "nonpayable",
+    inputs: [{ name: "assets", type: "uint256" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "withdraw", stateMutability: "nonpayable",
+    inputs: [{ name: "shares", type: "uint256" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "rebalance", stateMutability: "nonpayable",
+    inputs: [], outputs: [] },
+  { type: "event", name: "IndexDeposit", inputs: [
+    { name: "depositor", type: "address", indexed: true },
+    { name: "assets", type: "uint256", indexed: false },
+    { name: "shares", type: "uint256", indexed: false },
+  ] },
+  { type: "event", name: "IndexWithdraw", inputs: [
+    { name: "depositor", type: "address", indexed: true },
+    { name: "assets", type: "uint256", indexed: false },
+    { name: "shares", type: "uint256", indexed: false },
+  ] },
+  { type: "event", name: "Rebalanced", inputs: [
+    { name: "totalAgents", type: "uint256", indexed: false },
+    { name: "totalDeployed", type: "uint256", indexed: false },
+  ] },
+];
+
+// --- State ---------------------------------------------------------------
+
+const $ = (id) => document.getElementById(id);
+
+const state = {
+  cfg: { rpc: MANTLE_SEPOLIA.rpc, identity: "", index: "", asset: "" },
+  account: null,
+  chainId: null,
+  publicClient: null,
+  walletClient: null,
+  allocation: [],     // [{ agentId, vault, weightBps, deployed, nav, reputation }]
+  navHistory: [],     // bigint[] of index nav at past rebalances
+  hvaMode: "ai",
+  pollIndex: null,
+  pollFeed: null,
+};
+
+// --- helpers -------------------------------------------------------------
+
+function toast(msg, kind = "info", ms = 6000) {
+  const el = document.createElement("div");
+  el.className = `toast ${kind}`;
+  el.textContent = msg;
+  $("toasts").appendChild(el);
+  setTimeout(() => el.remove(), ms);
+  return el;
+}
+
+function errMsg(e) {
+  const r = e?.shortMessage || e?.details || e?.message || String(e);
+  // viem includes revert reason in shortMessage; fall back to cause
+  const cause = e?.cause?.shortMessage || e?.cause?.message;
+  return cause && cause !== r ? `${r} — ${cause}` : r;
+}
+
+function shortAddr(a) { return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "—"; }
+
+function explorerFor(chainId) {
+  if (chainId === MANTLE_MAINNET.chainIdNum) return MANTLE_MAINNET.explorer;
+  return MANTLE_SEPOLIA.explorer;
+}
+
+function txLink(hash) {
+  const base = explorerFor(state.chainId);
+  return `<a href="${base}/tx/${hash}" target="_blank" rel="noopener">${hash.slice(0, 10)}…</a>`;
+}
+
+function fmt18(x, digits = 4) {
+  try { return Number(formatEther(x)).toFixed(digits); } catch { return "—"; }
+}
+
+function fmtSigned18(x, digits = 4) {
+  // x is int256, can be negative
+  const neg = x < 0n;
+  const abs = neg ? -x : x;
+  const s = Number(formatEther(abs)).toFixed(digits);
+  return neg ? `-${s}` : s;
+}
+
+function fmtBps(bps) { return `${(Number(bps) / 100).toFixed(2)}%`; }
+
+// --- config persistence --------------------------------------------------
+
+function loadCfg() {
+  try {
+    const raw = localStorage.getItem(NS);
+    if (raw) Object.assign(state.cfg, JSON.parse(raw));
+  } catch {}
+  $("cfgRpc").value = state.cfg.rpc;
+  $("cfgIdentity").value = state.cfg.identity;
+  $("cfgIndex").value = state.cfg.index;
+  $("cfgAsset").value = state.cfg.asset;
+}
+
+function saveCfg() {
+  const rpc = $("cfgRpc").value.trim() || MANTLE_SEPOLIA.rpc;
+  const identity = $("cfgIdentity").value.trim();
+  const index = $("cfgIndex").value.trim();
+  const asset = $("cfgAsset").value.trim();
+  for (const [k, v] of Object.entries({ identity, index, asset })) {
+    if (v && !isAddress(v)) return toast(`${k}: invalid address`, "err");
+  }
+  state.cfg = { rpc, identity, index, asset };
+  localStorage.setItem(NS, JSON.stringify(state.cfg));
+  rebuildClients();
+  $("cfgStatus").textContent = "saved";
+  setTimeout(() => $("cfgStatus").textContent = "", 2000);
+  refreshAll();
+}
+
+function rebuildClients() {
+  state.publicClient = createPublicClient({ transport: http(state.cfg.rpc) });
+  if (window.ethereum && state.account) {
+    state.walletClient = createWalletClient({
+      account: state.account, transport: custom(window.ethereum),
+    });
+  }
+}
+
+// --- wallet --------------------------------------------------------------
+
+function chainForId(id) {
+  if (id === MANTLE_MAINNET.chainIdNum) return MANTLE_MAINNET;
+  return MANTLE_SEPOLIA;
+}
+
+async function connect() {
+  if (!window.ethereum) return toast("no injected wallet found", "err");
+  try {
+    const accts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    state.account = getAddress(accts[0]);
+    const cid = await window.ethereum.request({ method: "eth_chainId" });
+    state.chainId = parseInt(cid, 16);
+    if (state.chainId !== MANTLE_SEPOLIA.chainIdNum && state.chainId !== MANTLE_MAINNET.chainIdNum) {
+      await switchChain(MANTLE_SEPOLIA);
+    }
+    rebuildClients();
+    await renderConn();
+    refreshAll();
+  } catch (e) {
+    toast(`connect: ${errMsg(e)}`, "err");
+  }
+}
+
+async function switchChain(target) {
+  try {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: target.chainIdHex }],
+    });
+  } catch (e) {
+    if (e?.code === 4902 || /Unrecognized chain/i.test(errMsg(e))) {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [{
+          chainId: target.chainIdHex,
+          chainName: target.name,
+          rpcUrls: [target.rpc],
+          nativeCurrency: { name: target.symbol, symbol: target.symbol, decimals: target.decimals },
+          blockExplorerUrls: [target.explorer],
+        }],
+      });
+    } else {
+      throw e;
+    }
+  }
+  const cid = await window.ethereum.request({ method: "eth_chainId" });
+  state.chainId = parseInt(cid, 16);
+}
+
+async function renderConn() {
+  if (!state.account) {
+    $("connInfo").textContent = "not connected";
+    $("connectBtn").textContent = "Connect wallet";
+    return;
+  }
+  const chain = chainForId(state.chainId);
+  let bal = "—";
+  try {
+    const wei = await state.publicClient.getBalance({ address: state.account });
+    bal = `${Number(formatEther(wei)).toFixed(4)} ${chain.symbol}`;
+  } catch {}
+  $("connInfo").textContent = `${shortAddr(state.account)} · ${chain.name} (${state.chainId}) · ${bal}`;
+  $("connectBtn").textContent = "Reconnect";
+}
+
+if (window.ethereum) {
+  window.ethereum.on?.("accountsChanged", (a) => {
+    state.account = a[0] ? getAddress(a[0]) : null;
+    rebuildClients();
+    renderConn(); refreshAll();
+  });
+  window.ethereum.on?.("chainChanged", (cid) => {
+    state.chainId = parseInt(cid, 16);
+    renderConn(); refreshAll();
+  });
+}
+
+// --- tx helper -----------------------------------------------------------
+
+async function sendTx({ address, abi, functionName, args, value }) {
+  if (!state.account || !state.walletClient) {
+    toast("connect wallet first", "err"); return null;
+  }
+  if (!address) { toast("address not configured", "err"); return null; }
+  const pending = toast(`submitting ${functionName}…`, "info", 30000);
+  try {
+    const { request } = await state.publicClient.simulateContract({
+      address, abi, functionName, args, value, account: state.account,
+    });
+    const hash = await state.walletClient.writeContract(request);
+    pending.remove();
+    toast(`${functionName} sent: ${hash.slice(0, 10)}…`, "info", 12000);
+    const receipt = await state.publicClient.waitForTransactionReceipt({ hash });
+    const ok = receipt.status === "success";
+    const el = document.createElement("div");
+    el.className = `toast ${ok ? "info" : "err"}`;
+    el.innerHTML = `${functionName} ${ok ? "confirmed" : "FAILED"}: ${txLink(hash)}`;
+    $("toasts").appendChild(el);
+    setTimeout(() => el.remove(), 15000);
+    return receipt;
+  } catch (e) {
+    pending.remove();
+    toast(`${functionName}: ${errMsg(e)}`, "err", 12000);
+    return null;
+  }
+}
+
+// --- AgentIndex reads ----------------------------------------------------
+
+async function refreshIndex() {
+  if (!state.publicClient || !state.cfg.index) return;
+  try {
+    const c = state.publicClient;
+    const idx = state.cfg.index;
+    const [total, shares, vCount] = await Promise.all([
+      c.readContract({ address: idx, abi: INDEX_ABI, functionName: "totalAssets" }),
+      c.readContract({ address: idx, abi: INDEX_ABI, functionName: "totalShares" }),
+      c.readContract({ address: idx, abi: INDEX_ABI, functionName: "vaultCount" }),
+    ]);
+    const nav = shares === 0n ? 10n ** 18n : (total * (10n ** 18n)) / shares;
+    $("idxTotalAssets").textContent = fmt18(total);
+    $("idxTotalShares").textContent = fmt18(shares);
+    $("idxNav").textContent = fmt18(nav, 6);
+    $("idxVaultCount").textContent = vCount.toString();
+
+    $("rebalBtn").disabled = vCount === 0n;
+    if (vCount === 0n) $("rebalResult").textContent = "no vaults registered";
+    else if ($("rebalResult").textContent === "no vaults registered") $("rebalResult").textContent = "";
+
+    if (state.account) {
+      const my = await c.readContract({
+        address: idx, abi: INDEX_ABI, functionName: "balanceOf", args: [state.account],
+      });
+      $("idxYourShares").textContent = fmt18(my);
+      const myAssets = shares === 0n ? 0n : (my * nav) / (10n ** 18n);
+      $("idxYourAssets").textContent = fmt18(myAssets);
+    } else {
+      $("idxYourShares").textContent = "—";
+      $("idxYourAssets").textContent = "—";
+    }
+
+    await refreshLeaderboard(nav);
+  } catch (e) {
+    console.warn("refreshIndex:", e);
+  }
+}
+
+async function refreshLeaderboard(indexNav) {
+  if (!state.cfg.index || !state.cfg.identity) return;
+  const c = state.publicClient;
+  let alloc;
+  try {
+    alloc = await c.readContract({
+      address: state.cfg.index, abi: INDEX_ABI, functionName: "getAllocation",
+    });
+  } catch (e) {
+    $("lbBody").innerHTML = `<tr><td colspan="7" class="muted">getAllocation failed: ${errMsg(e)}</td></tr>`;
+    return;
+  }
+  if (alloc.length === 0) {
+    $("lbBody").innerHTML = `<tr><td colspan="7" class="muted">no vaults registered</td></tr>`;
+    state.allocation = [];
+    refreshHumanVsAi(indexNav);
+    return;
+  }
+
+  const enriched = await Promise.all(alloc.map(async (a) => {
+    let nav = 0n, rep = 0n;
+    try {
+      nav = await c.readContract({ address: a.vault, abi: VAULT_ABI, functionName: "nav" });
+    } catch {}
+    try {
+      const [cum] = await c.readContract({
+        address: state.cfg.identity, abi: IDENTITY_ABI, functionName: "getSummary", args: [a.agentId],
+      });
+      rep = cum;
+    } catch {}
+    return { ...a, nav, reputation: rep };
+  }));
+
+  enriched.sort((x, y) => (y.reputation > x.reputation ? 1 : y.reputation < x.reputation ? -1 : 0));
+  state.allocation = enriched;
+
+  $("lbBody").innerHTML = enriched.map((a, i) => {
+    const repClass = a.reputation > 0n ? "pos" : a.reputation < 0n ? "neg" : "";
+    return `<tr>
+      <td>${i + 1}</td>
+      <td>${a.agentId.toString()}</td>
+      <td><a href="${explorerFor(state.chainId)}/address/${a.vault}" target="_blank" rel="noopener">${shortAddr(a.vault)}</a></td>
+      <td class="num ${repClass}">${fmtSigned18(a.reputation)}</td>
+      <td class="num">${fmt18(a.nav, 6)}</td>
+      <td class="num">${fmtBps(a.weightBps)}</td>
+      <td class="num">${fmt18(a.deployed)}</td>
+    </tr>`;
+  }).join("");
+
+  drawSparkline();
+  refreshHumanVsAi(indexNav);
+}
+
+function drawSparkline() {
+  const svg = $("navSpark");
+  const history = state.navHistory;
+  if (history.length === 0) {
+    svg.innerHTML = `<path d="M0,30 L600,30" stroke="#30363d" fill="none" />`;
+    return;
+  }
+  const nums = history.map((n) => Number(formatEther(n)));
+  const min = Math.min(...nums), max = Math.max(...nums);
+  const span = max - min || 1;
+  const w = 600, h = 60, pad = 4;
+  const pts = nums.map((v, i) => {
+    const x = (i / Math.max(nums.length - 1, 1)) * w;
+    const y = h - pad - ((v - min) / span) * (h - 2 * pad);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  svg.innerHTML = `<polyline points="${pts.join(" ")}" stroke="#79c0ff" stroke-width="1.5" fill="none" />`;
+}
+
+// --- Human vs. AI --------------------------------------------------------
+
+function refreshHumanVsAi(indexNav) {
+  const ai = indexNav ?? 10n ** 18n;
+  $("hvaAi").textContent = fmt18(ai, 6);
+
+  if (state.allocation.length === 0) {
+    $("hvaHuman").textContent = "—";
+    $("hvaDelta").textContent = "—";
+    return;
+  }
+  let sum = 0n;
+  for (const a of state.allocation) sum += a.nav;
+  const human = sum / BigInt(state.allocation.length);
+  $("hvaHuman").textContent = fmt18(human, 6);
+  // delta_bps = (ai - human) / human * 10000
+  let deltaBps = "—";
+  if (human > 0n) {
+    const diff = ai - human;
+    const bps = (diff * 10000n) / human;
+    const sign = bps >= 0n ? "+" : "";
+    deltaBps = `${sign}${bps.toString()}`;
+  }
+  $("hvaDelta").textContent = deltaBps;
+}
+
+// --- Activity feed -------------------------------------------------------
+
+async function refreshFeed() {
+  if (!state.publicClient) return;
+  const c = state.publicClient;
+  let head;
+  try { head = await c.getBlockNumber(); } catch { return; }
+  const from = head > 5000n ? head - 5000n : 0n;
+
+  const events = [];
+
+  async function pull(address, abi, eventName) {
+    if (!address) return;
+    try {
+      const logs = await c.getLogs({
+        address, event: abi.find((x) => x.type === "event" && x.name === eventName),
+        fromBlock: from, toBlock: head,
+      });
+      for (const l of logs) events.push({ log: l, eventName });
+    } catch (e) {
+      console.warn(`getLogs ${eventName}:`, errMsg(e));
+    }
+  }
+
+  await Promise.all([
+    pull(state.cfg.identity, IDENTITY_ABI, "AgentRegistered"),
+    pull(state.cfg.index, INDEX_ABI, "IndexDeposit"),
+    pull(state.cfg.index, INDEX_ABI, "IndexWithdraw"),
+    pull(state.cfg.index, INDEX_ABI, "Rebalanced"),
+  ]);
+
+  // ReceiptPublished from each vault
+  for (const a of state.allocation) {
+    try {
+      const logs = await c.getLogs({
+        address: a.vault,
+        event: VAULT_ABI.find((x) => x.type === "event" && x.name === "ReceiptPublished"),
+        fromBlock: from, toBlock: head,
+      });
+      for (const l of logs) events.push({ log: l, eventName: "ReceiptPublished", vault: a.vault, agentId: a.agentId });
+    } catch {}
+  }
+
+  // Track index nav history from Rebalanced events
+  const rebals = events.filter((e) => e.eventName === "Rebalanced");
+  rebals.sort((a, b) => Number(a.log.blockNumber - b.log.blockNumber));
+  const hist = [];
+  for (const r of rebals.slice(-30)) {
+    const td = r.log.args.totalDeployed;
+    hist.push(td); // proxy: total deployed; close enough for a sparkline
+  }
+  state.navHistory = hist;
+  drawSparkline();
+
+  events.sort((a, b) => Number(b.log.blockNumber - a.log.blockNumber));
+  const top = events.slice(0, 20);
+
+  if (top.length === 0) {
+    $("feed").innerHTML = `<div class="muted" style="padding: 8px 0;">no events in last 5000 blocks</div>`;
+    return;
+  }
+
+  const rows = await Promise.all(top.map(async (e) => {
+    let ts = "";
+    try {
+      const blk = await c.getBlock({ blockNumber: e.log.blockNumber });
+      ts = new Date(Number(blk.timestamp) * 1000).toLocaleTimeString();
+    } catch {}
+    const args = e.log.args || {};
+    let detail = "";
+    switch (e.eventName) {
+      case "AgentRegistered":
+        detail = `agentId=${args.agentId} wallet=${shortAddr(args.wallet)}`; break;
+      case "IndexDeposit":
+        detail = `${shortAddr(args.depositor)} assets=${fmt18(args.assets)} shares=${fmt18(args.shares)}`; break;
+      case "IndexWithdraw":
+        detail = `${shortAddr(args.depositor)} assets=${fmt18(args.assets)} shares=${fmt18(args.shares)}`; break;
+      case "Rebalanced":
+        detail = `agents=${args.totalAgents} totalDeployed=${fmt18(args.totalDeployed)}`; break;
+      case "ReceiptPublished":
+        detail = `agentId=${e.agentId} seq=${args.seq} navDelta=${fmtSigned18(args.navDelta)}`; break;
+    }
+    const exp = explorerFor(state.chainId);
+    return `<div class="feed-row">
+      <span class="badge">${e.eventName}</span> ${detail}
+      <div class="meta">${ts} · block ${e.log.blockNumber} · <a href="${exp}/tx/${e.log.transactionHash}" target="_blank" rel="noopener">${e.log.transactionHash.slice(0, 10)}…</a></div>
+    </div>`;
+  }));
+  $("feed").innerHTML = rows.join("");
+}
+
+// --- actions -------------------------------------------------------------
+
+async function doDeposit() {
+  const amt = $("depAmt").value.trim();
+  if (!amt) return toast("amount required", "err");
+  if (!state.cfg.index || !state.cfg.asset) return toast("index/asset not configured", "err");
+  let assets;
+  try { assets = parseEther(amt); } catch { return toast("amount: invalid decimal", "err"); }
+
+  // Check allowance, approve only if needed
+  try {
+    const allow = await state.publicClient.readContract({
+      address: state.cfg.asset, abi: ERC20_ABI, functionName: "allowance",
+      args: [state.account, state.cfg.index],
+    });
+    if (allow < assets) {
+      const ar = await sendTx({
+        address: state.cfg.asset, abi: ERC20_ABI, functionName: "approve",
+        args: [state.cfg.index, assets],
+      });
+      if (!ar) return;
+    }
+  } catch (e) { return toast(`allowance: ${errMsg(e)}`, "err"); }
+
+  const r = await sendTx({
+    address: state.cfg.index, abi: INDEX_ABI, functionName: "deposit", args: [assets],
+  });
+  if (!r) return;
+
+  for (const log of r.logs) {
+    try {
+      const dec = decodeEventLog({ abi: INDEX_ABI, data: log.data, topics: log.topics });
+      if (dec.eventName === "IndexDeposit") {
+        $("depResult").innerHTML = `received <span class="badge">${fmt18(dec.args.shares)} shares</span>`;
+        break;
+      }
+    } catch {}
+  }
+  refreshIndex();
+}
+
+async function doWithdraw() {
+  const amt = $("wdAmt").value.trim();
+  if (!amt) return toast("shares required", "err");
+  if (!state.cfg.index) return toast("index not configured", "err");
+  let shares;
+  try { shares = parseEther(amt); } catch { return toast("shares: invalid decimal", "err"); }
+  const r = await sendTx({
+    address: state.cfg.index, abi: INDEX_ABI, functionName: "withdraw", args: [shares],
+  });
+  if (!r) return;
+  for (const log of r.logs) {
+    try {
+      const dec = decodeEventLog({ abi: INDEX_ABI, data: log.data, topics: log.topics });
+      if (dec.eventName === "IndexWithdraw") {
+        $("wdResult").innerHTML = `received <span class="badge">${fmt18(dec.args.assets)} assets</span>`;
+        break;
+      }
+    } catch {}
+  }
+  refreshIndex();
+}
+
+async function doRebalance() {
+  if (!state.cfg.index) return toast("index not configured", "err");
+  const r = await sendTx({
+    address: state.cfg.index, abi: INDEX_ABI, functionName: "rebalance", args: [],
+  });
+  if (r) {
+    $("rebalResult").innerHTML = `rebalanced — ${txLink(r.transactionHash)}`;
+    refreshIndex();
+    refreshFeed();
+  }
+}
+
+// --- refresh orchestration -----------------------------------------------
+
+function refreshAll() {
+  refreshIndex();
+  refreshFeed();
+  if (state.account) renderConn();
+}
+
+function startPolling() {
+  stopPolling();
+  state.pollIndex = setInterval(() => {
+    if (document.visibilityState === "visible") refreshIndex();
+  }, 15000);
+  state.pollFeed = setInterval(() => {
+    if (document.visibilityState === "visible") refreshFeed();
+  }, 30000);
+}
+
+function stopPolling() {
+  if (state.pollIndex) clearInterval(state.pollIndex);
+  if (state.pollFeed) clearInterval(state.pollFeed);
+  state.pollIndex = state.pollFeed = null;
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshAll();
+});
+
+// --- wire up -------------------------------------------------------------
+
+$("connectBtn").addEventListener("click", connect);
+$("cfgSave").addEventListener("click", saveCfg);
+$("cfgReload").addEventListener("click", refreshAll);
+$("depBtn").addEventListener("click", doDeposit);
+$("wdBtn").addEventListener("click", doWithdraw);
+$("rebalBtn").addEventListener("click", doRebalance);
+
+for (const b of $("hvaToggle").querySelectorAll("button")) {
+  b.addEventListener("click", () => {
+    for (const x of $("hvaToggle").querySelectorAll("button")) x.classList.remove("on");
+    b.classList.add("on");
+    state.hvaMode = b.dataset.mode;
+    $("hvaActive").textContent = `showing: ${b.dataset.mode === "ai" ? "AI Index" : "Human Twin"}`;
+  });
+}
+
+loadCfg();
+rebuildClients();
+refreshAll();
+startPolling();
+</script>
+</body>
+</html>
