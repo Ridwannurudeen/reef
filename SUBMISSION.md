@@ -49,7 +49,7 @@ Three layers, each minimal but together a new primitive:
 
 1. **Per-agent vault** that is sovereign — operator never custodies funds, every cycle publishes a strict-sequence EIP-712 receipt, reputation accrues to the agent's ERC-8004 identity.
 2. **Public index that prices reputation** — `AgentIndex` allocates a basket across registered AgentVaults in proportion to their on-chain track record. This is the missing trust infrastructure for autonomous AI capital.
-3. **Agent-to-agent commerce primitive** — `SignalMarket` lets agents pay each other for signals; both parties accrue reputation. This is the smallest real demonstration of an agent economy on Mantle.
+3. **Agent-to-agent commerce primitive** — `SignalMarket` lets agents pay each other for signals on-chain. This is the smallest real demonstration of an agent economy on Mantle. (Reputation is intentionally not credited here — only an agent's own vault writes its reputation.)
 
 ## Architecture
 
@@ -60,7 +60,7 @@ AgentIdentity (ERC-8004)
        │
 AgentVault[]                     SignalMarket
        │                                │
-       │── deploys to                   │── A2A payment + receipts
+       │── deploys to                   │── A2A signal payment (no reputation)
        ▼                                ▼
 StrategyAdapter (UsdyAdapter / MethAdapter)
        │
@@ -80,25 +80,27 @@ AgentIndex
 
 | Component | Status |
 |---|---|
-| `AgentIdentity.sol` (ERC-8004) | Done. 13 tests. 5,190 B runtime. |
-| `AgentVault.sol` | Done. 14 tests. Full receipt pipeline. |
-| `AgentIndex.sol` | Done. 12 tests. Reputation-weighted rebalance. |
-| `SignalMarket.sol` (A2A) | Done. 7 tests. |
-| `UsdyAdapter.sol` | Done. 7 local tests + **2 fork tests passing against live Ondo USDY on Mantle mainnet**. |
+| `AgentIdentity.sol` (ERC-8004) | Done. 14 tests. Vault-only reputation gate. |
+| `AgentVault.sol` | Done. 14 tests. NAV-derived receipts; reentrancy-guarded. |
+| `AgentIndex.sol` (ERC-20) | Done. 21 tests. Reputation-weighted rebalance + tradeable share + bond gate. |
+| `SignalMarket.sol` (A2A) | Done. 9 tests. |
+| `ReputationBond.sol` | Done. 9 tests. Slashable bonds + dispute layer. |
+| `UsdyAdapter.sol` | Done. 7 local + **2 fork tests passing against live Ondo USDY on Mantle mainnet**. |
 | `MethAdapter.sol` | Done. 5 tests. |
-| Deploy script | `script/Deploy.s.sol` |
-| Reference Python agents | `agents/allora_agent/` (Allora API + Z.ai GLM-5.1) + `agents/nansen_agent/` (mock signal in v1) |
+| `MockYieldAdapter.sol` | Done. 8 tests. Testnet linear-accruing adapter (real-NAV demo). |
+| Deploy scripts | `script/Deploy.s.sol` + `Seed.s.sol` (Sepolia) + `DeployMainnet.s.sol` (mainnet-ready, real USDY) |
+| Reference Python agents | `agents/allora_agent/` (Allora + Z.ai GLM-5.1) + `agents/nansen_agent/` (mock signal v1); fall back to a deterministic rule without API keys |
 | Live dashboard | `ui/index.html` — single-file viem dashboard with AgentIndex stats, leaderboard, deposit/withdraw, rebalance button, Human-vs-AI twin |
 | Hackathon deck | `slides.html` (reveal.js) |
 | nginx + cert deploy config | `deploy/` |
 
-**Total: 58 unit tests + 2 mainnet-fork integration tests, all passing** (`forge test`). All deployed contracts are verified on Mantlescan. Forge 1.7.1, solc 0.8.24, evm_version paris.
+**Total: 87 unit tests + 2 mainnet-fork integration tests, all passing** (`forge test`). All deployed Sepolia contracts are verified on Mantlescan. Forge 1.7.1, solc 0.8.24, evm_version paris. Internal security review in `SECURITY.md`.
 
 ## Hackathon Feature Alignment
 
 - **On-chain benchmarking of AI** — every agent decision emits a strict-sequence signed receipt (`AgentVault.publishReceipt`). NAV history is recomputable from events.
 - **ERC-8004 agent identity standard** — every Reef agent is registered via `AgentIdentity.register()`; reputation is portable and queryable. First chain-scale deployment on Mantle.
-- **Radical transparency / Human-vs-AI** — the live dashboard runs an AI index and a human-twin index in parallel; the public scoreboard is the marquee demo.
+- **Radical transparency / Human-vs-AI** — the dashboard runs the live AI index alongside a human-twin baseline (a client-side simulation in v1); the public scoreboard is the marquee demo.
 
 ## Demo Flow (≥ 2 min)
 
@@ -108,15 +110,15 @@ AgentIndex
 4. Click **[Rebalance]** — see the reputation-weighted allocation update on-chain.
 5. Open the deposit form — deposit a small amount of USDY/USDC. Show share mint.
 6. Open Mantle explorer on one AgentVault — show recent `ReceiptPublished` events from the live Python reference agent.
-7. (Optional) Show a SignalMarket purchase tx: agent A2A payment + reputation bumps.
+7. (Optional) Show a SignalMarket purchase tx: agent-to-agent payment on-chain.
 
 ## Honest Scope
 
-- Deployed: full system is live on Mantle Sepolia (all contracts verified on Mantlescan). A Mantle Mainnet small-amount demo instance (~$20 USDY) is optional and not deployed in v1.
-- Reference agents publish receipts in paper-mode (real signals consumed, NAV deltas are simulated decisions on-chain). Real Polymarket-style live execution is out of scope for v1.
-- Nansen reference agent uses a deterministic mock signal in v1 (real Nansen MCP needs paid API access).
-- `withdrawPool` and additional safety primitives present in production yield protocols are intentionally omitted for hackathon scope — the audit risk surface is documented in the README.
-- Contracts are immutable and unaudited hackathon code.
+- Deployed: full system is live on Mantle Sepolia (all contracts Mantlescan-verified). Mainnet is not deployed but is **mainnet-ready** via `script/DeployMainnet.s.sol` (wires the real Ondo USDY adapter). Sepolia uses a mock asset + the testnet `MockYieldAdapter`.
+- Reputation is **NAV-derived**: `publishReceipt` credits the vault's real on-chain per-share NAV change. On testnet that NAV grows via the `MockYieldAdapter`; on mainnet it would be real USDY/mETH yield. The reference agents' signals are advisory (paper-mode) and do not yet drive live mainnet execution.
+- Nansen reference agent uses a deterministic mock signal in v1 (real Nansen MCP needs a paid key); agents fall back to a deterministic rule without an LLM key.
+- `withdrawPool` + circuit breakers and the other must-fixes are intentionally out of hackathon scope — see `SECURITY.md`.
+- Contracts are immutable, **unaudited** hackathon code — see `SECURITY.md` before any mainnet TVL.
 
 ## Current Status / What's Left to Submit
 

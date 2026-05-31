@@ -1,0 +1,22 @@
+{
+  "$schema": "./schema.json",
+  "network": "Mantle Mainnet",
+  "chainId": 5000,
+  "rpc": "https://rpc.mantle.xyz",
+  "explorer": { "mantlescan": "https://mantlescan.xyz" },
+  "nativeToken": "MNT",
+  "status": "NOT DEPLOYED — mainnet-ready. Deploy with `forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url mantle --broadcast` from a funded mainnet key. Contracts are UNAUDITED (see SECURITY.md, open items #2/#3/#6/#7) — do not custody meaningful TVL until audited.",
+  "reef": {
+    "AgentIdentity": "0x0000000000000000000000000000000000000000",
+    "AgentIndex": "0x0000000000000000000000000000000000000000",
+    "AgentVault": "0x0000000000000000000000000000000000000000",
+    "UsdyAdapter": "0x0000000000000000000000000000000000000000"
+  },
+  "assets": {
+    "comment": "Verified live Mantle mainnet assets the system wires to.",
+    "USDY": "0x5bE26527e817998A7206475496fDE1E68957c5A6",
+    "mUSD": "0xab575258d37EaA5C8956EfABe71F4eE8F6397cF3",
+    "mETH": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
+    "USDC": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9"
+  }
+}
