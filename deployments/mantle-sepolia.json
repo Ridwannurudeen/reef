@@ -30,6 +30,7 @@
     "indexTotalAssets": "1000000000000000000000",
     "yieldAdapter": { "address": "0xAFF2Dc11Ad528bA53641A3bCcb2A441825d8b0C7", "vault": "0xde7af6Ea6C6d98BD56Bfc520C281c0C7047a3D85", "aprBps": 2000, "note": "MockYieldAdapter (testnet, linear-accruing) wired into agent1's vault; vault/index NAV reads its time-growing totalUnderlying()" },
     "tradeableIndex": { "address": "0x94FA04326448230aFf7da510ce3E393438cF12cE", "symbol": "rINDEX", "name": "Reef AI Yield Index", "note": "Phase 3: ERC-20-enabled AgentIndex (transfer/approve/transferFrom over index shares). Verified; live share transfer demonstrated. Separate instance from the v1 index above." },
+    "reputationBond": { "address": "0xed8d41bC0569bBe3D9EBe36022B4326FDBFFa323", "arbiter": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43", "challengeStake": "5000000000000000000", "slashAmount": "50000000000000000000", "disputeWindowSec": 86400, "note": "Phase 3: slashable reputation bonds + dispute layer. Verified; full cycle demonstrated on agent1 (post 100 -> open dispute -> arbiter upheld -> slashed to 50)." },
     "vaults": [
       { "agentId": 1, "vault": "0xde7af6Ea6C6d98BD56Bfc520C281c0C7047a3D85", "weightBps": 526 },
       { "agentId": 2, "vault": "0x0471EAe45C17cc1fb0e7E671efD27071B7daC728", "weightBps": 1052 },
