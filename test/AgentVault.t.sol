@@ -28,6 +28,10 @@ contract AgentVaultTest is Test {
         vault = new AgentVault(address(token), agentId, address(identity));
         strategy = new MockStrategyAdapter(address(token), address(vault));
 
+        // Authorize the vault to write its agent's reputation (vault-only model).
+        vm.prank(operator);
+        identity.setReputationSource(agentId, address(vault));
+
         // Approve strategy on the vault
         vm.prank(operator);
         vault.approveStrategy(address(strategy));
