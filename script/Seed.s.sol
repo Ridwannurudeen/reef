@@ -26,8 +26,7 @@ contract Seed is Script {
         address deployer = vm.addr(pk);
 
         // Differentiated NAV deltas (18-decimal) → differentiated reputation weights.
-        int256[5] memory navDeltas =
-            [int256(1e18), int256(2e18), int256(3e18), int256(5e18), int256(8e18)];
+        int256[5] memory navDeltas = [int256(1e18), int256(2e18), int256(3e18), int256(5e18), int256(8e18)];
         uint256 deposit = 1_000e18;
 
         vm.startBroadcast(pk);
