@@ -5,6 +5,7 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {IAgentIndex} from "./interfaces/IAgentIndex.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
 import {AgentVault} from "./AgentVault.sol";
+import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 
 /// @notice Minimal view into ReputationBond for the index's skin-in-the-game gate.
 interface IReputationBond {
@@ -16,7 +17,7 @@ interface IReputationBond {
 /// AgentVaults in proportion to each agent's positive cumulative reputation.
 /// Anyone can call `rebalance()`; the allocation formula is transparent and
 /// in-source (no admin re-weighting).
-contract AgentIndex is IAgentIndex {
+contract AgentIndex is IAgentIndex, ReentrancyGuard {
     IERC20 public immutable asset;
     AgentIdentity public immutable identity;
     address public governor;
@@ -122,7 +123,7 @@ contract AgentIndex is IAgentIndex {
 
     // --- Index deposit / withdraw ---
 
-    function deposit(uint256 assets) external override returns (uint256 shares) {
+    function deposit(uint256 assets) external override nonReentrant returns (uint256 shares) {
         require(assets > 0, "zero assets");
         uint256 total = totalAssets();
         shares = totalShares == 0 ? assets : (assets * totalShares) / total;
@@ -134,7 +135,7 @@ contract AgentIndex is IAgentIndex {
         emit IndexDeposit(msg.sender, assets, shares);
     }
 
-    function withdraw(uint256 shares) external override returns (uint256 assets) {
+    function withdraw(uint256 shares) external override nonReentrant returns (uint256 assets) {
         require(shares > 0, "zero shares");
         require(balanceOf[msg.sender] >= shares, "insufficient shares");
         assets = (shares * totalAssets()) / totalShares;
@@ -155,7 +156,7 @@ contract AgentIndex is IAgentIndex {
     /// @notice Permissionless. Reweights allocation across all registered vaults
     /// in proportion to clamped-positive reputation. Equal weight if all reputations
     /// are non-positive.
-    function rebalance() external override {
+    function rebalance() external override nonReentrant {
         uint256 n = vaults.length;
         require(n > 0, "no vaults");
 

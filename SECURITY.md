@@ -1,0 +1,39 @@
+# Reef — Security Review
+
+**Scope:** all contracts in `src/` (AgentIdentity, AgentVault, AgentIndex, SignalMarket, ReputationBond, adapters).
+**Type:** internal review (not a third-party audit). Reef is hackathon/testnet code; the deployed Sepolia instances are demo-only and **must not hold real mainnet TVL until the must-fix items below are resolved and an external audit is completed.**
+
+## Findings
+
+| # | Severity | Issue | Status |
+|---|----------|-------|--------|
+| 1 | Critical | `AgentIdentity.giveFeedback` has no access control — anyone can mint arbitrary reputation for any agent | **Open** (must-fix; needs design decision) |
+| 2 | Critical | First-depositor / donation share-inflation in `AgentVault` + `AgentIndex` | **Open** (must-fix) |
+| 3 | High | `AgentIndex.rebalance` trusts operator-controlled vault NAV; no protocol adapter allowlist | **Open** (must-fix) |
+| 4 | High | `AgentVault.publishReceipt` credits reputation from an unverified operator-supplied `navDelta` | **Open** (must-fix) |
+| 5 | High | No reentrancy guards; `AgentVault.withdraw` called adapter before updating shares | **✅ Fixed** |
+| 6 | Medium | `ReputationBond` concurrent-dispute / commingled-funds accounting | **Open** |
+| 7 | Medium | No `SafeERC20`; fragile `approve` for non-standard tokens | **Open** (USDY is standard ERC-20 → low risk for the demo) |
+| 8 | Medium | `SignalMarket` free self-dealing reputation + provider-call reentrancy | **✅ Fixed** |
+| 9 | Low | `AgentVault.nav()` returns 1e18 ignoring stranded assets | Open (cosmetic for demo) |
+| 10 | Low | `ReputationBond` single immutable arbiter; no challenger≠agent check | Open (centralization; document) |
+
+## Fixed in this pass
+
+- **#5 Reentrancy + CEI.** Added a minimal `ReentrancyGuard` (`src/utils/ReentrancyGuard.sol`) and applied `nonReentrant` to `AgentVault.{deposit,withdraw,deployToStrategy,recallFromStrategy}`, `AgentIndex.{deposit,withdraw,rebalance}`, and `SignalMarket.purchaseSignal`. Reordered `AgentVault.withdraw` to burn shares **before** the external adapter `recall` (checks-effects-interactions).
+- **#8 SignalMarket.** `createListing` now requires `priceWei > 0`; `purchaseSignal` rejects `providerAgentId == consumerAgentId` (blocks zero-cost self-dealing reputation farming) and is `nonReentrant`. (Full mitigation also depends on #1.)
+
+## Must-fix before mainnet TVL (the reputation-integrity redesign)
+
+Findings **#1, #3, #4** are interlocking and together gate the core premise (reputation → capital). They require a deliberate design decision, not a mechanical patch:
+
+- **#1** — restrict `giveFeedback` to authorized sources. Options: (a) a governance-set allowlist of trusted sources; (b) only the agent's own registered vault may credit it, *and* the credited value is derived on-chain (see #4); (c) gate behind the ERC-8004 ValidationRegistry. **This is a product/trust-model decision — flag to the team before implementing.**
+- **#4** — credit reputation from the vault's actual on-chain NAV delta between receipts, not an operator-supplied number.
+- **#3** — move strategy-adapter approval to a protocol/governance allowlist (by codehash), so a malicious operator cannot point a vault at an adapter that lies about `totalUnderlying()`. Ensure `MockYieldAdapter` (testnet-only, mints freely) is never allowlisted.
+- **#2** — add dead-shares / virtual-offset to first deposits in both `AgentVault` and `AgentIndex`.
+- **#6/#10** — one active dispute per agent (or per-dispute slash escrow); multisig/timelocked arbiter; reject self-challenge.
+- **#7** — adopt `SafeERC20` for generic-asset support.
+
+## Testnet posture
+
+The current Sepolia deployment uses a freely-mintable `MockERC20` and the testnet `MockYieldAdapter`. No real value is at risk. These contracts are immutable; the fixes above apply to source and would ship in a fresh, audited deployment before any mainnet TVL.
