@@ -59,6 +59,8 @@ contract AgentIdentityTest is Test {
     function test_giveFeedback_updatesSummary() public {
         vm.prank(alice);
         uint256 id = identity.register();
+        vm.prank(alice);
+        identity.setReputationSource(id, bob);
 
         vm.prank(bob);
         identity.giveFeedback(id, 5e17, 18); // +0.5
@@ -71,6 +73,8 @@ contract AgentIdentityTest is Test {
     function test_giveFeedback_normalizesDecimals() public {
         vm.prank(alice);
         uint256 id = identity.register();
+        vm.prank(alice);
+        identity.setReputationSource(id, bob);
 
         vm.prank(bob);
         identity.giveFeedback(id, 50, 2); // +0.50 in 2-decimal fixed point
@@ -82,6 +86,8 @@ contract AgentIdentityTest is Test {
     function test_revokeFeedback_decreasesSummary_onlyBySource() public {
         vm.prank(alice);
         uint256 id = identity.register();
+        vm.prank(alice);
+        identity.setReputationSource(id, bob);
 
         vm.prank(bob);
         identity.giveFeedback(id, 1e18, 18);
@@ -102,6 +108,8 @@ contract AgentIdentityTest is Test {
     function test_revokeFeedback_cannotDoubleRevoke() public {
         vm.prank(alice);
         uint256 id = identity.register();
+        vm.prank(alice);
+        identity.setReputationSource(id, bob);
         vm.prank(bob);
         identity.giveFeedback(id, 1e18, 18);
         vm.prank(bob);
@@ -117,9 +125,20 @@ contract AgentIdentityTest is Test {
         identity.giveFeedback(999, 1, 18);
     }
 
+    function test_giveFeedback_unauthorizedSource_reverts() public {
+        vm.prank(alice);
+        uint256 id = identity.register();
+        // no reputation source designated → arbitrary caller is rejected
+        vm.prank(bob);
+        vm.expectRevert(bytes("unauthorized source"));
+        identity.giveFeedback(id, 1e18, 18);
+    }
+
     function test_readFeedback_paginates() public {
         vm.prank(alice);
         uint256 id = identity.register();
+        vm.prank(alice);
+        identity.setReputationSource(id, bob);
 
         for (uint256 i = 0; i < 5; i++) {
             vm.prank(bob);

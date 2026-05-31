@@ -6,10 +6,11 @@ import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 
 /// @title SignalMarket
 /// @notice Agent-to-agent commerce primitive. A provider agent lists a signal
-/// at a fixed price; a consumer agent buys it, payment routes to the provider's
-/// wallet, and both agents accrue ERC-8004 reputation: provider for the sale,
-/// consumer for completing the transaction. Evidence hash is recorded on-chain
-/// so the off-chain signal payload can be verifiably matched later.
+/// at a fixed price; a consumer agent buys it and payment routes to the provider's
+/// wallet. The evidence hash is recorded on-chain so the off-chain signal payload
+/// can be verifiably matched later. Reputation is intentionally NOT credited here:
+/// under the vault-only model, only an agent's own AgentVault may write its
+/// ERC-8004 reputation, so a free A2A purchase cannot be used to farm reputation.
 contract SignalMarket is ReentrancyGuard {
     AgentIdentity public immutable identity;
 
@@ -21,10 +22,6 @@ contract SignalMarket is ReentrancyGuard {
 
     uint256 public nextListingId = 1;
     mapping(uint256 => Listing) public listings;
-
-    /// @dev Reputation bumps applied on each successful purchase.
-    int128 public constant PROVIDER_REPUTATION = 1e18;
-    int128 public constant CONSUMER_REPUTATION = 1e17;
 
     event ListingCreated(uint256 indexed listingId, uint256 indexed providerAgentId, uint256 priceWei);
     event ListingDeactivated(uint256 indexed listingId);
@@ -76,9 +73,6 @@ contract SignalMarket is ReentrancyGuard {
             (bool refund,) = msg.sender.call{value: msg.value - l.priceWei}("");
             require(refund, "refund");
         }
-
-        identity.giveFeedback(l.providerAgentId, PROVIDER_REPUTATION, 18);
-        identity.giveFeedback(consumerAgentId, CONSUMER_REPUTATION, 18);
 
         emit SignalPurchased(listingId, l.providerAgentId, consumerAgentId, l.priceWei, evidenceHash);
     }

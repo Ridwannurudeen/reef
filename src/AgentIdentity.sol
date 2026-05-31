@@ -33,6 +33,13 @@ contract AgentIdentity is IIdentityRegistry, IReputationRegistry, IValidationReg
     mapping(uint256 => int256) private cumValue;
     mapping(uint256 => uint256) private liveCount;
 
+    /// @dev Authorized reputation writer per agent, set by the agent's own wallet.
+    /// `giveFeedback` is gated to this address so reputation cannot be minted by
+    /// arbitrary callers. Unset (address(0)) means no source can write yet.
+    mapping(uint256 => address) public reputationSource;
+
+    event ReputationSourceSet(uint256 indexed agentId, address source);
+
     // --- Validation ---
 
     struct Validation {
@@ -83,9 +90,17 @@ contract AgentIdentity is IIdentityRegistry, IReputationRegistry, IValidationReg
         return agents[agentId].uri;
     }
 
+    /// @notice The agent's wallet designates which address may write its reputation
+    /// (e.g. its AgentVault). Required before any feedback can be recorded.
+    function setReputationSource(uint256 agentId, address source) external onlyAgentWallet(agentId) {
+        reputationSource[agentId] = source;
+        emit ReputationSourceSet(agentId, source);
+    }
+
     // --- Reputation functions ---
 
     function giveFeedback(uint256 agentId, int128 value, uint8 valueDecimals) external override exists(agentId) {
+        require(msg.sender == reputationSource[agentId], "unauthorized source");
         feedback[agentId].push(
             Feedback({
                 source: msg.sender,

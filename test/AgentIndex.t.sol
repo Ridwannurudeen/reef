@@ -39,6 +39,12 @@ contract AgentIndexTest is Test {
         index.addVault(address(vaultA));
         index.addVault(address(vaultB));
 
+        // Authorize each vault to write its agent's reputation (vault-only model).
+        vm.prank(opA);
+        identity.setReputationSource(idA, address(vaultA));
+        vm.prank(opB);
+        identity.setReputationSource(idB, address(vaultB));
+
         // Seed depositors and approve the index
         token.mint(alice, 1_000e18);
         token.mint(bob, 1_000e18);

@@ -38,7 +38,7 @@ contract SignalMarketTest is Test {
         assertEq(id, 1);
     }
 
-    function test_purchaseSignal_pays_andUpdatesReputation() public {
+    function test_purchaseSignal_paysProvider() public {
         vm.prank(provider);
         uint256 id = market.createListing(providerAgent, 0.01 ether);
 
@@ -47,13 +47,9 @@ contract SignalMarketTest is Test {
         market.purchaseSignal{value: 0.01 ether}(id, consumerAgent, evidence);
 
         assertEq(provider.balance, beforeBal + 0.01 ether);
-
-        (int256 pCum, uint256 pCount) = identity.getSummary(providerAgent);
-        (int256 cCum, uint256 cCount) = identity.getSummary(consumerAgent);
-        assertEq(pCum, 1e18);
-        assertEq(pCount, 1);
-        assertEq(cCum, 1e17);
-        assertEq(cCount, 1);
+        // Reputation is intentionally NOT credited by SignalMarket (vault-only model).
+        (int256 pCum,) = identity.getSummary(providerAgent);
+        assertEq(pCum, 0);
     }
 
     function test_purchaseSignal_refundsExcess() public {
