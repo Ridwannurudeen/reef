@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {AgentIdentity} from "../src/AgentIdentity.sol";
 import {AgentVault} from "../src/AgentVault.sol";
 import {AgentIndex} from "../src/AgentIndex.sol";
+import {ReputationBond} from "../src/ReputationBond.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 
 contract AgentIndexTest is Test {
@@ -251,5 +252,43 @@ contract AgentIndexTest is Test {
         assertEq(got, 100e18);
         assertEq(index.balanceOf(bob), 0);
         assertEq(index.totalSupply(), 0);
+    }
+
+    // --- Skin-in-the-game bond gate ---
+
+    function _bondGate() internal returns (ReputationBond rb) {
+        rb = new ReputationBond(address(token), address(identity), address(this), 1e18, 10e18, 1 days);
+        token.mint(opA, 100e18);
+        vm.prank(opA);
+        token.approve(address(rb), type(uint256).max);
+        vm.prank(opA);
+        rb.postBond(idA, 50e18); // opA bonded; opB not
+        index.setReputationBond(address(rb), 10e18);
+    }
+
+    function test_bondGate_equalWeight_excludesUnbonded() public {
+        _bondGate();
+        vm.prank(alice);
+        index.deposit(100e18);
+        index.rebalance();
+        // no reputation yet → equal weight among BONDED vaults only → A=100%, B=0
+        AgentIndex.Allocation[] memory alloc = index.getAllocation();
+        assertEq(alloc[0].deployed, 100e18);
+        assertEq(alloc[1].deployed, 0);
+    }
+
+    function test_bondGate_repWeight_excludesUnbonded() public {
+        _bondGate();
+        vm.prank(alice);
+        index.deposit(100e18);
+        // both earn equal reputation, but only A is bonded
+        vm.prank(opA);
+        vaultA.publishReceipt(abi.encode(uint256(0), keccak256("a"), int256(5e18), uint64(60)));
+        vm.prank(opB);
+        vaultB.publishReceipt(abi.encode(uint256(0), keccak256("b"), int256(5e18), uint64(60)));
+        index.rebalance();
+        AgentIndex.Allocation[] memory alloc = index.getAllocation();
+        assertEq(alloc[0].weightBps, 10000); // A gets all
+        assertEq(alloc[1].deployed, 0); // B excluded — no bond
     }
 }
