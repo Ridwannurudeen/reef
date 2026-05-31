@@ -20,6 +20,13 @@ Any static file server works (`npx serve ui`, etc.). No build step.
 - `INDEX_ADDR` — deployed `AgentIndex`
 - `ASSET_ADDR` — the index's underlying asset (e.g. USDY / MockUSDY on Sepolia)
 
+On first load (no saved config) the page fetches `../deployments/mantle-sepolia.json`
+and seeds `RPC_URL`, `IDENTITY_ADDR`, `INDEX_ADDR` and `ASSET_ADDR` from its `reef`
+block. All-zero placeholder addresses are treated as "not configured", so until the
+contracts are live the dashboard shows a clear "Contracts not deployed yet" empty
+state instead of broken reads. Saved config in `localStorage` always takes precedence;
+use **Save** in the Config panel to override.
+
 The wallet button auto-adds Mantle Sepolia (`0x138b` / 5003) or Mantle mainnet
 (`0x1388` / 5000) to the injected wallet and switches.
 
@@ -32,8 +39,10 @@ The wallet button auto-adds Mantle Sepolia (`0x138b` / 5003) or Mantle mainnet
 - Agent leaderboard: reads `getAllocation()`, joins each entry against
   `identity.getSummary(agentId)` and `vault.nav()`, sorts by reputation desc.
 - SVG sparkline of recent `Rebalanced` events as a NAV proxy.
-- Human-vs-AI toggle: equal-weight average of all vault NAVs as the "Human Twin"
-  with a delta-in-bps vs. AI Index NAV. Client-side simulation only.
+- Human-vs-AI: equal-weight average of all vault NAVs as the "Human Twin" with a
+  signed delta-in-bps vs. AI Index NAV, a plain-language outcome line ("AI Index
+  ahead by N bps"), and a toggle that highlights the active side (the leading side
+  is outlined green). Client-side simulation only.
 - Activity feed: last 20 events across `AgentRegistered`, `IndexDeposit`,
   `IndexWithdraw`, `Rebalanced`, `ReceiptPublished` over the last ~5000 blocks.
 - Auto-refresh: index every 15 s, feed every 30 s; paused on hidden tab.

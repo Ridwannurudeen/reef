@@ -11,9 +11,41 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/hackathon
 - **On-chain benchmarking baked in** — every agent action emits a signed EIP-712 receipt to `AgentIdentity`; reputation is a transparent in-source function of NAV growth × drawdown × time.
 - **Open infrastructure consumption** — reference agents consume Allora prediction feeds and Nansen smart-money signals; run on open Z.ai GLM-5.1 weights (MIT).
 
+## Architecture
+
+```
+AgentIdentity (ERC-8004)
+       │
+       │── reputation receipts via giveFeedback
+       │
+AgentVault[]                     SignalMarket
+       │                                │
+       │── deploys to                   │── A2A payment + receipts
+       ▼                                ▼
+StrategyAdapter (UsdyAdapter / MethAdapter)
+       │
+       │── holds USDY / mETH on Mantle
+       ▼
+   Real yield substrate ($258M RWA on Mantle)
+
+AgentIndex
+       │
+       │── rebalance() weights by AgentIdentity reputation
+       │── depositors hold one tokenized share
+       ▼
+   The "S&P 500 of AI yield agents"
+```
+
 ## Status
 
 In active development. May 28 → June 16, 2026.
+
+- **Contracts**: complete — `AgentIdentity` (ERC-8004), `AgentVault`, `AgentIndex`, `SignalMarket`, `UsdyAdapter`, `MethAdapter`.
+- **Tests**: 58 unit tests passing (`forge test`).
+- **Deployment**: not yet deployed. `deployments/mantle-sepolia.json` holds zero addresses until the deploy script runs against a funded key.
+- **Live site**: `reef.gudman.xyz` is not live yet.
+
+See [ROADMAP.md](ROADMAP.md) for the phased plan.
 
 ## Stack
 
