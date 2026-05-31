@@ -85,6 +85,12 @@
   .feed-row .meta { color: #8b949e; font-size: 11px; }
   svg.spark { width: 100%; height: 60px; display: block; margin-top: 8px; }
   .small { font-size: 11px; color: #8b949e; }
+  .notice {
+    background: #0d1117; border: 1px solid #30363d; border-left: 3px solid #1f6feb;
+    padding: 8px 12px; border-radius: 4px; font-size: 12px; color: #8b949e; margin-bottom: 12px;
+  }
+  .hva-card.win { border-color: #2ea043; }
+  .hva-card.dim { opacity: 0.55; }
 </style>
 </head>
 <body>
@@ -127,6 +133,7 @@
 
   <div class="panel">
     <h2>AgentIndex</h2>
+    <div id="idxNotice" class="notice hidden"></div>
     <div class="stats">
       <div class="stat"><div class="label">Total assets</div><div class="value" id="idxTotalAssets">—</div></div>
       <div class="stat"><div class="label">Total shares</div><div class="value" id="idxTotalShares">—</div></div>
@@ -186,13 +193,14 @@
         <button data-mode="ai" class="on">AI Index</button>
         <button data-mode="human">Human Twin</button>
       </div>
-      <span id="hvaActive" class="muted">showing: AI Index</span>
+      <span id="hvaActive" class="muted">highlighting: AI Index</span>
     </div>
     <div class="stats" style="margin-top: 12px; grid-template-columns: repeat(3, 1fr);">
-      <div class="stat"><div class="label">AI Index NAV</div><div class="value" id="hvaAi">—</div></div>
-      <div class="stat"><div class="label">Human Twin NAV</div><div class="value" id="hvaHuman">—</div></div>
-      <div class="stat"><div class="label">Delta (bps)</div><div class="value" id="hvaDelta">—</div></div>
+      <div class="stat hva-card" id="hvaCardAi"><div class="label">AI Index NAV</div><div class="value" id="hvaAi">—</div></div>
+      <div class="stat hva-card" id="hvaCardHuman"><div class="label">Human Twin NAV</div><div class="value" id="hvaHuman">—</div></div>
+      <div class="stat"><div class="label">AI vs Human (bps)</div><div class="value" id="hvaDelta">—</div></div>
     </div>
+    <div id="hvaOutcome" class="small" style="margin-top: 8px;">—</div>
     <div class="small" style="margin-top: 8px;">
       Human Twin is a client-side simulation: equal-weight average of all vault NAVs.
       Simulated comparison for demo purposes only.
@@ -216,6 +224,13 @@ import {
 } from "https://esm.sh/viem@2.21.0?bundle";
 
 const NS = "reef.ui.v1";
+const ZERO = "0x0000000000000000000000000000000000000000";
+const DEPLOYMENTS_URL = "../deployments/mantle-sepolia.json";
+
+// A configured address is usable only if it's a non-zero address. The
+// deployments file ships all-zero placeholders until contracts are live, so we
+// treat zero (and anything that isn't a valid address) as "not configured".
+function addr(a) { return a && a !== ZERO && isAddress(a) ? a : ""; }
 
 const MANTLE_SEPOLIA = {
   chainIdHex: "0x138b", chainIdNum: 5003, name: "Mantle Sepolia",
@@ -342,6 +357,7 @@ const state = {
   allocation: [],     // [{ agentId, vault, weightBps, deployed, nav, reputation }]
   navHistory: [],     // bigint[] of index nav at past rebalances
   hvaMode: "ai",
+  hvaWinner: null,
   pollIndex: null,
   pollFeed: null,
 };
@@ -392,11 +408,33 @@ function fmtBps(bps) { return `${(Number(bps) / 100).toFixed(2)}%`; }
 
 // --- config persistence --------------------------------------------------
 
-function loadCfg() {
+async function loadCfg() {
+  let saved = null;
   try {
     const raw = localStorage.getItem(NS);
-    if (raw) Object.assign(state.cfg, JSON.parse(raw));
+    if (raw) saved = JSON.parse(raw);
   } catch {}
+  if (saved) {
+    Object.assign(state.cfg, saved);
+  } else {
+    // No saved config yet: seed addresses from the deployments file so the
+    // dashboard points at the live contracts without manual entry. Zero
+    // placeholders are normalized to "" (see addr()) so empty states render.
+    try {
+      const res = await fetch(DEPLOYMENTS_URL, { cache: "no-store" });
+      if (res.ok) {
+        const dep = await res.json();
+        const r = dep.reef || {};
+        if (dep.rpc) state.cfg.rpc = dep.rpc;
+        state.cfg.identity = addr(r.AgentIdentity);
+        state.cfg.index = addr(r.AgentIndex);
+        state.cfg.asset = addr(r.MockUSDY);
+      }
+    } catch {}
+  }
+  state.cfg.identity = addr(state.cfg.identity);
+  state.cfg.index = addr(state.cfg.index);
+  state.cfg.asset = addr(state.cfg.asset);
   $("cfgRpc").value = state.cfg.rpc;
   $("cfgIdentity").value = state.cfg.identity;
   $("cfgIndex").value = state.cfg.index;
@@ -409,9 +447,9 @@ function saveCfg() {
   const index = $("cfgIndex").value.trim();
   const asset = $("cfgAsset").value.trim();
   for (const [k, v] of Object.entries({ identity, index, asset })) {
-    if (v && !isAddress(v)) return toast(`${k}: invalid address`, "err");
+    if (v && v !== ZERO && !isAddress(v)) return toast(`${k}: invalid address`, "err");
   }
-  state.cfg = { rpc, identity, index, asset };
+  state.cfg = { rpc, identity: addr(identity), index: addr(index), asset: addr(asset) };
   localStorage.setItem(NS, JSON.stringify(state.cfg));
   rebuildClients();
   $("cfgStatus").textContent = "saved";
@@ -539,8 +577,28 @@ async function sendTx({ address, abi, functionName, args, value }) {
 
 // --- AgentIndex reads ----------------------------------------------------
 
+function setNotice(msg, kind = "info") {
+  const el = $("idxNotice");
+  if (!msg) { el.classList.add("hidden"); el.textContent = ""; return; }
+  el.classList.remove("hidden");
+  el.style.borderLeftColor = kind === "err" ? "#f85149" : "#1f6feb";
+  el.textContent = msg;
+}
+
+function clearIndexStats() {
+  for (const id of ["idxTotalAssets", "idxTotalShares", "idxNav", "idxVaultCount",
+    "idxYourShares", "idxYourAssets"]) $(id).textContent = "—";
+}
+
 async function refreshIndex() {
-  if (!state.publicClient || !state.cfg.index) return;
+  if (!state.publicClient) return;
+  if (!state.cfg.index) {
+    setNotice("Contracts not deployed yet — set the AgentIndex / AgentIdentity / Asset addresses in Config, or wait for deployment. Live data appears here once addresses are configured.");
+    clearIndexStats();
+    $("rebalBtn").disabled = true;
+    refreshLeaderboard(undefined);
+    return;
+  }
   try {
     const c = state.publicClient;
     const idx = state.cfg.index;
@@ -549,6 +607,7 @@ async function refreshIndex() {
       c.readContract({ address: idx, abi: INDEX_ABI, functionName: "totalShares" }),
       c.readContract({ address: idx, abi: INDEX_ABI, functionName: "vaultCount" }),
     ]);
+    setNotice("");
     const nav = shares === 0n ? 10n ** 18n : (total * (10n ** 18n)) / shares;
     $("idxTotalAssets").textContent = fmt18(total);
     $("idxTotalShares").textContent = fmt18(shares);
@@ -574,11 +633,20 @@ async function refreshIndex() {
     await refreshLeaderboard(nav);
   } catch (e) {
     console.warn("refreshIndex:", e);
+    setNotice(`Could not read AgentIndex — check the RPC URL and that the address is a deployed contract. (${errMsg(e)})`, "err");
+    clearIndexStats();
   }
 }
 
 async function refreshLeaderboard(indexNav) {
-  if (!state.cfg.index || !state.cfg.identity) return;
+  if (!state.cfg.index || !state.cfg.identity) {
+    $("lbBody").innerHTML = `<tr><td colspan="7" class="muted">waiting for deployment — no AgentIndex / AgentIdentity configured</td></tr>`;
+    state.allocation = [];
+    state.navHistory = [];
+    drawSparkline();
+    refreshHumanVsAi(undefined);
+    return;
+  }
   const c = state.publicClient;
   let alloc;
   try {
@@ -615,8 +683,9 @@ async function refreshLeaderboard(indexNav) {
 
   $("lbBody").innerHTML = enriched.map((a, i) => {
     const repClass = a.reputation > 0n ? "pos" : a.reputation < 0n ? "neg" : "";
+    const lead = i === 0 && a.reputation > 0n ? ` <span class="badge">leader</span>` : "";
     return `<tr>
-      <td>${i + 1}</td>
+      <td>${i + 1}${lead}</td>
       <td>${a.agentId.toString()}</td>
       <td><a href="${explorerFor(state.chainId)}/address/${a.vault}" target="_blank" rel="noopener">${shortAddr(a.vault)}</a></td>
       <td class="num ${repClass}">${fmtSigned18(a.reputation)}</td>
@@ -652,27 +721,56 @@ function drawSparkline() {
 // --- Human vs. AI --------------------------------------------------------
 
 function refreshHumanVsAi(indexNav) {
-  const ai = indexNav ?? 10n ** 18n;
-  $("hvaAi").textContent = fmt18(ai, 6);
-
-  if (state.allocation.length === 0) {
+  // No live index NAV (not deployed / unreachable) or no vaults to average:
+  // show a clean empty state rather than a misleading 1.000000 baseline.
+  if (indexNav == null || state.allocation.length === 0) {
+    $("hvaAi").textContent = "—";
     $("hvaHuman").textContent = "—";
     $("hvaDelta").textContent = "—";
+    $("hvaDelta").className = "value";
+    $("hvaOutcome").textContent = "Waiting for live vault data.";
+    state.hvaWinner = null;
+    applyHvaHighlight();
     return;
   }
+  const ai = indexNav;
   let sum = 0n;
   for (const a of state.allocation) sum += a.nav;
   const human = sum / BigInt(state.allocation.length);
+  $("hvaAi").textContent = fmt18(ai, 6);
   $("hvaHuman").textContent = fmt18(human, 6);
-  // delta_bps = (ai - human) / human * 10000
-  let deltaBps = "—";
+
   if (human > 0n) {
-    const diff = ai - human;
-    const bps = (diff * 10000n) / human;
+    // delta_bps = (ai - human) / human * 10000
+    const bps = ((ai - human) * 10000n) / human;
     const sign = bps >= 0n ? "+" : "";
-    deltaBps = `${sign}${bps.toString()}`;
+    $("hvaDelta").textContent = `${sign}${bps.toString()}`;
+    $("hvaDelta").className = `value ${bps >= 0n ? "pos" : "neg"}`;
+    if (bps === 0n) {
+      $("hvaOutcome").textContent = "Tied — AI Index and Human Twin are level.";
+      state.hvaWinner = null;
+    } else if (bps > 0n) {
+      $("hvaOutcome").innerHTML = `<span class="pos">AI Index ahead</span> by ${bps.toString()} bps vs the equal-weight Human Twin.`;
+      state.hvaWinner = "ai";
+    } else {
+      $("hvaOutcome").innerHTML = `<span class="neg">Human Twin ahead</span> by ${(-bps).toString()} bps vs the AI Index.`;
+      state.hvaWinner = "human";
+    }
+  } else {
+    $("hvaDelta").textContent = "—";
+    $("hvaDelta").className = "value";
+    $("hvaOutcome").textContent = "Waiting for live vault data.";
+    state.hvaWinner = null;
   }
-  $("hvaDelta").textContent = deltaBps;
+  applyHvaHighlight();
+}
+
+function applyHvaHighlight() {
+  const aiCard = $("hvaCardAi"), humanCard = $("hvaCardHuman");
+  aiCard.classList.toggle("dim", state.hvaMode !== "ai");
+  humanCard.classList.toggle("dim", state.hvaMode !== "human");
+  aiCard.classList.toggle("win", state.hvaWinner === "ai");
+  humanCard.classList.toggle("win", state.hvaWinner === "human");
 }
 
 // --- Activity feed -------------------------------------------------------
@@ -883,11 +981,12 @@ for (const b of $("hvaToggle").querySelectorAll("button")) {
     for (const x of $("hvaToggle").querySelectorAll("button")) x.classList.remove("on");
     b.classList.add("on");
     state.hvaMode = b.dataset.mode;
-    $("hvaActive").textContent = `showing: ${b.dataset.mode === "ai" ? "AI Index" : "Human Twin"}`;
+    $("hvaActive").textContent = `highlighting: ${b.dataset.mode === "ai" ? "AI Index" : "Human Twin"}`;
+    applyHvaHighlight();
   });
 }
 
-loadCfg();
+await loadCfg();
 rebuildClients();
 refreshAll();
 startPolling();

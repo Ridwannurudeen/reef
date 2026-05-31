@@ -13,15 +13,28 @@
   ],
   "nativeToken": "MNT",
   "reef": {
-    "AgentIdentity": "0x0000000000000000000000000000000000000000",
+    "_comment": "Live on Mantle Sepolia (chain 5003), deployed 2026-05-31. Sepolia uses a generic MockERC20 as the index asset (real USDY/mETH live on mainnet only - see mainnetReferences). Adapters / ReputationOracle / extra mocks not deployed in this Sepolia demo instance.",
+    "AgentIdentity": "0x75Ddb3Ef346C6C4995536D0368EE7C11160eddac",
     "AgentVault": "0x0000000000000000000000000000000000000000",
-    "AgentIndex": "0x0000000000000000000000000000000000000000",
+    "AgentIndex": "0x9071f05834123ed4F71Ce342f1Af8e0a7077215E",
     "ReputationOracle": "0x0000000000000000000000000000000000000000",
     "UsdyAdapter": "0x0000000000000000000000000000000000000000",
     "MethAdapter": "0x0000000000000000000000000000000000000000",
     "MockUSDC": "0x0000000000000000000000000000000000000000",
-    "MockUSDY": "0x0000000000000000000000000000000000000000",
+    "MockUSDY": "0xbc17D7F8f265d069781ed765914ED092989d92e7",
     "MockMETH": "0x0000000000000000000000000000000000000000"
+  },
+  "seeded": {
+    "deployer": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
+    "asset": "0xbc17D7F8f265d069781ed765914ED092989d92e7",
+    "indexTotalAssets": "1000000000000000000000",
+    "vaults": [
+      { "agentId": 1, "vault": "0xde7af6Ea6C6d98BD56Bfc520C281c0C7047a3D85", "weightBps": 526 },
+      { "agentId": 2, "vault": "0x0471EAe45C17cc1fb0e7E671efD27071B7daC728", "weightBps": 1052 },
+      { "agentId": 3, "vault": "0xF51900f0b8907f75C7fF795e5B1AC7e6b297A864", "weightBps": 1578 },
+      { "agentId": 4, "vault": "0xc64076bC74F2a97F7B50DCe9a94a9A0967d4d24f", "weightBps": 2631 },
+      { "agentId": 5, "vault": "0xe68dCac9BfF8850d11c5E70457952B33E3eABD01", "weightBps": 4210 }
+    ]
   },
   "mainnetReferences": {
     "comment": "Verified addresses on Mantle MAINNET (chain 5000), pinned here for mainnet demo deployment only. Sepolia uses mocks.",
