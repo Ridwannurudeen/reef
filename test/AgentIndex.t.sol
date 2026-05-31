@@ -124,35 +124,29 @@ contract AgentIndexTest is Test {
         vm.prank(alice);
         index.deposit(100e18);
 
-        // Give vaultA's agent a positive cumulative score via a receipt
-        vm.prank(opA);
-        vaultA.publishReceipt(abi.encode(uint256(0), keccak256("ev"), int256(3e18), uint64(60)));
-        // vaultB stays at 0
+        _giveRep(vaultA, opA, 3e18); // vaultA earns reputation via a real NAV gain; vaultB stays at 0
 
         index.rebalance();
         AgentIndex.Allocation[] memory alloc = index.getAllocation();
         // vaultA has all the positive rep → 100% allocation
-        assertEq(alloc[0].deployed, 100e18);
-        assertEq(alloc[1].deployed, 0);
         assertEq(alloc[0].weightBps, 10000);
+        assertEq(alloc[1].deployed, 0);
     }
 
     function test_rebalance_redistributes_whenReputationChanges() public {
         vm.prank(alice);
         index.deposit(100e18);
         // first: A gets all rep
-        vm.prank(opA);
-        vaultA.publishReceipt(abi.encode(uint256(0), keccak256("ev1"), int256(2e18), uint64(60)));
+        _giveRep(vaultA, opA, 2e18);
         index.rebalance();
-        assertEq(index.getAllocation()[0].deployed, 100e18);
+        assertEq(index.getAllocation()[0].weightBps, 10000);
 
-        // now B catches up: A=2, B=6 → A=25%, B=75%
-        vm.prank(opB);
-        vaultB.publishReceipt(abi.encode(uint256(0), keccak256("ev2"), int256(6e18), uint64(60)));
+        // now B catches up: A=2, B=6 → A≈25%, B≈75% (±rounding from non-unit NAV)
+        _giveRep(vaultB, opB, 6e18);
         index.rebalance();
         AgentIndex.Allocation[] memory alloc = index.getAllocation();
-        assertEq(alloc[0].weightBps, 2500);
-        assertEq(alloc[1].weightBps, 7500);
+        assertApproxEqAbs(alloc[0].weightBps, 2500, 5);
+        assertApproxEqAbs(alloc[1].weightBps, 7500, 5);
     }
 
     function test_rebalance_revertsWithNoVaults() public {
@@ -262,6 +256,18 @@ contract AgentIndexTest is Test {
 
     // --- Skin-in-the-game bond gate ---
 
+    function _giveRep(AgentVault v, address op, uint256 repAmount) internal {
+        // Give the vault a real per-share NAV gain of `repAmount` (principal 1e18 +
+        // simulated yield), then publish a receipt so reputation accrues on-chain.
+        token.mint(address(this), 1e18);
+        token.approve(address(v), 1e18);
+        v.deposit(1e18);
+        token.mint(address(v), repAmount);
+        uint256 seq = v.nextReceiptSeq();
+        vm.prank(op);
+        v.publishReceipt(abi.encode(seq, keccak256(abi.encode("rep", address(v), seq)), int256(0), uint64(60)));
+    }
+
     function _bondGate() internal returns (ReputationBond rb) {
         rb = new ReputationBond(address(token), address(identity), address(this), 1e18, 10e18, 1 days);
         token.mint(opA, 100e18);
@@ -288,10 +294,8 @@ contract AgentIndexTest is Test {
         vm.prank(alice);
         index.deposit(100e18);
         // both earn equal reputation, but only A is bonded
-        vm.prank(opA);
-        vaultA.publishReceipt(abi.encode(uint256(0), keccak256("a"), int256(5e18), uint64(60)));
-        vm.prank(opB);
-        vaultB.publishReceipt(abi.encode(uint256(0), keccak256("b"), int256(5e18), uint64(60)));
+        _giveRep(vaultA, opA, 5e18);
+        _giveRep(vaultB, opB, 5e18);
         index.rebalance();
         AgentIndex.Allocation[] memory alloc = index.getAllocation();
         assertEq(alloc[0].weightBps, 10000); // A gets all

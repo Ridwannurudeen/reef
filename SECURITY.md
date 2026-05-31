@@ -10,7 +10,7 @@
 | 1 | Critical | `AgentIdentity.giveFeedback` had no access control — anyone could mint reputation | **✅ Fixed** (vault-only gate) |
 | 2 | Critical | First-depositor / donation share-inflation in `AgentVault` + `AgentIndex` | **Open** (must-fix) |
 | 3 | High | `AgentIndex.rebalance` trusts operator-controlled vault NAV; no protocol adapter allowlist | **Open** (must-fix) |
-| 4 | High | `AgentVault.publishReceipt` credits reputation from an unverified operator-supplied `navDelta` | **Open** (must-fix) |
+| 4 | High | `AgentVault.publishReceipt` credited reputation from an unverified operator `navDelta` | **✅ Fixed** (NAV-derived) |
 | 5 | High | No reentrancy guards; `AgentVault.withdraw` called adapter before updating shares | **✅ Fixed** |
 | 6 | Medium | `ReputationBond` concurrent-dispute / commingled-funds accounting | **Open** |
 | 7 | Medium | No `SafeERC20`; fragile `approve` for non-standard tokens | **Open** (USDY is standard ERC-20 → low risk for the demo) |
@@ -26,10 +26,10 @@
 
 ## Must-fix before mainnet TVL (the reputation-integrity redesign)
 
-Findings **#3, #4** remain interlocking with the (now-fixed) #1 and together gate the core premise (reputation → capital):
+Reputation is now both **authorized** (#1, vault-only) and **earned** (#4, NAV-derived). The remaining reputation-integrity item is **#3** (a malicious operator can still inflate NAV via a fake adapter):
 
-- **#1** — ✅ Done (vault-only gate, see above). The chosen model: only the agent's own designated vault may write reputation.
-- **#4** — credit reputation from the vault's actual on-chain NAV delta between receipts, not the operator-supplied `navDelta` in `publishReceipt`. This closes the residual from #1 (an authorized vault over-reporting). **Top remaining reputation item.**
+- **#1** — ✅ Done (vault-only gate). Only the agent's own designated vault may write reputation.
+- **#4** — ✅ Done. `publishReceipt` credits the vault's real on-chain per-share NAV delta (`nav()` change since the last receipt); the operator's claimed `navDelta` is ignored. Verified: a claimed `1e24` credits only the real `5e17`.
 - **#3** — move strategy-adapter approval to a protocol/governance allowlist (by codehash), so a malicious operator cannot point a vault at an adapter that lies about `totalUnderlying()`. Ensure `MockYieldAdapter` (testnet-only, mints freely) is never allowlisted.
 - **#2** — add dead-shares / virtual-offset to first deposits in both `AgentVault` and `AgentIndex`.
 - **#6/#10** — one active dispute per agent (or per-dispute slash escrow); multisig/timelocked arbiter; reject self-challenge.

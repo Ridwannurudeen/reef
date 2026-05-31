@@ -133,17 +133,22 @@ contract AgentVaultTest is Test {
 
     // --- Receipts ---
 
-    function test_publishReceipt_strictSeq_updatesReputation() public {
-        bytes32 evidence = keccak256("ev1");
-        bytes memory r = abi.encode(uint256(0), evidence, int256(5e17), uint64(3600));
+    function test_publishReceipt_creditsRealNavDelta_notClaim() public {
+        // Establish a real +0.5 per-share NAV gain: deposit principal, then simulate yield.
+        vm.prank(alice);
+        vault.deposit(1e18); // nav = 1e18
+        token.mint(address(vault), 5e17); // donate yield -> nav = 1.5e18
 
+        bytes32 evidence = keccak256("ev1");
+        // The claimed delta in the payload is a lie (1e24); it is ignored on-chain.
+        bytes memory r = abi.encode(uint256(0), evidence, int256(1e24), uint64(3600));
         vm.prank(operator);
         vault.publishReceipt(r);
 
         assertEq(vault.nextReceiptSeq(), 1);
         assertEq(vault.lastReceiptEvidenceHash(), evidence);
         (int256 cum, uint256 count) = identity.getSummary(agentId);
-        assertEq(cum, 5e17);
+        assertEq(cum, 5e17); // credited the REAL nav delta, not the claimed 1e24
         assertEq(count, 1);
     }
 

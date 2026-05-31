@@ -34,6 +34,8 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
     uint256 public nextReceiptSeq;
     bytes32 public lastReceiptEvidenceHash;
     uint64 public lastReceiptAt;
+    /// @dev Per-share NAV at the last receipt; reputation credits the delta since.
+    uint256 public lastReputableNav;
 
     event StrategyApproved(address indexed adapter);
 
@@ -48,6 +50,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
         asset = IERC20(asset_);
         agentId = agentId_;
         identity = AgentIdentity(identity_);
+        lastReputableNav = 1e18; // starting NAV; reputation accrues on gains above this
     }
 
     // --- Deposit / Withdraw ---
@@ -114,9 +117,13 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
     // --- Receipts ---
 
     /// @notice Operator publishes a strict-sequence receipt for the latest period.
-    /// @dev Payload layout (abi.encode): (uint256 seq, bytes32 evidenceHash, int256 navDelta, uint64 period)
+    /// Reputation credited is the vault's REAL per-share NAV change since the last
+    /// receipt, computed on-chain — not the operator-supplied figure (the payload's
+    /// claimed delta is ignored for reputation; it remains only as off-chain claim
+    /// matched by the evidence hash). This closes the operator-overstatement vector.
+    /// @dev Payload layout (abi.encode): (uint256 seq, bytes32 evidenceHash, int256 claimedDelta, uint64 period)
     function publishReceipt(bytes calldata eip712Receipt) external override onlyOperator {
-        (uint256 seq, bytes32 evidenceHash, int256 navDelta, uint64 period) =
+        (uint256 seq, bytes32 evidenceHash,, uint64 period) =
             abi.decode(eip712Receipt, (uint256, bytes32, int256, uint64));
         require(seq == nextReceiptSeq, "bad seq");
         require(evidenceHash != bytes32(0), "zero evidence");
@@ -126,12 +133,13 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
         lastReceiptEvidenceHash = evidenceHash;
         lastReceiptAt = uint64(block.timestamp);
 
-        // Reputation = clipped PnL (int128 range), 18-decimal fixed point matching
-        // AgentIdentity's normalisation.
-        int128 clipped = _clipToInt128(navDelta);
-        identity.giveFeedback(agentId, clipped, 18);
+        // Credit the real on-chain per-share NAV delta since the last receipt.
+        uint256 currentNav = nav();
+        int256 realDelta = int256(currentNav) - int256(lastReputableNav);
+        lastReputableNav = currentNav;
+        identity.giveFeedback(agentId, _clipToInt128(realDelta), 18);
 
-        emit ReceiptPublished(seq, evidenceHash, navDelta);
+        emit ReceiptPublished(seq, evidenceHash, realDelta);
     }
 
     // --- Views ---
@@ -141,7 +149,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
         return asset.balanceOf(address(this)) + outstanding;
     }
 
-    function nav() external view override returns (uint256) {
+    function nav() public view override returns (uint256) {
         if (totalShares == 0) return 1e18;
         return (totalAssets() * 1e18) / totalShares;
     }
