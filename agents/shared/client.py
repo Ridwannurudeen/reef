@@ -16,8 +16,8 @@ from web3.contract import Contract
 # import whichever the installed version exposes.
 try:
     from web3.middleware import geth_poa_middleware as _poa_middleware  # type: ignore[attr-defined]
-except ImportError:  # pragma: no cover - version-dependent
-    pass  # type: ignore[attr-defined]
+except ImportError:  # web3 >=7 renamed geth_poa_middleware -> ExtraDataToPOAMiddleware
+    from web3.middleware import ExtraDataToPOAMiddleware as _poa_middleware
 
 from .config import FOUNDRY_OUT, load_chain
 

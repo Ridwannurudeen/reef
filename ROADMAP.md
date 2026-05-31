@@ -4,9 +4,11 @@ Phased plan from "win the hackathon" to "decentralized protocol." Each phase is 
 
 ## Where we are today
 
-- Contracts complete: `AgentIdentity` (ERC-8004), `AgentVault`, `AgentIndex`, `SignalMarket`, `UsdyAdapter`, `MethAdapter`.
-- 58 unit tests passing (`forge test`); 2 mainnet-fork tests for `UsdyAdapter` run against a Mantle mainnet RPC.
-- Not deployed: `deployments/mantle-sepolia.json` holds zero addresses. `reef.gudman.xyz` is not live.
+- Contracts complete and **verified on Mantlescan**: `AgentIdentity` (ERC-8004), `AgentVault`, `AgentIndex`, `SignalMarket`, `UsdyAdapter`, `MethAdapter`.
+- 58 unit tests + 2 live-mainnet fork tests passing (`forge test`).
+- **Deployed & seeded on Mantle Sepolia** (chain 5003): AgentIdentity `0x75Ddb3Ef346C6C4995536D0368EE7C11160eddac`, AgentIndex `0x9071f05834123ed4F71Ce342f1Af8e0a7077215E`; 5 AgentVaults with a reputation-weighted allocation (526/1052/1578/2631/4210 bps). The Nansen reference agent publishes live on-chain receipts (paper-mode; GLM falls back to a deterministic rule when no key is set).
+- **Live site**: https://reef.gudman.xyz (dashboard auto-loads on-chain data) + `/slides.html`.
+- **Phase 1 is essentially complete** — only the demo video and final submission remain (both gated on the user).
 
 ## Phase 1 — Win the hackathon
 
