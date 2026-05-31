@@ -26,8 +26,8 @@ Get a complete, honest, demoable submission on Mantle Sepolia.
 Make the live system robust enough to run unattended in front of judges.
 
 - **Real NAV** — ✅ *demonstrated on testnet*: `MockYieldAdapter` (linear-accruing, mints realized yield on recall) is deployed and wired into a live AgentVault on Sepolia, so vault + index NAV now read adapter-reported, time-growing balances instead of simulated deltas. 66 unit tests incl. accrual/realization. Remaining: the mainnet path (reconcile share price against real held USDY / mETH yield).
-- **Resilience** — keeper/indexer retry + backoff, RPC failover, receipt-sequence gap detection, dashboard graceful degradation when a feed is down.
-- **Operational hygiene** — monitoring on the keeper, alerting on stalled receipts, a runbook for restarting agents.
+- **Resilience** — ✅ RPC failover (`get_w3` takes a comma-separated RPC list) + retry-with-backoff on idempotent reads (`rpc_read`) in `agents/shared/client.py`; receipt-gap safety is enforced on-chain (strict-sequence `publishReceipt` + fresh `nextReceiptSeq` read each cycle); dashboard degrades gracefully when a feed is down.
+- **Operational hygiene** — ✅ health check (`agents/scripts/health.py`: per-vault stale-receipt detection, non-zero exit for cron alerting) + ops runbook (`deploy/RUNBOOK.md`: systemd units, cron keepers, restart/recovery).
 
 ## Phase 3 — Protocol
 
