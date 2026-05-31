@@ -5,13 +5,14 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {IAgentVault} from "./interfaces/IAgentVault.sol";
 import {IStrategyAdapter} from "./interfaces/IStrategyAdapter.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
+import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 
 /// @title AgentVault
 /// @notice Per-agent vault. Operator deploys capital into approved StrategyAdapters
 /// — funds always move vault→adapter, never to the operator wallet. Each cycle the
 /// operator publishes a strict-sequence receipt; the cumulative PnL flows into the
 /// agent's ERC-8004 reputation via AgentIdentity.giveFeedback.
-contract AgentVault is IAgentVault {
+contract AgentVault is IAgentVault, ReentrancyGuard {
     IERC20 public immutable asset;
     uint256 public immutable override agentId;
     AgentIdentity public immutable identity;
@@ -51,7 +52,7 @@ contract AgentVault is IAgentVault {
 
     // --- Deposit / Withdraw ---
 
-    function deposit(uint256 assets) external override returns (uint256 shares) {
+    function deposit(uint256 assets) external override nonReentrant returns (uint256 shares) {
         require(assets > 0, "zero assets");
         uint256 total = totalAssets();
         shares = totalShares == 0 ? assets : (assets * totalShares) / total;
@@ -62,11 +63,15 @@ contract AgentVault is IAgentVault {
         emit Deposited(msg.sender, assets, shares);
     }
 
-    function withdraw(uint256 shares) external override returns (uint256 assets) {
+    function withdraw(uint256 shares) external override nonReentrant returns (uint256 assets) {
         require(shares > 0, "zero shares");
         require(balanceOf[msg.sender] >= shares, "insufficient shares");
         assets = (shares * totalAssets()) / totalShares;
         require(assets > 0, "zero assets");
+
+        // Effects before interactions (CEI): burn shares first, then recall + pay out.
+        balanceOf[msg.sender] -= shares;
+        totalShares -= shares;
 
         uint256 idle = asset.balanceOf(address(this));
         if (idle < assets) {
@@ -74,8 +79,6 @@ contract AgentVault is IAgentVault {
             IStrategyAdapter(currentStrategy).recall(assets - idle);
         }
 
-        balanceOf[msg.sender] -= shares;
-        totalShares -= shares;
         require(asset.transfer(msg.sender, assets), "transfer out");
         emit Withdrawn(msg.sender, assets, shares);
     }
@@ -90,7 +93,7 @@ contract AgentVault is IAgentVault {
         emit StrategyApproved(adapter);
     }
 
-    function deployToStrategy(address adapter, uint256 amount) external override onlyOperator {
+    function deployToStrategy(address adapter, uint256 amount) external override onlyOperator nonReentrant {
         require(approvedStrategies[adapter], "not approved");
         require(currentStrategy == address(0) || currentStrategy == adapter, "recall current first");
         require(amount <= asset.balanceOf(address(this)), "amount > idle");
@@ -100,7 +103,7 @@ contract AgentVault is IAgentVault {
         emit StrategyDeployed(adapter, amount);
     }
 
-    function recallFromStrategy(address adapter, uint256 amount) external override onlyOperator {
+    function recallFromStrategy(address adapter, uint256 amount) external override onlyOperator nonReentrant {
         require(adapter == currentStrategy, "not current");
         IStrategyAdapter(adapter).recall(amount);
         emit StrategyRecalled(adapter, amount);

@@ -107,4 +107,20 @@ contract SignalMarketTest is Test {
         vm.expectRevert(bytes("not active"));
         market.purchaseSignal{value: 0.01 ether}(id, consumerAgent, evidence);
     }
+
+    function test_createListing_zeroPrice_reverts() public {
+        vm.prank(provider);
+        vm.expectRevert(bytes("zero price"));
+        market.createListing(providerAgent, 0);
+    }
+
+    function test_purchaseSignal_selfDeal_reverts() public {
+        vm.prank(provider);
+        uint256 id = market.createListing(providerAgent, 0.01 ether);
+        vm.deal(provider, 1 ether);
+        // provider tries to buy their own listing to farm reputation at ~zero cost
+        vm.prank(provider);
+        vm.expectRevert(bytes("self deal"));
+        market.purchaseSignal{value: 0.01 ether}(id, providerAgent, evidence);
+    }
 }

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {AgentIdentity} from "./AgentIdentity.sol";
+import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 
 /// @title SignalMarket
 /// @notice Agent-to-agent commerce primitive. A provider agent lists a signal
@@ -9,7 +10,7 @@ import {AgentIdentity} from "./AgentIdentity.sol";
 /// wallet, and both agents accrue ERC-8004 reputation: provider for the sale,
 /// consumer for completing the transaction. Evidence hash is recorded on-chain
 /// so the off-chain signal payload can be verifiably matched later.
-contract SignalMarket {
+contract SignalMarket is ReentrancyGuard {
     AgentIdentity public immutable identity;
 
     struct Listing {
@@ -42,6 +43,7 @@ contract SignalMarket {
 
     function createListing(uint256 providerAgentId, uint256 priceWei) external returns (uint256 listingId) {
         require(identity.getAgentWallet(providerAgentId) == msg.sender, "not provider");
+        require(priceWei > 0, "zero price");
         listingId = nextListingId++;
         listings[listingId] = Listing({providerAgentId: providerAgentId, priceWei: priceWei, active: true});
         emit ListingCreated(listingId, providerAgentId, priceWei);
@@ -55,9 +57,14 @@ contract SignalMarket {
         emit ListingDeactivated(listingId);
     }
 
-    function purchaseSignal(uint256 listingId, uint256 consumerAgentId, bytes32 evidenceHash) external payable {
+    function purchaseSignal(uint256 listingId, uint256 consumerAgentId, bytes32 evidenceHash)
+        external
+        payable
+        nonReentrant
+    {
         Listing memory l = listings[listingId];
         require(l.active, "not active");
+        require(l.providerAgentId != consumerAgentId, "self deal");
         require(msg.value >= l.priceWei, "underpaid");
         require(identity.getAgentWallet(consumerAgentId) == msg.sender, "not consumer");
         require(evidenceHash != bytes32(0), "zero evidence");
