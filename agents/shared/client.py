@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -23,15 +24,43 @@ from .config import FOUNDRY_OUT, load_chain
 
 
 def get_w3(rpc_url: str | None = None) -> Web3:
-    """Return a Web3 instance pointed at the Mantle Sepolia RPC by default."""
-    url = rpc_url or load_chain().rpc_url
-    w3 = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": 30}))
-    # Mantle uses a PoA-style consensus; the extraData field exceeds 32 bytes
-    # without the geth POA middleware.
-    w3.middleware_onion.inject(_poa_middleware, layer=0)
-    if not w3.is_connected():
-        raise RuntimeError(f"web3 not connected to {url}")
-    return w3
+    """Return a connected Web3 instance, trying each RPC in turn for failover.
+
+    Pass a single URL, or a comma-separated list (also accepted via the
+    MANTLE_SEPOLIA_RPC / MANTLE_RPC env var) — the first that connects wins.
+    """
+    raw = rpc_url or load_chain().rpc_url
+    urls = [u.strip() for u in raw.split(",") if u.strip()]
+    last_err: Exception | None = None
+    for url in urls:
+        try:
+            w3 = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": 30}))
+            # Mantle uses a PoA-style consensus; the extraData field exceeds 32
+            # bytes without the POA middleware.
+            w3.middleware_onion.inject(_poa_middleware, layer=0)
+            if w3.is_connected():
+                return w3
+            last_err = RuntimeError(f"not connected to {url}")
+        except Exception as e:  # noqa: BLE001 - fall through to the next RPC
+            last_err = e
+    raise RuntimeError(f"web3 not connected to any RPC {urls}: {last_err}")
+
+
+def rpc_read(fn, *, attempts: int = 4, base_delay: float = 0.5):
+    """Call an idempotent RPC read `fn`, retrying transient failures with backoff.
+
+    Use only for reads (or gas estimation) — never to re-send a transaction, which
+    could double-spend. Re-raises the last error after `attempts` tries.
+    """
+    last_err: Exception | None = None
+    for i in range(attempts):
+        try:
+            return fn()
+        except Exception as e:  # noqa: BLE001 - transient RPC/network error
+            last_err = e
+            if i < attempts - 1:
+                time.sleep(base_delay * (2**i))
+    raise RuntimeError(f"rpc_read failed after {attempts} attempts: {last_err}")
 
 
 def load_account(private_key_env: str = "PRIVATE_KEY") -> LocalAccount:
@@ -95,7 +124,7 @@ def send_tx(
 
     `fn_call` is a prepared contract function call (e.g. `vault.functions.publishReceipt(payload)`).
     """
-    nonce = w3.eth.get_transaction_count(account.address)
+    nonce = rpc_read(lambda: w3.eth.get_transaction_count(account.address))
     tx: dict[str, Any] = {
         "from": account.address,
         "nonce": nonce,
@@ -103,21 +132,21 @@ def send_tx(
     }
     # Try EIP-1559 fees; fall back to legacy gasPrice if base fee is unavailable.
     try:
-        base_fee = w3.eth.get_block("latest").get("baseFeePerGas")
+        base_fee = rpc_read(lambda: w3.eth.get_block("latest")).get("baseFeePerGas")
         if base_fee is not None:
             priority = w3.to_wei(1, "gwei")
             tx["maxPriorityFeePerGas"] = priority
             tx["maxFeePerGas"] = base_fee * 2 + priority
         else:
-            tx["gasPrice"] = w3.eth.gas_price
+            tx["gasPrice"] = rpc_read(lambda: w3.eth.gas_price)
     except Exception:
-        tx["gasPrice"] = w3.eth.gas_price
+        tx["gasPrice"] = rpc_read(lambda: w3.eth.gas_price)
 
     if gas is not None:
         tx["gas"] = gas
     else:
         # Let the node estimate; add a 25% buffer.
-        est = fn_call.estimate_gas({"from": account.address})
+        est = rpc_read(lambda: fn_call.estimate_gas({"from": account.address}))
         tx["gas"] = int(est * 5 // 4)
 
     built = fn_call.build_transaction(tx)
