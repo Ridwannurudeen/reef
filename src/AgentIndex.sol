@@ -6,6 +6,11 @@ import {IAgentIndex} from "./interfaces/IAgentIndex.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
 import {AgentVault} from "./AgentVault.sol";
 
+/// @notice Minimal view into ReputationBond for the index's skin-in-the-game gate.
+interface IReputationBond {
+    function bondOf(uint256 agentId) external view returns (uint256);
+}
+
 /// @title AgentIndex
 /// @notice Tokenized basket that allocates the index's USDY across registered
 /// AgentVaults in proportion to each agent's positive cumulative reputation.
@@ -15,6 +20,11 @@ contract AgentIndex is IAgentIndex {
     IERC20 public immutable asset;
     AgentIdentity public immutable identity;
     address public governor;
+
+    // Skin-in-the-game gate: when reputationBond is set, only agents bonded for at
+    // least minBond receive allocation (unbonded/slashed agents drop out).
+    address public reputationBond;
+    uint256 public minBond;
 
     // --- Index share accounting (the share is a transferable ERC-20) ---
     mapping(address => uint256) public balanceOf;
@@ -35,6 +45,7 @@ contract AgentIndex is IAgentIndex {
     mapping(address => uint256) public vaultShares;
 
     event VaultAdded(address indexed vault);
+    event BondGateSet(address reputationBond, uint256 minBond);
 
     modifier onlyGovernor() {
         require(msg.sender == governor, "not governor");
@@ -65,6 +76,13 @@ contract AgentIndex is IAgentIndex {
     function setGovernor(address g) external onlyGovernor {
         require(g != address(0), "zero gov");
         governor = g;
+    }
+
+    /// @notice Gate allocation on bonded skin-in-the-game. Pass rb=address(0) to disable.
+    function setReputationBond(address rb, uint256 min) external onlyGovernor {
+        reputationBond = rb;
+        minBond = min;
+        emit BondGateSet(rb, min);
     }
 
     // --- ERC-20 share token ---
@@ -204,10 +222,15 @@ contract AgentIndex is IAgentIndex {
         targets = new uint256[](n);
         exposures = new uint256[](n);
         uint256[] memory rep = new uint256[](n);
+        bool[] memory bonded = new bool[](n);
         uint256 totalRep;
+        uint256 bondedCount;
         for (uint256 i = 0; i < n; i++) {
-            (int256 cum,) = identity.getSummary(vaults[i].agentId());
-            if (cum > 0) {
+            uint256 aid = vaults[i].agentId();
+            bonded[i] = reputationBond == address(0) || IReputationBond(reputationBond).bondOf(aid) >= minBond;
+            if (bonded[i]) bondedCount++;
+            (int256 cum,) = identity.getSummary(aid);
+            if (cum > 0 && bonded[i]) {
                 rep[i] = uint256(cum);
                 totalRep += rep[i];
             }
@@ -215,9 +238,11 @@ contract AgentIndex is IAgentIndex {
             exposures[i] = vs > 0 ? (vs * vaults[i].nav()) / 1e18 : 0;
         }
         if (totalRep == 0) {
-            uint256 equal = total / n;
+            // Equal weight among bonded vaults (or all, if the gate is off / none bonded).
+            uint256 denom = bondedCount > 0 ? bondedCount : n;
+            uint256 equal = total / denom;
             for (uint256 i = 0; i < n; i++) {
-                targets[i] = equal;
+                if (bondedCount == 0 || bonded[i]) targets[i] = equal;
             }
         } else {
             for (uint256 i = 0; i < n; i++) {
