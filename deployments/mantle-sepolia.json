@@ -28,6 +28,7 @@
     "deployer": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
     "asset": "0xbc17D7F8f265d069781ed765914ED092989d92e7",
     "indexTotalAssets": "1000000000000000000000",
+    "yieldAdapter": { "address": "0xAFF2Dc11Ad528bA53641A3bCcb2A441825d8b0C7", "vault": "0xde7af6Ea6C6d98BD56Bfc520C281c0C7047a3D85", "aprBps": 2000, "note": "MockYieldAdapter (testnet, linear-accruing) wired into agent1's vault; vault/index NAV reads its time-growing totalUnderlying()" },
     "vaults": [
       { "agentId": 1, "vault": "0xde7af6Ea6C6d98BD56Bfc520C281c0C7047a3D85", "weightBps": 526 },
       { "agentId": 2, "vault": "0x0471EAe45C17cc1fb0e7E671efD27071B7daC728", "weightBps": 1052 },

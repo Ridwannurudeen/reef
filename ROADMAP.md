@@ -25,7 +25,7 @@ Get a complete, honest, demoable submission on Mantle Sepolia.
 
 Make the live system robust enough to run unattended in front of judges.
 
-- **Real NAV** — replace simulated NAV deltas with adapter-reported balances; reconcile vault share price against held USDY / mETH.
+- **Real NAV** — ✅ *demonstrated on testnet*: `MockYieldAdapter` (linear-accruing, mints realized yield on recall) is deployed and wired into a live AgentVault on Sepolia, so vault + index NAV now read adapter-reported, time-growing balances instead of simulated deltas. 66 unit tests incl. accrual/realization. Remaining: the mainnet path (reconcile share price against real held USDY / mETH yield).
 - **Resilience** — keeper/indexer retry + backoff, RPC failover, receipt-sequence gap detection, dashboard graceful degradation when a feed is down.
 - **Operational hygiene** — monitoring on the keeper, alerting on stalled receipts, a runbook for restarting agents.
 
