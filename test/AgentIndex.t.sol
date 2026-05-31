@@ -183,4 +183,73 @@ contract AgentIndexTest is Test {
         assertEq(alloc[0].vault, address(vaultA));
         assertEq(alloc[1].vault, address(vaultB));
     }
+
+    // --- ERC-20 share token (tradeable index) ---
+
+    function test_erc20_metadata() public view {
+        assertEq(index.name(), "Reef AI Yield Index");
+        assertEq(index.symbol(), "rINDEX");
+        assertEq(index.decimals(), 18);
+    }
+
+    function test_erc20_depositMints_totalSupplyTracks() public {
+        vm.prank(alice);
+        index.deposit(100e18);
+        assertEq(index.totalSupply(), 100e18);
+        assertEq(index.balanceOf(alice), 100e18);
+    }
+
+    function test_erc20_transfer_movesShares_keepsSupply() public {
+        vm.prank(alice);
+        index.deposit(100e18);
+        vm.prank(alice);
+        assertTrue(index.transfer(bob, 40e18));
+        assertEq(index.balanceOf(alice), 60e18);
+        assertEq(index.balanceOf(bob), 40e18);
+        assertEq(index.totalSupply(), 100e18);
+    }
+
+    function test_erc20_transfer_revertsInsufficient() public {
+        vm.prank(alice);
+        index.deposit(10e18);
+        vm.prank(alice);
+        vm.expectRevert(bytes("balance"));
+        index.transfer(bob, 11e18);
+    }
+
+    function test_erc20_approve_transferFrom_decrementsAllowance() public {
+        vm.prank(alice);
+        index.deposit(100e18);
+        vm.prank(alice);
+        index.approve(bob, 30e18);
+        assertEq(index.allowance(alice, bob), 30e18);
+        vm.prank(bob);
+        index.transferFrom(alice, bob, 30e18);
+        assertEq(index.balanceOf(bob), 30e18);
+        assertEq(index.balanceOf(alice), 70e18);
+        assertEq(index.allowance(alice, bob), 0);
+    }
+
+    function test_erc20_transferFrom_revertsOverAllowance() public {
+        vm.prank(alice);
+        index.deposit(100e18);
+        vm.prank(alice);
+        index.approve(bob, 10e18);
+        vm.prank(bob);
+        vm.expectRevert(bytes("allowance"));
+        index.transferFrom(alice, bob, 11e18);
+    }
+
+    /// Composability payoff: whoever holds the index token can redeem the basket.
+    function test_erc20_transferee_canRedeem() public {
+        vm.prank(alice);
+        index.deposit(100e18);
+        vm.prank(alice);
+        index.transfer(bob, 100e18);
+        vm.prank(bob);
+        uint256 got = index.withdraw(100e18);
+        assertEq(got, 100e18);
+        assertEq(index.balanceOf(bob), 0);
+        assertEq(index.totalSupply(), 0);
+    }
 }
