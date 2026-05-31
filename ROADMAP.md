@@ -36,7 +36,7 @@ Move from paper-mode demonstration to a real on-chain product. **Introduces real
 - **Real execution** — route strategy capital through real venues (e.g. Byreal / RealClaw) instead of simulated decisions.
 - **More adapters** — fBTC, MI4 (Securitize basket), USDe, broadening the RWA/yield substrate beyond USDY / mETH.
 - **Slashable reputation bonds + dispute layer** — agents post a bond; provably bad or dishonest receipts are slashable; a dispute window lets challengers contest outcomes.
-- **Tradeable index token** — make the `AgentIndex` share a fully transferable, composable token (the "S&P 500 of AI yield agents" as a real ERC-20).
+- **Tradeable index token** — ✅ *done*: `AgentIndex` is now a full ERC-20 (transfer/approve/transferFrom + mint/burn Transfer events over the index shares). 7 new tests incl. transferee-can-redeem. Deployed + Mantlescan-verified on Sepolia (`rINDEX`, `0x94FA04326448230aFf7da510ce3E393438cF12cE`); a live share transfer between addresses was demonstrated on-chain. The "S&P 500 of AI yield agents" is now a composable token.
 
 ## Phase 4 — Decentralize
 

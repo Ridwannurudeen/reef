@@ -16,9 +16,17 @@ contract AgentIndex is IAgentIndex {
     AgentIdentity public immutable identity;
     address public governor;
 
-    // --- Index share accounting ---
+    // --- Index share accounting (the share is a transferable ERC-20) ---
     mapping(address => uint256) public balanceOf;
     uint256 public totalShares;
+
+    string public constant name = "Reef AI Yield Index";
+    string public constant symbol = "rINDEX";
+    uint8 public constant decimals = 18;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 
     // --- Vault registry ---
     AgentVault[] public vaults;
@@ -59,6 +67,41 @@ contract AgentIndex is IAgentIndex {
         governor = g;
     }
 
+    // --- ERC-20 share token ---
+
+    function totalSupply() external view returns (uint256) {
+        return totalShares;
+    }
+
+    function transfer(address to, uint256 amount) external returns (bool) {
+        _transfer(msg.sender, to, amount);
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        uint256 allowed = allowance[from][msg.sender];
+        if (allowed != type(uint256).max) {
+            require(allowed >= amount, "allowance");
+            allowance[from][msg.sender] = allowed - amount;
+        }
+        _transfer(from, to, amount);
+        return true;
+    }
+
+    function _transfer(address from, address to, uint256 amount) internal {
+        require(to != address(0), "to zero");
+        require(balanceOf[from] >= amount, "balance");
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+        emit Transfer(from, to, amount);
+    }
+
     // --- Index deposit / withdraw ---
 
     function deposit(uint256 assets) external override returns (uint256 shares) {
@@ -69,6 +112,7 @@ contract AgentIndex is IAgentIndex {
         require(asset.transferFrom(msg.sender, address(this), assets), "transfer in");
         balanceOf[msg.sender] += shares;
         totalShares += shares;
+        emit Transfer(address(0), msg.sender, shares); // mint
         emit IndexDeposit(msg.sender, assets, shares);
     }
 
@@ -83,6 +127,7 @@ contract AgentIndex is IAgentIndex {
 
         balanceOf[msg.sender] -= shares;
         totalShares -= shares;
+        emit Transfer(msg.sender, address(0), shares); // burn
         require(asset.transfer(msg.sender, assets), "transfer out");
         emit IndexWithdraw(msg.sender, assets, shares);
     }
