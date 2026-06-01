@@ -36,7 +36,9 @@ contract ReputationBond {
 
     IERC20 public immutable asset;
     AgentIdentity public immutable identity;
-    address public immutable arbiter;
+    /// @dev Rotatable via 2-step handoff so it can move to a multisig/timelock post-deploy.
+    address public arbiter;
+    address public pendingArbiter;
     uint256 public immutable challengeStake;
     uint256 public immutable slashAmount;
     uint64 public immutable disputeWindow;
@@ -50,6 +52,8 @@ contract ReputationBond {
     event DisputeOpened(uint256 indexed id, uint256 indexed agentId, address challenger, uint256 stake);
     event DisputeResolved(uint256 indexed id, uint256 indexed agentId, bool upheld, uint256 slashed);
     event StakeReclaimed(uint256 indexed id, address challenger, uint256 amount);
+    event ArbiterTransferStarted(address indexed pendingArbiter);
+    event ArbiterTransferred(address indexed newArbiter);
 
     modifier onlyOperator(uint256 agentId) {
         require(identity.getAgentWallet(agentId) == msg.sender, "not operator");
@@ -72,6 +76,23 @@ contract ReputationBond {
         challengeStake = challengeStake_;
         slashAmount = slashAmount_;
         disputeWindow = disputeWindow_;
+    }
+
+    /// @notice Begin handing the arbiter role to `newArbiter` (e.g. a multisig/timelock).
+    /// Two-step: the new arbiter must call `acceptArbiter` to take effect, which prevents
+    /// handing control to a wrong or non-functional address.
+    function transferArbiter(address newArbiter) external {
+        require(msg.sender == arbiter, "not arbiter");
+        require(newArbiter != address(0), "zero arbiter");
+        pendingArbiter = newArbiter;
+        emit ArbiterTransferStarted(newArbiter);
+    }
+
+    function acceptArbiter() external {
+        require(msg.sender == pendingArbiter, "not pending");
+        arbiter = pendingArbiter;
+        pendingArbiter = address(0);
+        emit ArbiterTransferred(msg.sender);
     }
 
     function postBond(uint256 agentId, uint256 amount) external onlyOperator(agentId) {

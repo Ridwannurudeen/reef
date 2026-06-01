@@ -7,6 +7,7 @@ import {IStrategyAdapter} from "./interfaces/IStrategyAdapter.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
 import {AdapterRegistry} from "./AdapterRegistry.sol";
 import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
+import {Pausable} from "./utils/Pausable.sol";
 import {SafeTransferLib} from "./utils/SafeTransferLib.sol";
 
 /// @title AgentVault
@@ -14,7 +15,7 @@ import {SafeTransferLib} from "./utils/SafeTransferLib.sol";
 /// — funds always move vault→adapter, never to the operator wallet. Each cycle the
 /// operator publishes a strict-sequence receipt; the cumulative PnL flows into the
 /// agent's ERC-8004 reputation via AgentIdentity.giveFeedback.
-contract AgentVault is IAgentVault, ReentrancyGuard {
+contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     using SafeTransferLib for IERC20;
 
     IERC20 public immutable asset;
@@ -57,12 +58,14 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
         agentId = agentId_;
         identity = AgentIdentity(identity_);
         adapterRegistry = AdapterRegistry(registry_);
+        // The agent's own wallet is the circuit-breaker guardian for its sovereign vault.
+        _initGuardian(AgentIdentity(identity_).getAgentWallet(agentId_));
         lastReputableNav = 1e18; // starting NAV; reputation accrues on gains above this
     }
 
     // --- Deposit / Withdraw ---
 
-    function deposit(uint256 assets) external override nonReentrant returns (uint256 shares) {
+    function deposit(uint256 assets) external override nonReentrant whenNotPaused returns (uint256 shares) {
         require(assets > 0, "zero assets");
         // Virtual shares/assets offset (+1) neutralizes the first-depositor donation
         // inflation attack: it removes the empty-vault 1-wei→1-share edge and makes any
@@ -107,7 +110,13 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
         emit StrategyApproved(adapter);
     }
 
-    function deployToStrategy(address adapter, uint256 amount) external override onlyOperator nonReentrant {
+    function deployToStrategy(address adapter, uint256 amount)
+        external
+        override
+        onlyOperator
+        nonReentrant
+        whenNotPaused
+    {
         require(approvedStrategies[adapter], "not approved");
         require(currentStrategy == address(0) || currentStrategy == adapter, "recall current first");
         require(amount <= asset.balanceOf(address(this)), "amount > idle");

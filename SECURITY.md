@@ -26,13 +26,19 @@
 - **#4 NAV-derived reputation.** `publishReceipt` credits the vault's real on-chain per-share NAV delta (`nav()` change since the last receipt); the operator's claimed `navDelta` is ignored. Verified: a claimed `1e24` credits only the real `5e17`.
 - **#3 Protocol adapter allowlist.** New `src/AdapterRegistry.sol` (governor-controlled). `AgentVault.approveStrategy` now requires the adapter to be registry-approved, so an operator cannot point a vault at an adapter that lies about `totalUnderlying()` to inflate NAV (hence reputation and index weight). This is a second key on top of the operator's own approval. **Allowlisting is by adapter ADDRESS, not codehash** as originally framed: Solidity embeds immutable variables into runtime bytecode, so instances of the same adapter type have distinct `EXTCODEHASH`es — a codehash allowlist would reject legitimate instances. The governor reviews each deployed instance; the testnet-only `MockYieldAdapter` (mints freely) must never be approved on a registry that gates real TVL.
 - **#2 First-deposit / donation inflation.** `deposit`/`withdraw` in `AgentVault` and `AgentIndex` now use a `+1` virtual shares/assets offset. This removes the empty-vault 1-wei→1-share edge and makes any price-inflating donation a net loss to the attacker rather than a theft from the next depositor. First real deposit still mints 1:1.
-- **#6/#10 ReputationBond.** `openDispute` now rejects the agent's own operator (no self-slash farming/griefing) and enforces **one active dispute per agent**, so a depleting bond can never owe more upheld slashes than it holds (deterministic, order-independent payouts). The arbiter is any address, so a multisig/timelock arbiter is a deploy-time choice (no code change) — recommended for mainnet.
+- **#6/#10 ReputationBond.** `openDispute` now rejects the agent's own operator (no self-slash farming/griefing) and enforces **one active dispute per agent**, so a depleting bond can never owe more upheld slashes than it holds (deterministic, order-independent payouts). The single-arbiter centralization (#10) is now addressed in code: the arbiter is rotatable via a 2-step `transferArbiter`/`acceptArbiter` handoff, so it can be moved to a multisig/timelock after deploy.
 - **#7 SafeERC20.** New minimal `src/utils/SafeTransferLib.sol` (treats "call succeeded and returned empty OR true" as success). Every external asset `transfer`/`transferFrom`/`approve` in `AgentVault`, `AgentIndex`, `ReputationBond`, and the adapters routes through it, so Reef supports USDT-style tokens that return no bool (proven by `test/mocks/NoReturnERC20.sol`).
+
+## Safety primitives (added in the Phase 4 decentralization pass)
+
+- **Circuit breaker** — `src/utils/Pausable.sol`. A guardian (the operator for an `AgentVault`, the governor for `AgentIndex`) can pause the risk-taking entry points (`deposit`, `rebalance`, `deployToStrategy`). **Withdrawals are deliberately never gated**, so a pause halts new exposure without ever trapping user funds. The guardian is rotatable.
+- **withdrawPool reserve** — `AgentIndex.reserveBps` (governor-set). `rebalance` allocates only `total − reserve` to vaults, keeping an idle liquidity buffer in the index so redemptions are serviceable without recalling from vaults.
 
 ## Remaining
 
 - **#9** (Low, cosmetic) — `nav()` returns 1e18 for an empty vault. Left as-is for the demo.
-- Third-party audit, withdraw-pool / circuit breakers, permissionless keeper network, ERC-8004 cross-chain, and Human-vs-AI seasons remain future work (see `ROADMAP.md`).
+- **Third-party audit** — the one true prerequisite before any mainnet TVL; cannot be self-performed.
+- **ERC-8004 cross-chain reputation** — deferred: needs a cross-chain messaging layer + a second chain, not buildable/verifiable on a single testnet (see `ROADMAP.md`).
 
 ## Testnet posture
 

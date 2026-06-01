@@ -167,6 +167,106 @@ contract AgentIndexTest is Test {
         assertGt(index.getAllocation()[0].deployed, 0);
     }
 
+    // --- Circuit breaker + withdrawPool ---
+
+    function test_pause_blocksDepositAndRebalance_allowsWithdraw() public {
+        vm.prank(alice);
+        index.deposit(100e18);
+
+        index.pause(); // test contract is governor = guardian
+
+        vm.prank(alice);
+        vm.expectRevert(bytes("paused"));
+        index.deposit(10e18);
+
+        vm.expectRevert(bytes("paused"));
+        index.rebalance();
+
+        // Redemptions stay open while paused.
+        vm.prank(alice);
+        uint256 got = index.withdraw(40e18);
+        assertEq(got, 40e18);
+    }
+
+    function test_pause_onlyGuardian() public {
+        vm.prank(alice);
+        vm.expectRevert(bytes("not guardian"));
+        index.pause();
+    }
+
+    function test_reserveBps_keepsLiquidityIdle() public {
+        index.setReserveBps(2000); // hold back 20%
+        vm.prank(alice);
+        index.deposit(100e18);
+        index.rebalance();
+
+        // 80 allocated equally (40/40), 20 retained as withdrawPool liquidity.
+        assertEq(token.balanceOf(address(index)), 20e18);
+        AgentIndex.Allocation[] memory alloc = index.getAllocation();
+        assertApproxEqAbs(alloc[0].deployed, 40e18, 1);
+        assertApproxEqAbs(alloc[1].deployed, 40e18, 1);
+    }
+
+    function test_setReserveBps_rejectsOver100pct() public {
+        vm.expectRevert(bytes("bps"));
+        index.setReserveBps(10_001);
+    }
+
+    // --- Permissionless bonded self-listing ---
+
+    function _newBondedVault(uint256 bondAmt)
+        internal
+        returns (ReputationBond rb, AgentVault vaultC, address opC, uint256 idC)
+    {
+        rb = new ReputationBond(address(token), address(identity), address(this), 1e18, 10e18, 1 days);
+        index.setReputationBond(address(rb), 10e18);
+        opC = makeAddr("opC");
+        vm.prank(opC);
+        idC = identity.register();
+        vaultC = new AgentVault(address(token), idC, address(identity), address(registry));
+        if (bondAmt > 0) {
+            token.mint(opC, bondAmt);
+            vm.prank(opC);
+            token.approve(address(rb), type(uint256).max);
+            vm.prank(opC);
+            rb.postBond(idC, bondAmt);
+        }
+    }
+
+    function test_selfListVault_permissionless_whenBonded() public {
+        (, AgentVault vaultC, address opC,) = _newBondedVault(50e18);
+        uint256 before = index.vaultCount();
+        vm.prank(opC);
+        index.selfListVault(address(vaultC));
+        assertEq(index.vaultCount(), before + 1);
+        assertTrue(index.isRegistered(address(vaultC)));
+    }
+
+    function test_selfListVault_revertsWhenUnderbonded() public {
+        (, AgentVault vaultC, address opC,) = _newBondedVault(0); // no bond posted
+        vm.prank(opC);
+        vm.expectRevert(bytes("underbonded"));
+        index.selfListVault(address(vaultC));
+    }
+
+    function test_selfListVault_revertsForNonOperator() public {
+        (, AgentVault vaultC,,) = _newBondedVault(50e18);
+        vm.prank(alice);
+        vm.expectRevert(bytes("not operator"));
+        index.selfListVault(address(vaultC));
+    }
+
+    function test_selfListVault_revertsWhenListingClosed() public {
+        // No bond gate configured → self-listing is closed.
+        address opC = makeAddr("opC");
+        vm.prank(opC);
+        uint256 idC = identity.register();
+        AgentVault vaultC = new AgentVault(address(token), idC, address(identity), address(registry));
+        vm.prank(opC);
+        vm.expectRevert(bytes("listing closed"));
+        index.selfListVault(address(vaultC));
+    }
+
     // --- Withdraw with auto-pull from vaults ---
 
     function test_withdraw_pullsFromVaults_whenIdleInsufficient() public {

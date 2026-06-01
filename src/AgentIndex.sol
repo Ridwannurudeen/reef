@@ -6,6 +6,7 @@ import {IAgentIndex} from "./interfaces/IAgentIndex.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
 import {AgentVault} from "./AgentVault.sol";
 import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
+import {Pausable} from "./utils/Pausable.sol";
 import {SafeTransferLib} from "./utils/SafeTransferLib.sol";
 
 /// @notice Minimal view into ReputationBond for the index's skin-in-the-game gate.
@@ -18,12 +19,16 @@ interface IReputationBond {
 /// AgentVaults in proportion to each agent's positive cumulative reputation.
 /// Anyone can call `rebalance()`; the allocation formula is transparent and
 /// in-source (no admin re-weighting).
-contract AgentIndex is IAgentIndex, ReentrancyGuard {
+contract AgentIndex is IAgentIndex, ReentrancyGuard, Pausable {
     using SafeTransferLib for IERC20;
 
     IERC20 public immutable asset;
     AgentIdentity public immutable identity;
     address public governor;
+
+    // withdrawPool: fraction of total assets rebalance keeps idle in the index so
+    // redemptions are serviceable without recalling from vaults. 0 = fully allocated.
+    uint256 public reserveBps;
 
     // Skin-in-the-game gate: when reputationBond is set, only agents bonded for at
     // least minBond receive allocation (unbonded/slashed agents drop out).
@@ -50,6 +55,7 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
 
     event VaultAdded(address indexed vault);
     event BondGateSet(address reputationBond, uint256 minBond);
+    event ReserveSet(uint256 reserveBps);
 
     modifier onlyGovernor() {
         require(msg.sender == governor, "not governor");
@@ -61,6 +67,7 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
         asset = IERC20(asset_);
         identity = AgentIdentity(identity_);
         governor = msg.sender;
+        _initGuardian(msg.sender); // governor is the circuit-breaker guardian
     }
 
     // --- Registry ---
@@ -68,6 +75,21 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
     function addVault(address vault) external onlyGovernor {
         require(!isRegistered[vault], "registered");
         require(address(AgentVault(vault).asset()) == address(asset), "wrong asset");
+        isRegistered[vault] = true;
+        vaults.push(AgentVault(vault));
+        emit VaultAdded(vault);
+    }
+
+    /// @notice Permissionless self-listing: an agent's operator lists its own vault,
+    /// gated on a ReputationBond (skin-in-the-game) rather than governor curation.
+    /// Requires the bond gate to be configured and the agent bonded for >= minBond.
+    function selfListVault(address vault) external {
+        require(!isRegistered[vault], "registered");
+        require(address(AgentVault(vault).asset()) == address(asset), "wrong asset");
+        uint256 aid = AgentVault(vault).agentId();
+        require(identity.getAgentWallet(aid) == msg.sender, "not operator");
+        require(reputationBond != address(0), "listing closed");
+        require(IReputationBond(reputationBond).bondOf(aid) >= minBond, "underbonded");
         isRegistered[vault] = true;
         vaults.push(AgentVault(vault));
         emit VaultAdded(vault);
@@ -87,6 +109,13 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
         reputationBond = rb;
         minBond = min;
         emit BondGateSet(rb, min);
+    }
+
+    /// @notice Set the idle liquidity reserve rebalance maintains (withdrawPool), in bps.
+    function setReserveBps(uint256 bps) external onlyGovernor {
+        require(bps <= 10_000, "bps");
+        reserveBps = bps;
+        emit ReserveSet(bps);
     }
 
     // --- ERC-20 share token ---
@@ -126,7 +155,7 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
 
     // --- Index deposit / withdraw ---
 
-    function deposit(uint256 assets) external override nonReentrant returns (uint256 shares) {
+    function deposit(uint256 assets) external override nonReentrant whenNotPaused returns (uint256 shares) {
         require(assets > 0, "zero assets");
         // Virtual shares/assets offset (+1) neutralizes the first-depositor donation
         // inflation attack while preserving 1:1 minting on the first real deposit.
@@ -160,12 +189,14 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
     /// @notice Permissionless. Reweights allocation across all registered vaults
     /// in proportion to clamped-positive reputation. Equal weight if all reputations
     /// are non-positive.
-    function rebalance() external override nonReentrant {
+    function rebalance() external override nonReentrant whenNotPaused {
         uint256 n = vaults.length;
         require(n > 0, "no vaults");
 
         uint256 total = totalAssets();
-        (uint256[] memory targets, uint256[] memory exposures) = _computeTargetsAndExposures(total);
+        // Hold back the withdrawPool reserve; only the remainder is allocated to vaults.
+        uint256 allocatable = total - (total * reserveBps) / 10_000;
+        (uint256[] memory targets, uint256[] memory exposures) = _computeTargetsAndExposures(allocatable);
 
         // Pass 1: pull from over-allocated
         for (uint256 i = 0; i < n; i++) {

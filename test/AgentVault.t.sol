@@ -169,6 +169,42 @@ contract AgentVaultTest is Test {
         assertEq(token.balanceOf(alice), 1_000e18 - 100e18 + 60e18);
     }
 
+    // --- Circuit breaker ---
+
+    function test_pause_blocksDeposit_allowsWithdraw() public {
+        vm.prank(alice);
+        vault.deposit(100e18);
+
+        // Operator is the guardian of its own vault.
+        vm.prank(operator);
+        vault.pause();
+
+        vm.prank(alice);
+        vm.expectRevert(bytes("paused"));
+        vault.deposit(10e18);
+
+        // Withdrawals stay open while paused — a pause never traps funds.
+        vm.prank(alice);
+        uint256 got = vault.withdraw(40e18);
+        assertEq(got, 40e18);
+    }
+
+    function test_pause_onlyGuardian() public {
+        vm.prank(alice);
+        vm.expectRevert(bytes("not guardian"));
+        vault.pause();
+    }
+
+    function test_pause_blocksDeployToStrategy() public {
+        vm.prank(alice);
+        vault.deposit(100e18);
+        vm.prank(operator);
+        vault.pause();
+        vm.prank(operator);
+        vm.expectRevert(bytes("paused"));
+        vault.deployToStrategy(address(strategy), 50e18);
+    }
+
     // --- Receipts ---
 
     function test_publishReceipt_creditsRealNavDelta_notClaim() public {
