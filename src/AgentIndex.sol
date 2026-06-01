@@ -80,6 +80,21 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard, Pausable {
         emit VaultAdded(vault);
     }
 
+    /// @notice Permissionless self-listing: an agent's operator lists its own vault,
+    /// gated on a ReputationBond (skin-in-the-game) rather than governor curation.
+    /// Requires the bond gate to be configured and the agent bonded for >= minBond.
+    function selfListVault(address vault) external {
+        require(!isRegistered[vault], "registered");
+        require(address(AgentVault(vault).asset()) == address(asset), "wrong asset");
+        uint256 aid = AgentVault(vault).agentId();
+        require(identity.getAgentWallet(aid) == msg.sender, "not operator");
+        require(reputationBond != address(0), "listing closed");
+        require(IReputationBond(reputationBond).bondOf(aid) >= minBond, "underbonded");
+        isRegistered[vault] = true;
+        vaults.push(AgentVault(vault));
+        emit VaultAdded(vault);
+    }
+
     function vaultCount() external view returns (uint256) {
         return vaults.length;
     }
