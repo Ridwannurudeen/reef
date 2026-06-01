@@ -7,6 +7,7 @@ import {IStrategyAdapter} from "./interfaces/IStrategyAdapter.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
 import {AdapterRegistry} from "./AdapterRegistry.sol";
 import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
+import {SafeTransferLib} from "./utils/SafeTransferLib.sol";
 
 /// @title AgentVault
 /// @notice Per-agent vault. Operator deploys capital into approved StrategyAdapters
@@ -14,6 +15,8 @@ import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 /// operator publishes a strict-sequence receipt; the cumulative PnL flows into the
 /// agent's ERC-8004 reputation via AgentIdentity.giveFeedback.
 contract AgentVault is IAgentVault, ReentrancyGuard {
+    using SafeTransferLib for IERC20;
+
     IERC20 public immutable asset;
     uint256 public immutable override agentId;
     AgentIdentity public immutable identity;
@@ -67,7 +70,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
         // next depositor. First real deposit still mints 1:1 (assets·1/1).
         shares = (assets * (totalShares + 1)) / (totalAssets() + 1);
         require(shares > 0, "zero shares");
-        require(asset.transferFrom(msg.sender, address(this), assets), "transfer in");
+        asset.safeTransferFrom(msg.sender, address(this), assets);
         balanceOf[msg.sender] += shares;
         totalShares += shares;
         emit Deposited(msg.sender, assets, shares);
@@ -89,7 +92,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
             IStrategyAdapter(currentStrategy).recall(assets - idle);
         }
 
-        require(asset.transfer(msg.sender, assets), "transfer out");
+        asset.safeTransfer(msg.sender, assets);
         emit Withdrawn(msg.sender, assets, shares);
     }
 
@@ -109,7 +112,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
         require(currentStrategy == address(0) || currentStrategy == adapter, "recall current first");
         require(amount <= asset.balanceOf(address(this)), "amount > idle");
         currentStrategy = adapter;
-        require(asset.transfer(adapter, amount), "transfer to adapter");
+        asset.safeTransfer(adapter, amount);
         IStrategyAdapter(adapter).deploy(amount);
         emit StrategyDeployed(adapter, amount);
     }

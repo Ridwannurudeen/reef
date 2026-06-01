@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {IStrategyAdapter} from "../interfaces/IStrategyAdapter.sol";
+import {SafeTransferLib} from "../utils/SafeTransferLib.sol";
 
 /// @title UsdyAdapter
 /// @notice Strategy adapter that holds Ondo USDY (non-rebasing ERC-20) on behalf of
@@ -13,6 +14,8 @@ import {IStrategyAdapter} from "../interfaces/IStrategyAdapter.sol";
 /// the vault has deployed, so that realized yield can be recomputed at recall time
 /// off-chain as (recall_value - principal_at_recall).
 contract UsdyAdapter is IStrategyAdapter {
+    using SafeTransferLib for IERC20;
+
     IERC20 public immutable usdy;
     address public immutable override vault;
 
@@ -58,7 +61,7 @@ contract UsdyAdapter is IStrategyAdapter {
         } else {
             cumulativePrincipal -= recalled;
         }
-        require(usdy.transfer(vault, recalled), "transfer");
+        usdy.safeTransfer(vault, recalled);
         emit Recalled(vault, recalled, 0);
         emit PrincipalUpdated(cumulativePrincipal);
         return recalled;
