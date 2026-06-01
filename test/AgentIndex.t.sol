@@ -167,6 +167,51 @@ contract AgentIndexTest is Test {
         assertGt(index.getAllocation()[0].deployed, 0);
     }
 
+    // --- Circuit breaker + withdrawPool ---
+
+    function test_pause_blocksDepositAndRebalance_allowsWithdraw() public {
+        vm.prank(alice);
+        index.deposit(100e18);
+
+        index.pause(); // test contract is governor = guardian
+
+        vm.prank(alice);
+        vm.expectRevert(bytes("paused"));
+        index.deposit(10e18);
+
+        vm.expectRevert(bytes("paused"));
+        index.rebalance();
+
+        // Redemptions stay open while paused.
+        vm.prank(alice);
+        uint256 got = index.withdraw(40e18);
+        assertEq(got, 40e18);
+    }
+
+    function test_pause_onlyGuardian() public {
+        vm.prank(alice);
+        vm.expectRevert(bytes("not guardian"));
+        index.pause();
+    }
+
+    function test_reserveBps_keepsLiquidityIdle() public {
+        index.setReserveBps(2000); // hold back 20%
+        vm.prank(alice);
+        index.deposit(100e18);
+        index.rebalance();
+
+        // 80 allocated equally (40/40), 20 retained as withdrawPool liquidity.
+        assertEq(token.balanceOf(address(index)), 20e18);
+        AgentIndex.Allocation[] memory alloc = index.getAllocation();
+        assertApproxEqAbs(alloc[0].deployed, 40e18, 1);
+        assertApproxEqAbs(alloc[1].deployed, 40e18, 1);
+    }
+
+    function test_setReserveBps_rejectsOver100pct() public {
+        vm.expectRevert(bytes("bps"));
+        index.setReserveBps(10_001);
+    }
+
     // --- Withdraw with auto-pull from vaults ---
 
     function test_withdraw_pullsFromVaults_whenIdleInsufficient() public {
