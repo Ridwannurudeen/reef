@@ -42,13 +42,14 @@
     ]
   },
   "mainnetReferences": {
-    "comment": "Verified addresses on Mantle MAINNET (chain 5000), pinned here for mainnet demo deployment only. Sepolia uses mocks. FBTC/USDe added 2026-06-01 for the FbtcAdapter/UsdeAdapter (on-chain-verified: symbol+decimals read from chain 5000).",
+    "comment": "Verified addresses on Mantle MAINNET (chain 5000), pinned here for mainnet demo deployment only. Sepolia uses mocks. FBTC/USDe/MI4 added 2026-06-01 for the FbtcAdapter/UsdeAdapter/Mi4Adapter (on-chain-verified: symbol+decimals read from chain 5000).",
     "USDY": "0x5bE26527e817998A7206475496fDE1E68957c5A6",
     "mUSD": "0xab575258d37EaA5C8956EfABe71F4eE8F6397cF3",
     "mETH": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
     "USDC": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
     "FBTC": "0xC96dE26018A54D51c097160568752c4E3BD6C364",
-    "USDe": "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34"
+    "USDe": "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34",
+    "MI4": "0x671642ac281c760e34251d51bc9eef27026f3b7a"
   },
   "external": {
     "alloraApiBase": "https://api.allora.network/v2",
