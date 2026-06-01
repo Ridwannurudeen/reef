@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {AgentIdentity} from "../src/AgentIdentity.sol";
 import {AgentVault} from "../src/AgentVault.sol";
+import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {UsdyAdapter} from "../src/adapters/UsdyAdapter.sol";
 
 /// @notice Fork tests against the live Ondo USDY token on Mantle mainnet.
@@ -39,8 +40,10 @@ contract UsdyAdapterForkTest is Test {
         identity = new AgentIdentity();
         vm.prank(operator);
         agentId = identity.register();
-        vault = new AgentVault(MANTLE_USDY, agentId, address(identity));
+        AdapterRegistry registry = new AdapterRegistry();
+        vault = new AgentVault(MANTLE_USDY, agentId, address(identity), address(registry));
         adapter = new UsdyAdapter(MANTLE_USDY, address(vault));
+        registry.approveAdapter(address(adapter));
         vm.prank(operator);
         vault.approveStrategy(address(adapter));
     }

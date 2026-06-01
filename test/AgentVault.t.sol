@@ -4,12 +4,14 @@ pragma solidity ^0.8.20;
 import {Test} from "forge-std/Test.sol";
 import {AgentIdentity} from "../src/AgentIdentity.sol";
 import {AgentVault} from "../src/AgentVault.sol";
+import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockStrategyAdapter} from "./mocks/MockStrategyAdapter.sol";
 
 contract AgentVaultTest is Test {
     AgentIdentity identity;
     AgentVault vault;
+    AdapterRegistry registry;
     MockERC20 token;
     MockStrategyAdapter strategy;
 
@@ -25,14 +27,16 @@ contract AgentVaultTest is Test {
         vm.prank(operator);
         agentId = identity.register();
 
-        vault = new AgentVault(address(token), agentId, address(identity));
+        registry = new AdapterRegistry();
+        vault = new AgentVault(address(token), agentId, address(identity), address(registry));
         strategy = new MockStrategyAdapter(address(token), address(vault));
 
         // Authorize the vault to write its agent's reputation (vault-only model).
         vm.prank(operator);
         identity.setReputationSource(agentId, address(vault));
 
-        // Approve strategy on the vault
+        // Protocol governor allowlists the adapter, then the operator approves it.
+        registry.approveAdapter(address(strategy));
         vm.prank(operator);
         vault.approveStrategy(address(strategy));
 
@@ -96,6 +100,21 @@ contract AgentVaultTest is Test {
         vm.prank(alice);
         vm.expectRevert(bytes("not operator"));
         vault.approveStrategy(address(other));
+    }
+
+    function test_approveStrategy_revertsWhenNotAllowlisted() public {
+        MockStrategyAdapter rogue = new MockStrategyAdapter(address(token), address(vault));
+        vm.prank(operator);
+        vm.expectRevert(bytes("adapter not allowlisted"));
+        vault.approveStrategy(address(rogue));
+    }
+
+    function test_approveStrategy_succeedsAfterAllowlist() public {
+        MockStrategyAdapter extra = new MockStrategyAdapter(address(token), address(vault));
+        registry.approveAdapter(address(extra));
+        vm.prank(operator);
+        vault.approveStrategy(address(extra));
+        assertTrue(vault.approvedStrategies(address(extra)));
     }
 
     function test_deployToStrategy_movesFunds() public {

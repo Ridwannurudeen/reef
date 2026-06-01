@@ -5,6 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {AgentIdentity} from "../src/AgentIdentity.sol";
 import {AgentIndex} from "../src/AgentIndex.sol";
 import {AgentVault} from "../src/AgentVault.sol";
+import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {UsdyAdapter} from "../src/adapters/UsdyAdapter.sol";
 
 /// @notice Mainnet-ready deploy: the full Reef system wired to REAL Ondo USDY on
@@ -29,13 +30,15 @@ contract DeployMainnet is Script {
         vm.startBroadcast(pk);
         AgentIdentity identity = new AgentIdentity();
         AgentIndex index = new AgentIndex(USDY, address(identity));
+        AdapterRegistry registry = new AdapterRegistry();
 
         uint256 agentId = identity.register();
-        AgentVault vault = new AgentVault(USDY, agentId, address(identity));
+        AgentVault vault = new AgentVault(USDY, agentId, address(identity), address(registry));
         identity.setReputationSource(agentId, address(vault)); // vault-only reputation
         index.addVault(address(vault));
 
         UsdyAdapter adapter = new UsdyAdapter(USDY, address(vault));
+        registry.approveAdapter(address(adapter)); // protocol vets the real Ondo USDY adapter
         vault.approveStrategy(address(adapter)); // real Ondo USDY strategy
         vm.stopBroadcast();
 

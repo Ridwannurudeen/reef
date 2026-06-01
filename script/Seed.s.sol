@@ -5,6 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {AgentIdentity} from "../src/AgentIdentity.sol";
 import {AgentIndex} from "../src/AgentIndex.sol";
 import {AgentVault} from "../src/AgentVault.sol";
+import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {MockERC20} from "../test/mocks/MockERC20.sol";
 
 /// @notice Seed a deployed Reef index with demo AgentVaults so the leaderboard and
@@ -35,9 +36,12 @@ contract Seed is Script {
         asset.mint(deployer, deposit);
         asset.approve(address(index), deposit);
 
+        // Per-vault adapter allowlist (demo vaults hold the asset idle, no strategy set).
+        AdapterRegistry registry = new AdapterRegistry();
+
         for (uint256 i = 0; i < navDeltas.length; i++) {
             uint256 agentId = identity.register();
-            AgentVault vault = new AgentVault(address(asset), agentId, address(identity));
+            AgentVault vault = new AgentVault(address(asset), agentId, address(identity), address(registry));
             index.addVault(address(vault));
             vault.publishReceipt(abi.encode(uint256(0), keccak256(abi.encode("seed", i)), navDeltas[i], uint64(86_400)));
             console.log("agent", agentId, "vault", address(vault));

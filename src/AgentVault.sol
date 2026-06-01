@@ -5,6 +5,7 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {IAgentVault} from "./interfaces/IAgentVault.sol";
 import {IStrategyAdapter} from "./interfaces/IStrategyAdapter.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
+import {AdapterRegistry} from "./AdapterRegistry.sol";
 import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 
 /// @title AgentVault
@@ -16,6 +17,8 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
     IERC20 public immutable asset;
     uint256 public immutable override agentId;
     AgentIdentity public immutable identity;
+    /// @dev Protocol allowlist; only adapters it approves may be set as a strategy.
+    AdapterRegistry public immutable adapterRegistry;
 
     // --- Share accounting ---
 
@@ -44,12 +47,13 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
         _;
     }
 
-    constructor(address asset_, uint256 agentId_, address identity_) {
-        require(asset_ != address(0) && identity_ != address(0), "zero addr");
+    constructor(address asset_, uint256 agentId_, address identity_, address registry_) {
+        require(asset_ != address(0) && identity_ != address(0) && registry_ != address(0), "zero addr");
         require(AgentIdentity(identity_).getAgentWallet(agentId_) != address(0), "no agent");
         asset = IERC20(asset_);
         agentId = agentId_;
         identity = AgentIdentity(identity_);
+        adapterRegistry = AdapterRegistry(registry_);
         lastReputableNav = 1e18; // starting NAV; reputation accrues on gains above this
     }
 
@@ -90,6 +94,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
 
     function approveStrategy(address adapter) external onlyOperator {
         require(adapter != address(0), "zero adapter");
+        require(adapterRegistry.isApproved(adapter), "adapter not allowlisted");
         require(IStrategyAdapter(adapter).asset() == address(asset), "wrong asset");
         require(IStrategyAdapter(adapter).vault() == address(this), "wrong vault");
         approvedStrategies[adapter] = true;
