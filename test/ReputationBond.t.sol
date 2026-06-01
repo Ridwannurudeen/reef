@@ -154,6 +154,44 @@ contract ReputationBondTest is Test {
         bond.resolveDispute(id, true);
     }
 
+    function test_arbiterRotation_twoStep() public {
+        address newArbiter = makeAddr("newArbiter");
+
+        vm.prank(arbiter);
+        bond.transferArbiter(newArbiter);
+        assertEq(bond.pendingArbiter(), newArbiter);
+        assertEq(bond.arbiter(), arbiter); // not yet effective
+
+        vm.prank(newArbiter);
+        bond.acceptArbiter();
+        assertEq(bond.arbiter(), newArbiter);
+        assertEq(bond.pendingArbiter(), address(0));
+
+        // New arbiter can now resolve; the old one cannot.
+        _post(100e18);
+        uint256 id = _open();
+        vm.prank(arbiter);
+        vm.expectRevert(bytes("not arbiter"));
+        bond.resolveDispute(id, true);
+        vm.prank(newArbiter);
+        bond.resolveDispute(id, true);
+        assertEq(bond.bondOf(agentId), 50e18);
+    }
+
+    function test_transferArbiter_onlyArbiter() public {
+        vm.prank(stranger);
+        vm.expectRevert(bytes("not arbiter"));
+        bond.transferArbiter(stranger);
+    }
+
+    function test_acceptArbiter_onlyPending() public {
+        vm.prank(arbiter);
+        bond.transferArbiter(makeAddr("newArbiter"));
+        vm.prank(stranger);
+        vm.expectRevert(bytes("not pending"));
+        bond.acceptArbiter();
+    }
+
     function test_claimExpiredStake_afterWindowOnly() public {
         _post(100e18);
         uint256 id = _open();
