@@ -4,9 +4,9 @@ Phased plan from "win the hackathon" to "decentralized protocol." Each phase is 
 
 ## Where we are today
 
-- Contracts complete and **verified on Mantlescan**: `AgentIdentity` (ERC-8004), `AgentVault`, `AgentIndex` (ERC-20), `SignalMarket`, `ReputationBond`, `AdapterRegistry`, `Seasons`, `UsdyAdapter`, `MethAdapter`, `MockYieldAdapter` (the Sepolia-deployed set predates the Phase 4 additions — those ship in a fresh audited deployment).
+- Contracts complete and **verified on Mantlescan**: `AgentIdentity` (ERC-8004), `AgentVault`, `AgentIndex` (ERC-20), `SignalMarket`, `ReputationBond`, `AdapterRegistry`, `Seasons`, `UsdyAdapter`, `MethAdapter`, `MockYieldAdapter`.
 - 114 unit tests + 2 live-mainnet fork tests passing (`forge test`).
-- **Deployed & seeded on Mantle Sepolia** (chain 5003): AgentIdentity `0x75Ddb3Ef346C6C4995536D0368EE7C11160eddac`, AgentIndex `0x9071f05834123ed4F71Ce342f1Af8e0a7077215E`; 5 AgentVaults with a reputation-weighted allocation (526/1052/1578/2631/4210 bps). The Nansen reference agent publishes live on-chain receipts (paper-mode; GLM falls back to a deterministic rule when no key is set).
+- **Redeployed & seeded on Mantle Sepolia** (chain 5003, 2026-06-01) with the current post-Phase-3/4 code: AgentIdentity `0x4a037330bd05ca443C25f7b41Ed86BaeB2F43147`, AgentIndex (rINDEX) `0x94ea17aEA0415c86d16c85D788803917BA7E3C60`, AdapterRegistry `0xaf68d79c2f10854c54536cc7a65d6838fa7dd380`; 5 AgentVaults with a reputation-weighted allocation (526/1052/1578/2631/4210 bps) — all Mantlescan-verified. This core instance ships identity + index + registry + vaults (with the must-fixes, circuit breaker, withdrawPool, virtual-offset share math, adapter allowlist baked in); `ReputationBond`/`Seasons`/`MockYieldAdapter` are source-complete but not wired into this instance (full set ships in an audited deploy). UNAUDITED. Dashboard at https://reef.gudman.xyz reads these live.
 - **Live site**: https://reef.gudman.xyz (dashboard auto-loads on-chain data) + `/slides.html`.
 - **Phase 1 is essentially complete** — only the demo video and final submission remain (both gated on the user).
 
