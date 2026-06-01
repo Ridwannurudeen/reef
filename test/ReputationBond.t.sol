@@ -86,6 +86,31 @@ contract ReputationBondTest is Test {
         bond.openDispute(agentId, bytes32(0));
     }
 
+    function test_openDispute_rejectsSelfChallenge() public {
+        _post(100e18);
+        vm.prank(operator);
+        vm.expectRevert(bytes("self challenge"));
+        bond.openDispute(agentId, keccak256("e"));
+    }
+
+    function test_openDispute_oneActivePerAgent() public {
+        _post(100e18);
+        _open();
+        vm.prank(challenger);
+        vm.expectRevert(bytes("dispute active"));
+        bond.openDispute(agentId, keccak256("e2"));
+    }
+
+    function test_openDispute_allowedAgain_afterResolve() public {
+        _post(100e18);
+        uint256 id = _open();
+        vm.prank(arbiter);
+        bond.resolveDispute(id, false); // bond back to 100 + STAKE, no active disputes
+        uint256 id2 = _open();
+        assertEq(id2, 1);
+        assertEq(bond.activeDisputes(agentId), 1);
+    }
+
     function test_withdraw_blockedDuringDispute_allowedAfter() public {
         _post(100e18);
         uint256 id = _open();

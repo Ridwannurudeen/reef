@@ -91,6 +91,12 @@ contract ReputationBond {
     function openDispute(uint256 agentId, bytes32 evidence) external returns (uint256 id) {
         require(bondOf[agentId] >= slashAmount, "underbonded");
         require(evidence != bytes32(0), "zero evidence");
+        // An agent's own operator cannot dispute itself (self-slash farming / griefing).
+        require(identity.getAgentWallet(agentId) != msg.sender, "self challenge");
+        // One active dispute per agent: with concurrent disputes a depleting bond could
+        // not pay every upheld slash in full, making payouts order-dependent. Serializing
+        // keeps slash accounting deterministic against the posted bond.
+        require(activeDisputes[agentId] == 0, "dispute active");
         require(asset.transferFrom(msg.sender, address(this), challengeStake), "stake in");
         id = disputes.length;
         disputes.push(
