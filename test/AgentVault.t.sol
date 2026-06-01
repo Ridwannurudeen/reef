@@ -69,6 +69,25 @@ contract AgentVaultTest is Test {
         assertEq(vault.totalShares(), 150e18);
     }
 
+    function test_inflationAttack_isUnprofitable() public {
+        // Attacker opens the vault with 1 wei, then donates a large sum directly to
+        // spike the share price. The virtual offset makes this a loss, not a theft.
+        vm.prank(alice);
+        vault.deposit(1);
+        token.mint(address(vault), 50e18); // donation inflates totalAssets
+
+        // Victim still receives non-trivial shares (not rounded to zero).
+        vm.prank(bob);
+        uint256 bobShares = vault.deposit(100e18);
+        assertGt(bobShares, 0, "victim griefed to zero shares");
+
+        // Attacker redeems everything and comes out behind what they put in.
+        uint256 aliceShares = vault.balanceOf(alice);
+        vm.prank(alice);
+        uint256 aliceOut = vault.withdraw(aliceShares);
+        assertLt(aliceOut, 50e18 + 1, "attacker profited from inflation");
+    }
+
     function test_deposit_revertsZero() public {
         vm.prank(alice);
         vm.expectRevert(bytes("zero assets"));

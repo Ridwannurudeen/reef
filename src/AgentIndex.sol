@@ -125,8 +125,9 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
 
     function deposit(uint256 assets) external override nonReentrant returns (uint256 shares) {
         require(assets > 0, "zero assets");
-        uint256 total = totalAssets();
-        shares = totalShares == 0 ? assets : (assets * totalShares) / total;
+        // Virtual shares/assets offset (+1) neutralizes the first-depositor donation
+        // inflation attack while preserving 1:1 minting on the first real deposit.
+        shares = (assets * (totalShares + 1)) / (totalAssets() + 1);
         require(shares > 0, "zero shares");
         require(asset.transferFrom(msg.sender, address(this), assets), "transfer in");
         balanceOf[msg.sender] += shares;
@@ -138,7 +139,7 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
     function withdraw(uint256 shares) external override nonReentrant returns (uint256 assets) {
         require(shares > 0, "zero shares");
         require(balanceOf[msg.sender] >= shares, "insufficient shares");
-        assets = (shares * totalAssets()) / totalShares;
+        assets = (shares * (totalAssets() + 1)) / (totalShares + 1);
         require(assets > 0, "zero assets");
 
         uint256 idle = asset.balanceOf(address(this));

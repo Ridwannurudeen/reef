@@ -61,8 +61,11 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
 
     function deposit(uint256 assets) external override nonReentrant returns (uint256 shares) {
         require(assets > 0, "zero assets");
-        uint256 total = totalAssets();
-        shares = totalShares == 0 ? assets : (assets * totalShares) / total;
+        // Virtual shares/assets offset (+1) neutralizes the first-depositor donation
+        // inflation attack: it removes the empty-vault 1-wei→1-share edge and makes any
+        // price-inflating donation a loss to the attacker rather than a theft from the
+        // next depositor. First real deposit still mints 1:1 (assets·1/1).
+        shares = (assets * (totalShares + 1)) / (totalAssets() + 1);
         require(shares > 0, "zero shares");
         require(asset.transferFrom(msg.sender, address(this), assets), "transfer in");
         balanceOf[msg.sender] += shares;
@@ -73,7 +76,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
     function withdraw(uint256 shares) external override nonReentrant returns (uint256 assets) {
         require(shares > 0, "zero shares");
         require(balanceOf[msg.sender] >= shares, "insufficient shares");
-        assets = (shares * totalAssets()) / totalShares;
+        assets = (shares * (totalAssets() + 1)) / (totalShares + 1);
         require(assets > 0, "zero assets");
 
         // Effects before interactions (CEI): burn shares first, then recall + pay out.
