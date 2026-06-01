@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {AgentIdentity} from "../src/AgentIdentity.sol";
 import {AgentVault} from "../src/AgentVault.sol";
 import {AgentIndex} from "../src/AgentIndex.sol";
+import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {ReputationBond} from "../src/ReputationBond.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 
@@ -13,6 +14,7 @@ contract AgentIndexTest is Test {
     AgentIndex index;
     AgentVault vaultA;
     AgentVault vaultB;
+    AdapterRegistry registry;
     MockERC20 token;
 
     address opA = makeAddr("opA");
@@ -27,14 +29,15 @@ contract AgentIndexTest is Test {
         identity = new AgentIdentity();
         token = new MockERC20();
         index = new AgentIndex(address(token), address(identity));
+        registry = new AdapterRegistry();
 
         vm.prank(opA);
         idA = identity.register();
         vm.prank(opB);
         idB = identity.register();
 
-        vaultA = new AgentVault(address(token), idA, address(identity));
-        vaultB = new AgentVault(address(token), idB, address(identity));
+        vaultA = new AgentVault(address(token), idA, address(identity), address(registry));
+        vaultB = new AgentVault(address(token), idB, address(identity), address(registry));
 
         index.addVault(address(vaultA));
         index.addVault(address(vaultB));
@@ -57,7 +60,7 @@ contract AgentIndexTest is Test {
     // --- Registry ---
 
     function test_addVault_onlyGovernor_andOnce() public {
-        AgentVault other = new AgentVault(address(token), idA, address(identity));
+        AgentVault other = new AgentVault(address(token), idA, address(identity), address(registry));
         vm.prank(alice);
         vm.expectRevert(bytes("not governor"));
         index.addVault(address(other));
@@ -71,7 +74,7 @@ contract AgentIndexTest is Test {
         MockERC20 otherToken = new MockERC20();
         vm.prank(opA);
         uint256 idX = identity.register();
-        AgentVault otherVault = new AgentVault(address(otherToken), idX, address(identity));
+        AgentVault otherVault = new AgentVault(address(otherToken), idX, address(identity), address(registry));
         vm.expectRevert(bytes("wrong asset"));
         index.addVault(address(otherVault));
     }

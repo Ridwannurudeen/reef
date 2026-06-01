@@ -5,6 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {AgentIdentity} from "../src/AgentIdentity.sol";
 import {AgentIndex} from "../src/AgentIndex.sol";
 import {AgentVault} from "../src/AgentVault.sol";
+import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {UsdyAdapter} from "../src/adapters/UsdyAdapter.sol";
 
 /// @notice Mainnet-ready deploy: the full Reef system wired to REAL Ondo USDY on
@@ -16,8 +17,9 @@ import {UsdyAdapter} from "../src/adapters/UsdyAdapter.sol";
 /// Required env: PRIVATE_KEY (a funded Mantle mainnet key — real MNT for gas).
 /// Run: forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url mantle --broadcast
 ///
-/// WARNING: these contracts are UNAUDITED (see SECURITY.md, open items #2/#3/#6/#7).
-/// Do not custody meaningful TVL on mainnet until audited.
+/// WARNING: these contracts are UNAUDITED. The internal-review must-fix items are
+/// resolved (SECURITY.md: #2/#3/#6/#7 fixed, #10 partial), but a third-party audit is
+/// still required — do not custody meaningful TVL on mainnet until audited.
 contract DeployMainnet is Script {
     // Ondo USDY on Mantle mainnet (non-rebasing ERC-20, 18 decimals).
     address constant USDY = 0x5bE26527e817998A7206475496fDE1E68957c5A6;
@@ -29,13 +31,15 @@ contract DeployMainnet is Script {
         vm.startBroadcast(pk);
         AgentIdentity identity = new AgentIdentity();
         AgentIndex index = new AgentIndex(USDY, address(identity));
+        AdapterRegistry registry = new AdapterRegistry();
 
         uint256 agentId = identity.register();
-        AgentVault vault = new AgentVault(USDY, agentId, address(identity));
+        AgentVault vault = new AgentVault(USDY, agentId, address(identity), address(registry));
         identity.setReputationSource(agentId, address(vault)); // vault-only reputation
         index.addVault(address(vault));
 
         UsdyAdapter adapter = new UsdyAdapter(USDY, address(vault));
+        registry.approveAdapter(address(adapter)); // protocol vets the real Ondo USDY adapter
         vault.approveStrategy(address(adapter)); // real Ondo USDY strategy
         vm.stopBroadcast();
 

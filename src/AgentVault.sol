@@ -5,7 +5,9 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {IAgentVault} from "./interfaces/IAgentVault.sol";
 import {IStrategyAdapter} from "./interfaces/IStrategyAdapter.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
+import {AdapterRegistry} from "./AdapterRegistry.sol";
 import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
+import {SafeTransferLib} from "./utils/SafeTransferLib.sol";
 
 /// @title AgentVault
 /// @notice Per-agent vault. Operator deploys capital into approved StrategyAdapters
@@ -13,9 +15,13 @@ import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 /// operator publishes a strict-sequence receipt; the cumulative PnL flows into the
 /// agent's ERC-8004 reputation via AgentIdentity.giveFeedback.
 contract AgentVault is IAgentVault, ReentrancyGuard {
+    using SafeTransferLib for IERC20;
+
     IERC20 public immutable asset;
     uint256 public immutable override agentId;
     AgentIdentity public immutable identity;
+    /// @dev Protocol allowlist; only adapters it approves may be set as a strategy.
+    AdapterRegistry public immutable adapterRegistry;
 
     // --- Share accounting ---
 
@@ -44,12 +50,13 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
         _;
     }
 
-    constructor(address asset_, uint256 agentId_, address identity_) {
-        require(asset_ != address(0) && identity_ != address(0), "zero addr");
+    constructor(address asset_, uint256 agentId_, address identity_, address registry_) {
+        require(asset_ != address(0) && identity_ != address(0) && registry_ != address(0), "zero addr");
         require(AgentIdentity(identity_).getAgentWallet(agentId_) != address(0), "no agent");
         asset = IERC20(asset_);
         agentId = agentId_;
         identity = AgentIdentity(identity_);
+        adapterRegistry = AdapterRegistry(registry_);
         lastReputableNav = 1e18; // starting NAV; reputation accrues on gains above this
     }
 
@@ -57,10 +64,13 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
 
     function deposit(uint256 assets) external override nonReentrant returns (uint256 shares) {
         require(assets > 0, "zero assets");
-        uint256 total = totalAssets();
-        shares = totalShares == 0 ? assets : (assets * totalShares) / total;
+        // Virtual shares/assets offset (+1) neutralizes the first-depositor donation
+        // inflation attack: it removes the empty-vault 1-wei→1-share edge and makes any
+        // price-inflating donation a loss to the attacker rather than a theft from the
+        // next depositor. First real deposit still mints 1:1 (assets·1/1).
+        shares = (assets * (totalShares + 1)) / (totalAssets() + 1);
         require(shares > 0, "zero shares");
-        require(asset.transferFrom(msg.sender, address(this), assets), "transfer in");
+        asset.safeTransferFrom(msg.sender, address(this), assets);
         balanceOf[msg.sender] += shares;
         totalShares += shares;
         emit Deposited(msg.sender, assets, shares);
@@ -69,7 +79,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
     function withdraw(uint256 shares) external override nonReentrant returns (uint256 assets) {
         require(shares > 0, "zero shares");
         require(balanceOf[msg.sender] >= shares, "insufficient shares");
-        assets = (shares * totalAssets()) / totalShares;
+        assets = (shares * (totalAssets() + 1)) / (totalShares + 1);
         require(assets > 0, "zero assets");
 
         // Effects before interactions (CEI): burn shares first, then recall + pay out.
@@ -82,7 +92,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
             IStrategyAdapter(currentStrategy).recall(assets - idle);
         }
 
-        require(asset.transfer(msg.sender, assets), "transfer out");
+        asset.safeTransfer(msg.sender, assets);
         emit Withdrawn(msg.sender, assets, shares);
     }
 
@@ -90,6 +100,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
 
     function approveStrategy(address adapter) external onlyOperator {
         require(adapter != address(0), "zero adapter");
+        require(adapterRegistry.isApproved(adapter), "adapter not allowlisted");
         require(IStrategyAdapter(adapter).asset() == address(asset), "wrong asset");
         require(IStrategyAdapter(adapter).vault() == address(this), "wrong vault");
         approvedStrategies[adapter] = true;
@@ -101,7 +112,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard {
         require(currentStrategy == address(0) || currentStrategy == adapter, "recall current first");
         require(amount <= asset.balanceOf(address(this)), "amount > idle");
         currentStrategy = adapter;
-        require(asset.transfer(adapter, amount), "transfer to adapter");
+        asset.safeTransfer(adapter, amount);
         IStrategyAdapter(adapter).deploy(amount);
         emit StrategyDeployed(adapter, amount);
     }

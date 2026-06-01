@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
+import {SafeTransferLib} from "./utils/SafeTransferLib.sol";
 
 /// @title ReputationBond
 /// @notice Skin-in-the-game + dispute layer for Reef agents. An agent's operator
@@ -14,6 +15,8 @@ import {AgentIdentity} from "./AgentIdentity.sol";
 /// against the ERC-8004 AgentIdentity registry.
 /// Testnet/hackathon code — it custodies funds and is unaudited.
 contract ReputationBond {
+    using SafeTransferLib for IERC20;
+
     enum Status {
         None,
         Open,
@@ -73,7 +76,7 @@ contract ReputationBond {
 
     function postBond(uint256 agentId, uint256 amount) external onlyOperator(agentId) {
         require(amount > 0, "zero amount");
-        require(asset.transferFrom(msg.sender, address(this), amount), "transfer in");
+        asset.safeTransferFrom(msg.sender, address(this), amount);
         bondOf[agentId] += amount;
         emit BondPosted(agentId, amount, bondOf[agentId]);
     }
@@ -82,7 +85,7 @@ contract ReputationBond {
         require(activeDisputes[agentId] == 0, "active dispute");
         require(amount > 0 && amount <= bondOf[agentId], "amount");
         bondOf[agentId] -= amount;
-        require(asset.transfer(msg.sender, amount), "transfer out");
+        asset.safeTransfer(msg.sender, amount);
         emit BondWithdrawn(agentId, amount, bondOf[agentId]);
     }
 
@@ -91,7 +94,13 @@ contract ReputationBond {
     function openDispute(uint256 agentId, bytes32 evidence) external returns (uint256 id) {
         require(bondOf[agentId] >= slashAmount, "underbonded");
         require(evidence != bytes32(0), "zero evidence");
-        require(asset.transferFrom(msg.sender, address(this), challengeStake), "stake in");
+        // An agent's own operator cannot dispute itself (self-slash farming / griefing).
+        require(identity.getAgentWallet(agentId) != msg.sender, "self challenge");
+        // One active dispute per agent: with concurrent disputes a depleting bond could
+        // not pay every upheld slash in full, making payouts order-dependent. Serializing
+        // keeps slash accounting deterministic against the posted bond.
+        require(activeDisputes[agentId] == 0, "dispute active");
+        asset.safeTransferFrom(msg.sender, address(this), challengeStake);
         id = disputes.length;
         disputes.push(
             Dispute({
@@ -116,7 +125,7 @@ contract ReputationBond {
             uint256 slash = slashAmount > bondOf[d.agentId] ? bondOf[d.agentId] : slashAmount;
             bondOf[d.agentId] -= slash;
             d.status = Status.Upheld;
-            require(asset.transfer(d.challenger, d.stake + slash), "payout"); // stake back + reward
+            asset.safeTransfer(d.challenger, d.stake + slash); // stake back + reward
             emit DisputeResolved(id, d.agentId, true, slash);
         } else {
             bondOf[d.agentId] += d.stake; // forfeited stake compensates the agent
@@ -133,7 +142,7 @@ contract ReputationBond {
         require(msg.sender == d.challenger, "not challenger");
         activeDisputes[d.agentId] -= 1;
         d.status = Status.Expired;
-        require(asset.transfer(d.challenger, d.stake), "refund");
+        asset.safeTransfer(d.challenger, d.stake);
         emit StakeReclaimed(id, d.challenger, d.stake);
     }
 

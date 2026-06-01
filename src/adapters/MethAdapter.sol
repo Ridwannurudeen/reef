@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {IStrategyAdapter} from "../interfaces/IStrategyAdapter.sol";
+import {SafeTransferLib} from "../utils/SafeTransferLib.sol";
 
 /// @title MethAdapter
 /// @notice Strategy adapter that holds Mantle LSP's mETH (bridged ERC-20) on
@@ -10,6 +11,8 @@ import {IStrategyAdapter} from "../interfaces/IStrategyAdapter.sol";
 /// token appreciates as the underlying validator yield accrues. Mainnet mETH
 /// token on Mantle: 0xcDA86A272531e8640cD7F1a92c01839911B90bb0.
 contract MethAdapter is IStrategyAdapter {
+    using SafeTransferLib for IERC20;
+
     IERC20 public immutable meth;
     address public immutable override vault;
 
@@ -47,7 +50,7 @@ contract MethAdapter is IStrategyAdapter {
         } else {
             cumulativePrincipal -= recalled;
         }
-        require(meth.transfer(vault, recalled), "transfer");
+        meth.safeTransfer(vault, recalled);
         emit Recalled(vault, recalled, 0);
         emit PrincipalUpdated(cumulativePrincipal);
         return recalled;

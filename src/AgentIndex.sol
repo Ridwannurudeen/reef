@@ -6,6 +6,7 @@ import {IAgentIndex} from "./interfaces/IAgentIndex.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
 import {AgentVault} from "./AgentVault.sol";
 import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
+import {SafeTransferLib} from "./utils/SafeTransferLib.sol";
 
 /// @notice Minimal view into ReputationBond for the index's skin-in-the-game gate.
 interface IReputationBond {
@@ -18,6 +19,8 @@ interface IReputationBond {
 /// Anyone can call `rebalance()`; the allocation formula is transparent and
 /// in-source (no admin re-weighting).
 contract AgentIndex is IAgentIndex, ReentrancyGuard {
+    using SafeTransferLib for IERC20;
+
     IERC20 public immutable asset;
     AgentIdentity public immutable identity;
     address public governor;
@@ -125,10 +128,11 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
 
     function deposit(uint256 assets) external override nonReentrant returns (uint256 shares) {
         require(assets > 0, "zero assets");
-        uint256 total = totalAssets();
-        shares = totalShares == 0 ? assets : (assets * totalShares) / total;
+        // Virtual shares/assets offset (+1) neutralizes the first-depositor donation
+        // inflation attack while preserving 1:1 minting on the first real deposit.
+        shares = (assets * (totalShares + 1)) / (totalAssets() + 1);
         require(shares > 0, "zero shares");
-        require(asset.transferFrom(msg.sender, address(this), assets), "transfer in");
+        asset.safeTransferFrom(msg.sender, address(this), assets);
         balanceOf[msg.sender] += shares;
         totalShares += shares;
         emit Transfer(address(0), msg.sender, shares); // mint
@@ -138,7 +142,7 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
     function withdraw(uint256 shares) external override nonReentrant returns (uint256 assets) {
         require(shares > 0, "zero shares");
         require(balanceOf[msg.sender] >= shares, "insufficient shares");
-        assets = (shares * totalAssets()) / totalShares;
+        assets = (shares * (totalAssets() + 1)) / (totalShares + 1);
         require(assets > 0, "zero assets");
 
         uint256 idle = asset.balanceOf(address(this));
@@ -147,7 +151,7 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
         balanceOf[msg.sender] -= shares;
         totalShares -= shares;
         emit Transfer(msg.sender, address(0), shares); // burn
-        require(asset.transfer(msg.sender, assets), "transfer out");
+        asset.safeTransfer(msg.sender, assets);
         emit IndexWithdraw(msg.sender, assets, shares);
     }
 
@@ -266,7 +270,7 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard {
     }
 
     function _depositToVault(AgentVault v, uint256 amount) internal {
-        require(asset.approve(address(v), amount), "approve");
+        asset.safeApprove(address(v), amount);
         uint256 sharesReceived = v.deposit(amount);
         vaultShares[address(v)] += sharesReceived;
     }

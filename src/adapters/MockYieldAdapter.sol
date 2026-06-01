@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {IStrategyAdapter} from "../interfaces/IStrategyAdapter.sol";
+import {SafeTransferLib} from "../utils/SafeTransferLib.sol";
 
 /// @notice The testnet MockERC20 exposes a public `mint`; used to realize accrued
 /// yield on recall so the gain is backed by real tokens.
@@ -19,6 +20,8 @@ interface IMintable {
 /// asset is a freely-mintable testnet MockERC20) so the realized gain is backed
 /// by real tokens. DO NOT deploy on mainnet — it mints the underlying freely.
 contract MockYieldAdapter is IStrategyAdapter {
+    using SafeTransferLib for IERC20;
+
     IERC20 public immutable token;
     address public immutable override vault;
     uint256 public immutable aprBps; // annualized yield, basis points
@@ -77,7 +80,7 @@ contract MockYieldAdapter is IStrategyAdapter {
         principal = marked - recalled; // remaining marked value
         lastAccrualAt = uint64(block.timestamp);
 
-        require(token.transfer(vault, recalled), "transfer");
+        token.safeTransfer(vault, recalled);
         emit Recalled(vault, recalled, int256(minted));
         return recalled;
     }
