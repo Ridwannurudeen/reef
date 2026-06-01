@@ -117,6 +117,13 @@ def vault_contract(w3: Web3, address: str) -> Contract:
     )
 
 
+def index_contract(w3: Web3, address: str) -> Contract:
+    """Return an AgentIndex contract binding at `address`."""
+    return w3.eth.contract(
+        address=Web3.to_checksum_address(address), abi=load_abi("AgentIndex")
+    )
+
+
 def send_tx(
     w3: Web3, account: LocalAccount, fn_call, *, gas: int | None = None
 ) -> dict[str, Any]:

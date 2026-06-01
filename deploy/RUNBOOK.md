@@ -57,14 +57,20 @@ backoff in `agents/shared/client.py`.
 # paper-mode receipts to all vaults every 10 min
 */10 * * * * cd /opt/reef/app && set -a && . ./.env && set +a && bash agents/scripts/tick.sh >> /var/log/reef-tick.log 2>&1
 
-# rebalance the index every 30 min so allocations follow reputation
-*/30 * * * * cd /opt/reef/app && set -a && . ./.env && set +a && cast send "$REEF_INDEX" "rebalance()" --rpc-url "$MANTLE_SEPOLIA_RPC" --private-key "$PRIVATE_KEY" >> /var/log/reef-rebalance.log 2>&1
+# rebalance the index every 10 min so allocations follow reputation (Python keeper:
+# RPC failover + getAllocation logging; reads INDEX from the deployment file)
+*/10 * * * * cd /opt/reef/app && python -m agents.scripts.keeper >> /var/log/reef-keeper.log 2>&1
 
 # health check every 15 min; alert on non-zero exit
 */15 * * * * cd /opt/reef/app && python -m agents.scripts.health || /usr/local/bin/reef-alert.sh
 ```
 
-(`REEF_INDEX=0x9071f05834123ed4F71Ce342f1Af8e0a7077215E`; set in `.env` or inline.)
+The keeper resolves the index address from `deployments/<network>.json` (`reef.AgentIndex`,
+currently `0x94ea17aEA0415c86d16c85D788803917BA7E3C60`); override with `INDEX_ADDR`. `rebalance()`
+is permissionless, so any keeper key works. For a long-lived daemon instead of cron, run
+`python -m agents.scripts.keeper --loop` (interval `KEEPER_INTERVAL_S`, default 600s) under
+systemd — model it on the `reef-nansen@` unit above. The raw fallback still works:
+`cast send <index> "rebalance()" --rpc-url "$MANTLE_SEPOLIA_RPC" --private-key "$PRIVATE_KEY"`.
 
 ## Monitoring & alerting
 
@@ -81,6 +87,6 @@ backoff in `agents/shared/client.py`.
    `python -m agents.scripts.health`.
 2. **RPC outage:** add a backup URL to `MANTLE_SEPOLIA_RPC` (comma-separated) and
    restart — `get_w3` fails over to the first reachable endpoint.
-3. **Allocations drift from reputation:** run the rebalance keeper manually:
-   `cast send $REEF_INDEX "rebalance()" --rpc-url $MANTLE_SEPOLIA_RPC --private-key $PRIVATE_KEY`.
+3. **Allocations drift from reputation:** run the rebalance keeper once:
+   `python -m agents.scripts.keeper` (or the raw `cast send <index> "rebalance()" ...`).
 4. **Site down:** see `deploy/README.md` (nginx + cert); files live in `/opt/reef/web`.
