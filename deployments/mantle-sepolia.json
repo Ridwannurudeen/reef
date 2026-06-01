@@ -13,10 +13,11 @@
   ],
   "nativeToken": "MNT",
   "reef": {
-    "_comment": "Live on Mantle Sepolia (chain 5003), deployed 2026-05-31. Sepolia uses a generic MockERC20 as the index asset (real USDY/mETH live on mainnet only - see mainnetReferences). Adapters / ReputationOracle / extra mocks not deployed in this Sepolia demo instance.",
-    "AgentIdentity": "0x75Ddb3Ef346C6C4995536D0368EE7C11160eddac",
-    "AgentVault": "0x0000000000000000000000000000000000000000",
-    "AgentIndex": "0x9071f05834123ed4F71Ce342f1Af8e0a7077215E",
+    "_comment": "FRESH redeploy 2026-06-01 of the current post-Phase-3/4 contract set (internal-review must-fixes #2/#3/#6/#7 + AdapterRegistry + circuit-breaker/withdrawPool + rotatable arbiter). All contracts below Mantlescan-verified via Etherscan V2. Sepolia uses a generic MockERC20 as the index asset (real USDY/mETH live on mainnet only - see mainnetReferences). This core instance deploys identity + index(rINDEX) + AdapterRegistry + 5 reputation-weighted vaults; MockYieldAdapter, ReputationBond and Seasons are source-complete but not wired into this instance (they ship in a full/audited deploy). UNAUDITED. Previous (pre-fix) instance was AgentIdentity 0x75Ddb3Ef346C6C4995536D0368EE7C11160eddac / AgentIndex 0x9071f05834123ed4F71Ce342f1Af8e0a7077215E.",
+    "AgentIdentity": "0x4a037330bd05ca443C25f7b41Ed86BaeB2F43147",
+    "AgentIndex": "0x94ea17aEA0415c86d16c85D788803917BA7E3C60",
+    "AdapterRegistry": "0xaf68d79c2f10854c54536cc7a65d6838fa7dd380",
+    "AgentVault": "0xc50ACe6A77E02001829E2C0987A4CB8DEB09Db07",
     "ReputationOracle": "0x0000000000000000000000000000000000000000",
     "UsdyAdapter": "0x0000000000000000000000000000000000000000",
     "MethAdapter": "0x0000000000000000000000000000000000000000",
@@ -27,16 +28,17 @@
   "seeded": {
     "deployer": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
     "asset": "0xbc17D7F8f265d069781ed765914ED092989d92e7",
-    "indexTotalAssets": "1000000000000000000000",
-    "yieldAdapter": { "address": "0xAFF2Dc11Ad528bA53641A3bCcb2A441825d8b0C7", "vault": "0xde7af6Ea6C6d98BD56Bfc520C281c0C7047a3D85", "aprBps": 2000, "note": "MockYieldAdapter (testnet, linear-accruing) wired into agent1's vault; vault/index NAV reads its time-growing totalUnderlying()" },
-    "tradeableIndex": { "address": "0x94FA04326448230aFf7da510ce3E393438cF12cE", "symbol": "rINDEX", "name": "Reef AI Yield Index", "note": "Phase 3: ERC-20-enabled AgentIndex (transfer/approve/transferFrom over index shares). Verified; live share transfer demonstrated. Separate instance from the v1 index above." },
-    "reputationBond": { "address": "0xed8d41bC0569bBe3D9EBe36022B4326FDBFFa323", "arbiter": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43", "challengeStake": "5000000000000000000", "slashAmount": "50000000000000000000", "disputeWindowSec": 86400, "note": "Phase 3: slashable reputation bonds + dispute layer. Verified; full cycle demonstrated on agent1 (post 100 -> open dispute -> arbiter upheld -> slashed to 50)." },
+    "indexTotalAssets": "999999999999999999986",
+    "tradeableIndex": { "address": "0x94ea17aEA0415c86d16c85D788803917BA7E3C60", "symbol": "rINDEX", "name": "Reef AI Yield Index", "note": "The AgentIndex itself is the ERC-20 rINDEX (transfer/approve/transferFrom over index shares). Same address as reef.AgentIndex." },
+    "yieldAdapter": { "address": "0x0000000000000000000000000000000000000000", "note": "MockYieldAdapter not wired into this fresh core instance (vaults hold idle asset; NAV gains were seeded via donation+receipt). Source-complete; ships in a full/audited deploy. Prior instance used 0xAFF2Dc11Ad528bA53641A3bCcb2A441825d8b0C7." },
+    "reputationBond": { "address": "0x0000000000000000000000000000000000000000", "note": "ReputationBond (now with rotatable arbiter) not deployed in this fresh core instance. Source-complete + unit-tested; ships in a full/audited deploy. Prior instance used 0xed8d41bC0569bBe3D9EBe36022B4326FDBFFa323." },
+    "seasons": { "address": "0x0000000000000000000000000000000000000000", "note": "Phase 4 on-chain Human-vs-AI Seasons (src/Seasons.sol) source-complete + unit-tested; not deployed in this core instance." },
     "vaults": [
-      { "agentId": 1, "vault": "0xde7af6Ea6C6d98BD56Bfc520C281c0C7047a3D85", "weightBps": 526 },
-      { "agentId": 2, "vault": "0x0471EAe45C17cc1fb0e7E671efD27071B7daC728", "weightBps": 1052 },
-      { "agentId": 3, "vault": "0xF51900f0b8907f75C7fF795e5B1AC7e6b297A864", "weightBps": 1578 },
-      { "agentId": 4, "vault": "0xc64076bC74F2a97F7B50DCe9a94a9A0967d4d24f", "weightBps": 2631 },
-      { "agentId": 5, "vault": "0xe68dCac9BfF8850d11c5E70457952B33E3eABD01", "weightBps": 4210 }
+      { "agentId": 2, "vault": "0xc50ACe6A77E02001829E2C0987A4CB8DEB09Db07", "weightBps": 526 },
+      { "agentId": 3, "vault": "0xD880777CB19132E03bc81fa7EdE27785c815A4a8", "weightBps": 1052 },
+      { "agentId": 4, "vault": "0x1A5E8bEe1c142c60ce6B22fde36E23717f637736", "weightBps": 1578 },
+      { "agentId": 5, "vault": "0xB04ef699490A69bEFfAC501Abc1770B2158dC53F", "weightBps": 2631 },
+      { "agentId": 6, "vault": "0x89Ba030F760AeB7eBb03220193Ed08032F6364d1", "weightBps": 4210 }
     ]
   },
   "mainnetReferences": {

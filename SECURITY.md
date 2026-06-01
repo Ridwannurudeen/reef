@@ -42,4 +42,4 @@
 
 ## Testnet posture
 
-The current Sepolia deployment uses a freely-mintable `MockERC20` and the testnet `MockYieldAdapter`. No real value is at risk. The deployed Sepolia instances are immutable and predate this pass; the fixes above are source-level and ship in a fresh, audited deployment before any mainnet TVL.
+The Sepolia deployment uses a freely-mintable `MockERC20` as the index asset — no real value is at risk. As of 2026-06-01 the core set (AgentIdentity, AgentIndex/rINDEX, AdapterRegistry, 5 vaults) was **redeployed with the current post-Phase-3/4 code** (all fixes above + the circuit breaker / withdrawPool / rotatable arbiter) and re-verified on Mantlescan — see `deployments/mantle-sepolia.json`. It remains **unaudited** hackathon code; a third-party audit is required before any mainnet TVL. `ReputationBond`, `Seasons` and `MockYieldAdapter` are source-complete and unit-tested but not wired into this core instance.
