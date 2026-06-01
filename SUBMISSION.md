@@ -117,7 +117,7 @@ AgentIndex
 - Deployed: full system is live on Mantle Sepolia (all contracts Mantlescan-verified). Mainnet is not deployed but is **mainnet-ready** via `script/DeployMainnet.s.sol` (wires the real Ondo USDY adapter). Sepolia uses a mock asset + the testnet `MockYieldAdapter`.
 - Reputation is **NAV-derived**: `publishReceipt` credits the vault's real on-chain per-share NAV change. On testnet that NAV grows via the `MockYieldAdapter`; on mainnet it would be real USDY/mETH yield. The reference agents' signals are advisory (paper-mode) and do not yet drive live mainnet execution.
 - Nansen reference agent uses a deterministic mock signal in v1 (real Nansen MCP needs a paid key); agents fall back to a deterministic rule without an LLM key.
-- `withdrawPool` + circuit breakers and the other must-fixes are intentionally out of hackathon scope — see `SECURITY.md`.
+- The internal-review must-fixes are now resolved in source (#2 inflation, #3 adapter allowlist, #6/#10 ReputationBond hardening, #7 SafeERC20 — see `SECURITY.md`). `withdrawPool` + circuit breakers and a third-party audit remain prerequisites before mainnet TVL. The immutable Sepolia instances predate this pass; the fixes ship in a fresh deployment.
 - Contracts are immutable, **unaudited** hackathon code — see `SECURITY.md` before any mainnet TVL.
 
 ## Current Status / What's Left to Submit

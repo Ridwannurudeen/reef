@@ -17,8 +17,9 @@ import {UsdyAdapter} from "../src/adapters/UsdyAdapter.sol";
 /// Required env: PRIVATE_KEY (a funded Mantle mainnet key — real MNT for gas).
 /// Run: forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url mantle --broadcast
 ///
-/// WARNING: these contracts are UNAUDITED (see SECURITY.md, open items #2/#3/#6/#7).
-/// Do not custody meaningful TVL on mainnet until audited.
+/// WARNING: these contracts are UNAUDITED. The internal-review must-fix items are
+/// resolved (SECURITY.md: #2/#3/#6/#7 fixed, #10 partial), but a third-party audit is
+/// still required — do not custody meaningful TVL on mainnet until audited.
 contract DeployMainnet is Script {
     // Ondo USDY on Mantle mainnet (non-rebasing ERC-20, 18 decimals).
     address constant USDY = 0x5bE26527e817998A7206475496fDE1E68957c5A6;
