@@ -15,7 +15,9 @@ library SafeTransferLib {
     }
 
     function safeTransferFrom(IERC20 token, address from, address to, uint256 amount) internal {
-        _call(address(token), abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, amount), "safe transferFrom");
+        _call(
+            address(token), abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, amount), "safe transferFrom"
+        );
     }
 
     function safeApprove(IERC20 token, address spender, uint256 amount) internal {

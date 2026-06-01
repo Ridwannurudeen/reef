@@ -8,33 +8,32 @@
 | # | Severity | Issue | Status |
 |---|----------|-------|--------|
 | 1 | Critical | `AgentIdentity.giveFeedback` had no access control — anyone could mint reputation | **✅ Fixed** (vault-only gate) |
-| 2 | Critical | First-depositor / donation share-inflation in `AgentVault` + `AgentIndex` | **Open** (must-fix) |
-| 3 | High | `AgentIndex.rebalance` trusts operator-controlled vault NAV; no protocol adapter allowlist | **Open** (must-fix) |
+| 2 | Critical | First-depositor / donation share-inflation in `AgentVault` + `AgentIndex` | **✅ Fixed** (virtual offset) |
+| 3 | High | `AgentIndex.rebalance` trusts operator-controlled vault NAV; no protocol adapter allowlist | **✅ Fixed** (AdapterRegistry) |
 | 4 | High | `AgentVault.publishReceipt` credited reputation from an unverified operator `navDelta` | **✅ Fixed** (NAV-derived) |
 | 5 | High | No reentrancy guards; `AgentVault.withdraw` called adapter before updating shares | **✅ Fixed** |
-| 6 | Medium | `ReputationBond` concurrent-dispute / commingled-funds accounting | **Open** |
-| 7 | Medium | No `SafeERC20`; fragile `approve` for non-standard tokens | **Open** (USDY is standard ERC-20 → low risk for the demo) |
+| 6 | Medium | `ReputationBond` concurrent-dispute / commingled-funds accounting | **✅ Fixed** (one active dispute/agent) |
+| 7 | Medium | No `SafeERC20`; fragile `approve` for non-standard tokens | **✅ Fixed** (SafeTransferLib) |
 | 8 | Medium | `SignalMarket` free self-dealing reputation + provider-call reentrancy | **✅ Fixed** |
 | 9 | Low | `AgentVault.nav()` returns 1e18 ignoring stranded assets | Open (cosmetic for demo) |
-| 10 | Low | `ReputationBond` single immutable arbiter; no challenger≠agent check | Open (centralization; document) |
+| 10 | Low | `ReputationBond` single immutable arbiter; no challenger≠agent check | **✅ Partly fixed** (self-challenge rejected; multisig arbiter = deploy choice) |
 
 ## Fixed in this pass
 
 - **#1 Reputation access control (vault-only).** `giveFeedback` is now gated to `reputationSource[agentId]`, which the agent's own wallet designates via `setReputationSource` (default-closed — no source set means no one can write). The intended source is the agent's `AgentVault`. `SignalMarket` no longer credits reputation, which also structurally kills the free self-dealing reputation farm. Residual: an operator's *own* authorized vault can still over-report via `publishReceipt` — closed by **#4** below.
 - **#5 Reentrancy + CEI.** Added a minimal `ReentrancyGuard` (`src/utils/ReentrancyGuard.sol`) and applied `nonReentrant` to `AgentVault.{deposit,withdraw,deployToStrategy,recallFromStrategy}`, `AgentIndex.{deposit,withdraw,rebalance}`, and `SignalMarket.purchaseSignal`. Reordered `AgentVault.withdraw` to burn shares **before** the external adapter `recall` (checks-effects-interactions).
 - **#8 SignalMarket.** `createListing` now requires `priceWei > 0`; `purchaseSignal` rejects `providerAgentId == consumerAgentId` (blocks zero-cost self-dealing reputation farming) and is `nonReentrant`. (Full mitigation also depends on #1.)
+- **#4 NAV-derived reputation.** `publishReceipt` credits the vault's real on-chain per-share NAV delta (`nav()` change since the last receipt); the operator's claimed `navDelta` is ignored. Verified: a claimed `1e24` credits only the real `5e17`.
+- **#3 Protocol adapter allowlist.** New `src/AdapterRegistry.sol` (governor-controlled). `AgentVault.approveStrategy` now requires the adapter to be registry-approved, so an operator cannot point a vault at an adapter that lies about `totalUnderlying()` to inflate NAV (hence reputation and index weight). This is a second key on top of the operator's own approval. **Allowlisting is by adapter ADDRESS, not codehash** as originally framed: Solidity embeds immutable variables into runtime bytecode, so instances of the same adapter type have distinct `EXTCODEHASH`es — a codehash allowlist would reject legitimate instances. The governor reviews each deployed instance; the testnet-only `MockYieldAdapter` (mints freely) must never be approved on a registry that gates real TVL.
+- **#2 First-deposit / donation inflation.** `deposit`/`withdraw` in `AgentVault` and `AgentIndex` now use a `+1` virtual shares/assets offset. This removes the empty-vault 1-wei→1-share edge and makes any price-inflating donation a net loss to the attacker rather than a theft from the next depositor. First real deposit still mints 1:1.
+- **#6/#10 ReputationBond.** `openDispute` now rejects the agent's own operator (no self-slash farming/griefing) and enforces **one active dispute per agent**, so a depleting bond can never owe more upheld slashes than it holds (deterministic, order-independent payouts). The arbiter is any address, so a multisig/timelock arbiter is a deploy-time choice (no code change) — recommended for mainnet.
+- **#7 SafeERC20.** New minimal `src/utils/SafeTransferLib.sol` (treats "call succeeded and returned empty OR true" as success). Every external asset `transfer`/`transferFrom`/`approve` in `AgentVault`, `AgentIndex`, `ReputationBond`, and the adapters routes through it, so Reef supports USDT-style tokens that return no bool (proven by `test/mocks/NoReturnERC20.sol`).
 
-## Must-fix before mainnet TVL (the reputation-integrity redesign)
+## Remaining
 
-Reputation is now both **authorized** (#1, vault-only) and **earned** (#4, NAV-derived). The remaining reputation-integrity item is **#3** (a malicious operator can still inflate NAV via a fake adapter):
-
-- **#1** — ✅ Done (vault-only gate). Only the agent's own designated vault may write reputation.
-- **#4** — ✅ Done. `publishReceipt` credits the vault's real on-chain per-share NAV delta (`nav()` change since the last receipt); the operator's claimed `navDelta` is ignored. Verified: a claimed `1e24` credits only the real `5e17`.
-- **#3** — move strategy-adapter approval to a protocol/governance allowlist (by codehash), so a malicious operator cannot point a vault at an adapter that lies about `totalUnderlying()`. Ensure `MockYieldAdapter` (testnet-only, mints freely) is never allowlisted.
-- **#2** — add dead-shares / virtual-offset to first deposits in both `AgentVault` and `AgentIndex`.
-- **#6/#10** — one active dispute per agent (or per-dispute slash escrow); multisig/timelocked arbiter; reject self-challenge.
-- **#7** — adopt `SafeERC20` for generic-asset support.
+- **#9** (Low, cosmetic) — `nav()` returns 1e18 for an empty vault. Left as-is for the demo.
+- Third-party audit, withdraw-pool / circuit breakers, permissionless keeper network, ERC-8004 cross-chain, and Human-vs-AI seasons remain future work (see `ROADMAP.md`).
 
 ## Testnet posture
 
-The current Sepolia deployment uses a freely-mintable `MockERC20` and the testnet `MockYieldAdapter`. No real value is at risk. These contracts are immutable; the fixes above apply to source and would ship in a fresh, audited deployment before any mainnet TVL.
+The current Sepolia deployment uses a freely-mintable `MockERC20` and the testnet `MockYieldAdapter`. No real value is at risk. The deployed Sepolia instances are immutable and predate this pass; the fixes above are source-level and ship in a fresh, audited deployment before any mainnet TVL.
