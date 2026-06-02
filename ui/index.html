@@ -196,14 +196,16 @@
       <span id="hvaActive" class="muted">highlighting: AI Index</span>
     </div>
     <div class="stats" style="margin-top: 12px; grid-template-columns: repeat(3, 1fr);">
-      <div class="stat hva-card" id="hvaCardAi"><div class="label">AI Index NAV</div><div class="value" id="hvaAi">—</div></div>
-      <div class="stat hva-card" id="hvaCardHuman"><div class="label">Human Twin NAV</div><div class="value" id="hvaHuman">—</div></div>
+      <div class="stat hva-card" id="hvaCardAi"><div class="label">AI (reputation-weighted)</div><div class="value" id="hvaAi">—</div></div>
+      <div class="stat hva-card" id="hvaCardHuman"><div class="label">Human (equal-weight)</div><div class="value" id="hvaHuman">—</div></div>
       <div class="stat"><div class="label">AI vs Human (bps)</div><div class="value" id="hvaDelta">—</div></div>
     </div>
     <div id="hvaOutcome" class="small" style="margin-top: 8px;">—</div>
     <div class="small" style="margin-top: 8px;">
-      Human Twin is a client-side simulation: equal-weight average of all vault NAVs.
-      Simulated comparison for demo purposes only.
+      Apples-to-apples: the <em>same</em> live vault NAVs under two weighting schemes —
+      AI = Reef's reputation-weighted allocation, Human = a naive equal-weight basket.
+      The delta is the alpha of reputation-weighting. Computed client-side from on-chain
+      reads; the on-chain <code>Seasons</code> contract scores Human-vs-AI cohorts directly.
     </div>
   </div>
 
@@ -733,10 +735,20 @@ function refreshHumanVsAi(indexNav) {
     applyHvaHighlight();
     return;
   }
-  const ai = indexNav;
-  let sum = 0n;
-  for (const a of state.allocation) sum += a.nav;
-  const human = sum / BigInt(state.allocation.length);
+  // Apples-to-apples: the SAME current vault NAVs under two weighting schemes.
+  // Human = equal-weight average; AI = reputation-weighted average (the index's
+  // strategy). Both are weighted averages of identical NAVs, so the delta is purely
+  // the alpha of reputation-weighting over equal-weighting — not a scale mismatch.
+  const n = BigInt(state.allocation.length);
+  let sum = 0n, repWeighted = 0n, totalRep = 0n;
+  for (const a of state.allocation) {
+    sum += a.nav;
+    const r = a.reputation > 0n ? a.reputation : 0n;
+    repWeighted += r * a.nav;
+    totalRep += r;
+  }
+  const human = sum / n;
+  const ai = totalRep > 0n ? repWeighted / totalRep : human;
   $("hvaAi").textContent = fmt18(ai, 6);
   $("hvaHuman").textContent = fmt18(human, 6);
 
@@ -750,10 +762,10 @@ function refreshHumanVsAi(indexNav) {
       $("hvaOutcome").textContent = "Tied — AI Index and Human Twin are level.";
       state.hvaWinner = null;
     } else if (bps > 0n) {
-      $("hvaOutcome").innerHTML = `<span class="pos">AI Index ahead</span> by ${bps.toString()} bps vs the equal-weight Human Twin.`;
+      $("hvaOutcome").innerHTML = `<span class="pos">Reputation-weighted (AI) ahead</span> by ${bps.toString()} bps vs the equal-weight (Human) basket.`;
       state.hvaWinner = "ai";
     } else {
-      $("hvaOutcome").innerHTML = `<span class="neg">Human Twin ahead</span> by ${(-bps).toString()} bps vs the AI Index.`;
+      $("hvaOutcome").innerHTML = `<span class="neg">Equal-weight (Human) ahead</span> by ${(-bps).toString()} bps vs reputation-weighted (AI).`;
       state.hvaWinner = "human";
     }
   } else {
