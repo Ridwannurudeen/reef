@@ -1,8 +1,23 @@
 # Reef UI
 
-Single-page, vanilla-JS, viem-only developer dashboard for the Reef on-chain index
-of autonomous AI yield agents on Mantle. Reads `AgentIdentity`, `AgentIndex`, and
-per-agent `AgentVault` contracts directly via the RPC; no backend, no indexer.
+Single-page, vanilla-JS, viem-only product interface for the Reef on-chain index
+of autonomous AI yield agents on Mantle. It now presents Reef as an institutional
+Agent Yield Arena first, then exposes the live direct-on-chain dashboard below.
+Reads `AgentIdentity`, `AgentIndex`, and per-agent `AgentVault` contracts directly
+via the RPC; no backend, no indexer required for the app.
+
+## Design benchmark
+
+The redesign uses top-tier crypto product patterns instead of a generic admin
+console:
+
+- **Hyperliquid**: live terminal density, large tabular signature numbers, restrained motion.
+- **Ethena**: stablecoin/yield confidence, earned accent color, proof-first product framing.
+- **Morpho**: quiet institutional layout, high trust through clear metrics and minimal chrome.
+- **Pendle**: yield dashboard hierarchy, tables that feel dense without looking crowded.
+
+The first viewport is intentionally not a config form. It is the product: live
+`rINDEX` NAV, total assets, vault count, proof path, and receipt freshness.
 
 ## Run
 
@@ -25,7 +40,9 @@ ecosystem's agent-intelligence layer, with no backend.
 
 ## Required config (saved to `localStorage` under `reef.ui.v1`)
 
-- `RPC_URL` — defaults to `https://rpc.sepolia.mantle.xyz`
+- `RPC_URL` — defaults to `https://rpc.sepolia.mantle.xyz` and automatically
+  falls back to `https://mantle-sepolia.drpc.org` for read calls. You can also
+  enter a comma-separated list of RPC URLs.
 - `IDENTITY_ADDR` — deployed `AgentIdentity`
 - `INDEX_ADDR` — deployed `AgentIndex`
 - `ASSET_ADDR` — the index's underlying asset (e.g. USDY / MockUSDY on Sepolia)
@@ -43,31 +60,36 @@ The wallet button auto-adds Mantle Sepolia (`0x138b` / 5003) or Mantle mainnet
 ## Features
 
 - Wallet connect: address, chain id, native MNT balance.
-- `AgentIndex` panel: total assets / shares / derived NAV, your shares + assets,
+- Landing + live terminal: `rINDEX` NAV/share, total assets, total shares, vault
+  count, recent rebalance sparkline, and receipt freshness.
+- Proof rail: direct links for `AgentIdentity`, `AgentIndex`, `ReputationBond`,
+  `Seasons`, and the live yield adapter from the deployment file.
+- `AgentIndex` actions: your shares + assets,
   deposit (auto-approves only if allowance is short), withdraw, and the
   permissionless `rebalance()` button (disabled when `vaultCount() == 0`).
 - Agent leaderboard: reads `getAllocation()`, joins each entry against
-  `identity.getSummary(agentId)` and `vault.nav()`, sorts by reputation desc.
+  `identity.getSummary(agentId)`, `vault.nav()`, and `vault.lastReceiptAt()`,
+  sorts by reputation desc, and displays receipt freshness.
 - SVG sparkline of recent `Rebalanced` events as a NAV proxy.
-- Human-vs-AI: equal-weight average of all vault NAVs as the "Human Twin" with a
-  signed delta-in-bps vs. AI Index NAV, a plain-language outcome line ("AI Index
-  ahead by N bps"), and a toggle that highlights the active side (the leading side
-  is outlined green). Client-side simulation only.
+- Human-vs-AI: the same live vault NAVs under two weighting schemes. AI is
+  reputation-weighted; Human is equal-weight. The delta is computed client-side.
 - Activity feed: last 20 events across `AgentRegistered`, `IndexDeposit`,
-  `IndexWithdraw`, `Rebalanced`, `ReceiptPublished` over the last ~5000 blocks.
+  `IndexWithdraw`, `Rebalanced`, `ReceiptPublished` over the recent log window.
 - Auto-refresh: index every 15 s, feed every 30 s; paused on hidden tab.
+- RPC resilience: viem fallback transport plus retry/backoff on read calls, so
+  public RPC rate limits do not break the whole page.
 - All tx errors render the revert reason from viem.
 
 ## Known limits
 
 - Client-side reads only — no historical indexer. The NAV sparkline approximates
   index NAV with the `totalDeployed` field from `Rebalanced` events, not true NAV.
-- 5000-block log window only; older activity is not shown.
+- Recent-block log window only; older activity is not shown.
 - `ReceiptPublished` is read per registered vault (one `getLogs` call each); fine
   for a handful of vaults, not scalable to hundreds.
 - No `multicall3` batching — sequential / `Promise.all` reads. Mantle Sepolia's
   RPC handles the small fan-out comfortably.
-- Human Twin is a deliberately simple equal-weight average; it is not a real
-  portfolio simulation and is labelled as such in the UI.
+- Human Twin is a deliberately simple equal-weight basket. The on-chain `Seasons`
+  contract handles cohort scoring; the UI comparison is a live explainer.
 - Pins `viem@2.21.0` from `esm.sh?bundle`. If esm.sh is unreachable, the page
   will not load.
