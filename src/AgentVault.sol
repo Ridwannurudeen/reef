@@ -41,8 +41,10 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     uint256 public nextReceiptSeq;
     bytes32 public lastReceiptEvidenceHash;
     uint64 public lastReceiptAt;
-    /// @dev Per-share NAV at the last receipt; reputation credits the delta since.
-    uint256 public lastReputableNav;
+    /// @dev All-time-high per-share NAV. Reputation credits only growth ABOVE this
+    /// high-water mark, so a drawdown-then-recovery is never double-counted — the score
+    /// is risk-adjusted (rewards sustained new highs) and capital-normalized (per-share).
+    uint256 public highWaterNav;
 
     // --- EIP-712 receipt signing ---
     // Receipts are typed-data signed by the agent's operator and may be submitted by
@@ -72,7 +74,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         adapterRegistry = AdapterRegistry(registry_);
         // The agent's own wallet is the circuit-breaker guardian for its sovereign vault.
         _initGuardian(AgentIdentity(identity_).getAgentWallet(agentId_));
-        lastReputableNav = 1e18; // starting NAV; reputation accrues on gains above this
+        highWaterNav = 1e18; // reputation accrues only on new per-share NAV highs
         _cachedChainId = block.chainid;
         _cachedDomainSeparator = _buildDomainSeparator();
     }
@@ -172,13 +174,18 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         lastReceiptEvidenceHash = evidenceHash;
         lastReceiptAt = uint64(block.timestamp);
 
-        // Credit the real on-chain per-share NAV delta since the last receipt.
+        // Risk-adjusted: credit only per-share NAV growth above the all-time high-water
+        // mark. Recovering from a drawdown earns nothing until a new high is set, so
+        // volatility/round-tripping cannot farm reputation.
         uint256 currentNav = nav();
-        int256 realDelta = int256(currentNav) - int256(lastReputableNav);
-        lastReputableNav = currentNav;
-        identity.giveFeedback(agentId, _clipToInt128(realDelta), 18);
+        int256 credit = 0;
+        if (currentNav > highWaterNav) {
+            credit = int256(currentNav - highWaterNav);
+            highWaterNav = currentNav;
+        }
+        identity.giveFeedback(agentId, _clipToInt128(credit), 18);
 
-        emit ReceiptPublished(seq, evidenceHash, realDelta);
+        emit ReceiptPublished(seq, evidenceHash, credit);
     }
 
     /// @dev Recover the receipt signer and require it is the agent's operator.

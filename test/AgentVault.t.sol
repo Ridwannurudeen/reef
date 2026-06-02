@@ -244,6 +244,34 @@ contract AgentVaultTest is Test {
         assertEq(count, 1);
     }
 
+    function test_reputation_highWaterMark_ignoresDrawdownRecovery() public {
+        vm.prank(alice);
+        vault.deposit(1e18); // nav 1.0
+        token.mint(address(vault), 1e18); // nav 2.0
+        vault.publishReceipt(0, keccak256("h0"), int256(0), uint64(60), _sign(operatorPk, 0, keccak256("h0"), 0, 60));
+        (int256 c0,) = identity.getSummary(agentId);
+        assertEq(c0, 1e18); // credited the +1.0 gain (new HWM = 2.0)
+
+        // Drawdown: vault loses 1.0 (nav back to 1.0); a receipt credits nothing.
+        vm.prank(address(vault));
+        token.transfer(address(0xdEaD), 1e18);
+        vault.publishReceipt(1, keccak256("h1"), int256(0), uint64(60), _sign(operatorPk, 1, keccak256("h1"), 0, 60));
+        (int256 c1,) = identity.getSummary(agentId);
+        assertEq(c1, 1e18); // unchanged — in drawdown
+
+        // Recovery back to the prior peak (nav 2.0): still no credit (not a NEW high).
+        token.mint(address(vault), 1e18);
+        vault.publishReceipt(2, keccak256("h2"), int256(0), uint64(60), _sign(operatorPk, 2, keccak256("h2"), 0, 60));
+        (int256 c2,) = identity.getSummary(agentId);
+        assertEq(c2, 1e18); // no double-count of recovered ground
+
+        // New high (nav 2.5): credit only the 0.5 above the high-water mark.
+        token.mint(address(vault), 5e17);
+        vault.publishReceipt(3, keccak256("h3"), int256(0), uint64(60), _sign(operatorPk, 3, keccak256("h3"), 0, 60));
+        (int256 c3,) = identity.getSummary(agentId);
+        assertEq(c3, 1e18 + 5e17);
+    }
+
     function test_publishReceipt_badSeq_reverts() public {
         bytes memory sig = _sign(operatorPk, 1, keccak256("ev"), int256(1), uint64(60));
         vm.expectRevert(bytes("bad seq"));
