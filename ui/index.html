@@ -2364,7 +2364,7 @@
           state.hvaMode = b.dataset.mode;
           setText(
             "hvaActive",
-            `highlighting: ${b.dataset.mode === "ai" ? "AI Index" : "Human Twin"}`,
+            `highlighting: ${b.dataset.mode === "ai" ? "AI (reputation-weighted)" : "Human (equal-weight)"}`,
           );
           applyHvaHighlight();
         });
