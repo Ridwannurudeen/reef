@@ -13,11 +13,11 @@
   ],
   "nativeToken": "MNT",
   "reef": {
-    "_comment": "FRESH redeploy 2026-06-01 of the current post-Phase-3/4 contract set (internal-review must-fixes #2/#3/#6/#7 + AdapterRegistry + circuit-breaker/withdrawPool + rotatable arbiter). All contracts below Mantlescan-verified via Etherscan V2. Sepolia uses a generic MockERC20 as the index asset (real USDY/mETH live on mainnet only - see mainnetReferences). Instance now at full on-chain parity: identity + index(rINDEX) + AdapterRegistry + 5 reputation-weighted vaults, PLUS a MockYieldAdapter (live time-growing NAV), ReputationBond (bond-gate active), and Seasons (season 0 open) — see seeded.yieldAdapter/reputationBond/seasons. UNAUDITED. Previous (pre-fix) instance was AgentIdentity 0x75Ddb3Ef346C6C4995536D0368EE7C11160eddac / AgentIndex 0x9071f05834123ed4F71Ce342f1Af8e0a7077215E.",
-    "AgentIdentity": "0x4a037330bd05ca443C25f7b41Ed86BaeB2F43147",
-    "AgentIndex": "0x94ea17aEA0415c86d16c85D788803917BA7E3C60",
-    "AdapterRegistry": "0xaf68d79c2f10854c54536cc7a65d6838fa7dd380",
-    "AgentVault": "0xc50ACe6A77E02001829E2C0987A4CB8DEB09Db07",
+    "_comment": "REDEPLOY 2026-06-02 with real EIP-712 signed receipts (relayable) + risk-adjusted high-water-mark reputation, on top of the post-Phase-3/4 set (must-fixes #2/#3/#6/#7 + AdapterRegistry + circuit-breaker/withdrawPool + rotatable arbiter). All Mantlescan-verified via Etherscan V2. Sepolia uses a generic MockERC20 as the index asset (real USDY/mETH live on mainnet only - see mainnetReferences). Full on-chain parity: identity + index(rINDEX) + AdapterRegistry + 5 reputation-weighted vaults + MockYieldAdapter (live time-growing NAV on agent 1) + ReputationBond (bond-gate active) + Seasons (season 0 open) — see seeded.*. A receipt loop (agents/scripts/receipt_tick.py, cron) keeps receipts fresh. UNAUDITED. Prior instances: 0x94ea17aEA0415c86d16c85D788803917BA7E3C60 (2026-06-01), 0x9071f05834123ed4F71Ce342f1Af8e0a7077215E (pre-fix).",
+    "AgentIdentity": "0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7",
+    "AgentIndex": "0xC10eCcC78492395f12a8455C8A13471990c53047",
+    "AdapterRegistry": "0xc1ed73d6707701561df96abbbc37fc7e81f9cc36",
+    "AgentVault": "0x7E4399B91bF6801d7D74E359d162065c88EA9d1B",
     "ReputationOracle": "0x0000000000000000000000000000000000000000",
     "UsdyAdapter": "0x0000000000000000000000000000000000000000",
     "MethAdapter": "0x0000000000000000000000000000000000000000",
@@ -29,16 +29,16 @@
     "deployer": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
     "asset": "0xbc17D7F8f265d069781ed765914ED092989d92e7",
     "indexTotalAssets": "999999999999999999986",
-    "tradeableIndex": { "address": "0x94ea17aEA0415c86d16c85D788803917BA7E3C60", "symbol": "rINDEX", "name": "Reef AI Yield Index", "note": "The AgentIndex itself is the ERC-20 rINDEX (transfer/approve/transferFrom over index shares). Same address as reef.AgentIndex." },
-    "yieldAdapter": { "address": "0xAD8bD5DE927c144C1110D1fD020009164a4266Fe", "vault": "0xc50ACe6A77E02001829E2C0987A4CB8DEB09Db07", "aprBps": 2000, "note": "MockYieldAdapter (testnet, linear-accruing) wired into agent2's vault 2026-06-01; ~half the vault's idle deployed, so vault/index NAV reads a time-growing totalUnderlying(). Mantlescan-verified." },
-    "reputationBond": { "address": "0xD93b92165D0FD92640A084FB42D0f35176958d9c", "arbiter": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43", "challengeStake": "5000000000000000000", "slashAmount": "10000000000000000000", "disputeWindowSec": 86400, "note": "Phase 3 + rotatable arbiter (transferArbiter/acceptArbiter). All 5 indexed agents bonded 50e18; index bond-gate ACTIVE via setReputationBond(bond, 10e18) so unbonded/slashed agents are excluded. Mantlescan-verified." },
-    "seasons": { "address": "0xaC0949e257b7898a4890761179B6B853e8c69024", "seasonId": 0, "note": "Phase 4 on-chain Human-vs-AI Seasons. Season 0 open (7-day); all 5 agents enrolled (even agentId=AI, odd=Human), entry reputation snapshotted. Mantlescan-verified." },
+    "tradeableIndex": { "address": "0xC10eCcC78492395f12a8455C8A13471990c53047", "symbol": "rINDEX", "name": "Reef AI Yield Index", "note": "The AgentIndex itself is the ERC-20 rINDEX (transfer/approve/transferFrom over index shares). Same address as reef.AgentIndex." },
+    "yieldAdapter": { "address": "0x63bad8f71455099ebc7a01743c42f9471301edeb", "vault": "0x7E4399B91bF6801d7D74E359d162065c88EA9d1B", "aprBps": 2000, "note": "MockYieldAdapter (testnet, linear-accruing) wired into agent 1's vault 2026-06-02; ~half the vault's idle deployed, so its per-share NAV grows on-chain and (with the receipt loop) sets new high-water marks → rising risk-adjusted reputation. Mantlescan-verified." },
+    "reputationBond": { "address": "0xef2f3602d5fe04487a971e5d749dac7343b8f895", "arbiter": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43", "challengeStake": "5000000000000000000", "slashAmount": "10000000000000000000", "disputeWindowSec": 86400, "note": "Rotatable arbiter (transferArbiter/acceptArbiter). All 5 indexed agents bonded 50e18; index bond-gate ACTIVE via setReputationBond(bond, 10e18). Mantlescan-verified." },
+    "seasons": { "address": "0xbf8f5e4434f4467cd1d9e10ea5c58fdcf67e5a80", "seasonId": 0, "note": "On-chain Human-vs-AI Seasons. Season 0 open (7-day); all 5 agents enrolled (even agentId=AI, odd=Human), entry reputation snapshotted. Mantlescan-verified." },
     "vaults": [
-      { "agentId": 2, "vault": "0xc50ACe6A77E02001829E2C0987A4CB8DEB09Db07", "weightBps": 526 },
-      { "agentId": 3, "vault": "0xD880777CB19132E03bc81fa7EdE27785c815A4a8", "weightBps": 1052 },
-      { "agentId": 4, "vault": "0x1A5E8bEe1c142c60ce6B22fde36E23717f637736", "weightBps": 1578 },
-      { "agentId": 5, "vault": "0xB04ef699490A69bEFfAC501Abc1770B2158dC53F", "weightBps": 2631 },
-      { "agentId": 6, "vault": "0x89Ba030F760AeB7eBb03220193Ed08032F6364d1", "weightBps": 4210 }
+      { "agentId": 1, "vault": "0x7E4399B91bF6801d7D74E359d162065c88EA9d1B", "weightBps": 526 },
+      { "agentId": 2, "vault": "0x06e196408356D2BDa4d21301B3bbB78c931AE9E3", "weightBps": 1052 },
+      { "agentId": 3, "vault": "0xBA8075d91983D15628DE99CDC510cD6C70F434EE", "weightBps": 1578 },
+      { "agentId": 4, "vault": "0x7E1827697843f377761F19f6F3386D8750d75BBD", "weightBps": 2631 },
+      { "agentId": 5, "vault": "0xa40AF1a30E4094b2807fDfbF6195C06245ab0822", "weightBps": 4210 }
     ]
   },
   "mainnetReferences": {
