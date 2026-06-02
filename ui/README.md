@@ -6,12 +6,15 @@ per-agent `AgentVault` contracts directly via the RPC; no backend, no indexer.
 
 ## Run
 
+Serve the **repo root** (not `ui/`) so the page can fetch `../deployments/mantle-sepolia.json`:
+
 ```bash
-python -m http.server -d ui 8080
-# then open http://localhost:8080
+# from the repo root
+python -m http.server 8080
+# then open http://localhost:8080/ui/
 ```
 
-Any static file server works (`npx serve ui`, etc.). No build step.
+No build step. (Serving `-d ui` breaks the deployment-JSON load, since it lives one level up.)
 
 ## Required config (saved to `localStorage` under `reef.ui.v1`)
 
