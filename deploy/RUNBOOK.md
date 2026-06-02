@@ -51,26 +51,27 @@ The agent loop already catches per-cycle errors and continues; `Restart=always`
 covers process death. RPC blips are absorbed by `get_w3` failover + `rpc_read`
 backoff in `agents/shared/client.py`.
 
-## Cron alternative + keepers
+## Live cron (deployed on the VPS, `/opt/reef/app`)
+
+The autonomous loop runs from `/opt/reef/app` (the `agents/` package + the three ABI
+JSONs under `out/` + `deployments/mantle-sepolia.json` + `.env`; the host has `python3`
+3.12 with `web3` 7.x / `eth_account` 0.13 preinstalled). Installed crontab:
 
 ```cron
-# paper-mode receipts to all vaults every 10 min
-*/10 * * * * cd /opt/reef/app && set -a && . ./.env && set +a && bash agents/scripts/tick.sh >> /var/log/reef-tick.log 2>&1
-
-# rebalance the index every 10 min so allocations follow reputation (Python keeper:
-# RPC failover + getAllocation logging; reads INDEX from the deployment file)
-*/10 * * * * cd /opt/reef/app && python -m agents.scripts.keeper >> /var/log/reef-keeper.log 2>&1
-
-# health check every 15 min; alert on non-zero exit
-*/15 * * * * cd /opt/reef/app && python -m agents.scripts.health || /usr/local/bin/reef-alert.sh
+# EIP-712 signed receipts to all vaults every 10 min (Python — typed-data signing)
+*/10 * * * * cd /opt/reef/app && /usr/bin/python3 -m agents.scripts.receipt_tick >> /var/log/reef-tick.log 2>&1
+# rebalance the index every 30 min so allocations follow reputation
+*/30 * * * * cd /opt/reef/app && /usr/bin/python3 -m agents.scripts.keeper >> /var/log/reef-keeper.log 2>&1
+# health check every 15 min (non-zero exit on staleness — wire to an alert)
+*/15 * * * * cd /opt/reef/app && /usr/bin/python3 -m agents.scripts.health >> /var/log/reef-health.log 2>&1
 ```
 
-The keeper resolves the index address from `deployments/<network>.json` (`reef.AgentIndex`,
-currently `0x94ea17aEA0415c86d16c85D788803917BA7E3C60`); override with `INDEX_ADDR`. `rebalance()`
-is permissionless, so any keeper key works. For a long-lived daemon instead of cron, run
-`python -m agents.scripts.keeper --loop` (interval `KEEPER_INTERVAL_S`, default 600s) under
-systemd — model it on the `reef-nansen@` unit above. The raw fallback still works:
-`cast send <index> "rebalance()" --rpc-url "$MANTLE_SEPOLIA_RPC" --private-key "$PRIVATE_KEY"`.
+`receipt_tick` and `keeper` resolve everything from `deployments/mantle-sepolia.json`
+(`reef.AgentIndex` + `seeded.vaults`); override the index with `INDEX_ADDR`. `rebalance()`
+is permissionless, so any keeper key works; receipts are EIP-712-signed by the operator
+(`PRIVATE_KEY`) and may be relayed by anyone. After a redeploy, re-ship the updated
+`deployments/mantle-sepolia.json` + `out/` ABIs to `/opt/reef/app` and `/opt/reef/web/deployments/`.
+Keeper daemon alternative: `python3 -m agents.scripts.keeper --loop` (`KEEPER_INTERVAL_S`, default 600s).
 
 ## Monitoring & alerting
 

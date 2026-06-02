@@ -26,7 +26,7 @@ from agents.shared.client import (
     vault_contract,
 )
 from agents.shared.config import load_agent_runtime, load_chain
-from agents.shared.receipt import build_evidence, build_payload
+from agents.shared.receipt import build_evidence
 
 log = logging.getLogger("allora_agent")
 
@@ -152,10 +152,14 @@ def run_once(w3, account, vault, identity, runtime, period_s: int) -> None:
     # nav_delta_bps is a basis-points delta in [-500, 500]; the on-chain navDelta
     # is an int256, so we publish the bps integer directly (no scaling needed for
     # the toy paper-mode loop; production would scale to 18 decimals).
-    payload = build_payload(
+    receipt_args = sign_receipt(
+        account.key,
+        vault=vault.address,
+        chain_id=w3.eth.chain_id,
+        agent_id=vault.functions.agentId().call(),
         seq=seq,
         evidence_hash=evidence_hash,
-        nav_delta=int(decision.nav_delta_bps),
+        claimed_delta=int(decision.nav_delta_bps),
         period=int(period_s),
     )
 
@@ -166,7 +170,7 @@ def run_once(w3, account, vault, identity, runtime, period_s: int) -> None:
         decision.nav_delta_bps,
         decision.source,
     )
-    receipt = send_tx(w3, account, vault.functions.publishReceipt(payload))
+    receipt = send_tx(w3, account, vault.functions.publishReceipt(*receipt_args))
     cum, count = identity.functions.getSummary(vault.functions.agentId().call()).call()
     log.info(
         "tx %s mined in block %d status=%s | reputation cumulative=%s count=%d",
