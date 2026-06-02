@@ -14,6 +14,9 @@ out/
 # Docs
 docs/
 
+# Generated public-API snapshots (built by agents/scripts/api_snapshot.py on the VPS)
+ui/api/
+
 # Dotenv file
 .env
 .env.*

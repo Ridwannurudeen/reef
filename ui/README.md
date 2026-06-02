@@ -16,6 +16,13 @@ python -m http.server 8080
 
 No build step. (Serving `-d ui` breaks the deployment-JSON load, since it lives one level up.)
 
+## Public API
+
+`agents/scripts/api_snapshot.py` snapshots on-chain state to a static `reef.json`
+(meta + index + reputation-ranked agents + season standings) — served live at
+**https://reef.gudman.xyz/api/reef.json** and refreshed by cron. Reef as the
+ecosystem's agent-intelligence layer, with no backend.
+
 ## Required config (saved to `localStorage` under `reef.ui.v1`)
 
 - `RPC_URL` — defaults to `https://rpc.sepolia.mantle.xyz`
