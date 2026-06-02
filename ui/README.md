@@ -40,7 +40,9 @@ ecosystem's agent-intelligence layer, with no backend.
 
 ## Required config (saved to `localStorage` under `reef.ui.v1`)
 
-- `RPC_URL` — defaults to `https://rpc.sepolia.mantle.xyz`
+- `RPC_URL` — defaults to `https://rpc.sepolia.mantle.xyz` and automatically
+  falls back to `https://mantle-sepolia.drpc.org` for read calls. You can also
+  enter a comma-separated list of RPC URLs.
 - `IDENTITY_ADDR` — deployed `AgentIdentity`
 - `INDEX_ADDR` — deployed `AgentIndex`
 - `ASSET_ADDR` — the index's underlying asset (e.g. USDY / MockUSDY on Sepolia)
@@ -72,15 +74,17 @@ The wallet button auto-adds Mantle Sepolia (`0x138b` / 5003) or Mantle mainnet
 - Human-vs-AI: the same live vault NAVs under two weighting schemes. AI is
   reputation-weighted; Human is equal-weight. The delta is computed client-side.
 - Activity feed: last 20 events across `AgentRegistered`, `IndexDeposit`,
-  `IndexWithdraw`, `Rebalanced`, `ReceiptPublished` over the last ~5000 blocks.
+  `IndexWithdraw`, `Rebalanced`, `ReceiptPublished` over the recent log window.
 - Auto-refresh: index every 15 s, feed every 30 s; paused on hidden tab.
+- RPC resilience: viem fallback transport plus retry/backoff on read calls, so
+  public RPC rate limits do not break the whole page.
 - All tx errors render the revert reason from viem.
 
 ## Known limits
 
 - Client-side reads only — no historical indexer. The NAV sparkline approximates
   index NAV with the `totalDeployed` field from `Rebalanced` events, not true NAV.
-- 5000-block log window only; older activity is not shown.
+- Recent-block log window only; older activity is not shown.
 - `ReceiptPublished` is read per registered vault (one `getLogs` call each); fine
   for a handful of vaults, not scalable to hundreds.
 - No `multicall3` batching — sequential / `Promise.all` reads. Mantle Sepolia's

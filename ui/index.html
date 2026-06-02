@@ -1212,6 +1212,7 @@
         createPublicClient,
         createWalletClient,
         custom,
+        fallback,
         http,
         parseEther,
         formatEther,
@@ -1237,6 +1238,12 @@
         decimals: 18,
         explorer: "https://explorer.sepolia.mantle.xyz",
       };
+      const MANTLE_SEPOLIA_FALLBACK_RPCS = [
+        "https://mantle-sepolia.drpc.org",
+        MANTLE_SEPOLIA.rpc,
+      ];
+      const LOG_WINDOW_BLOCKS = 2500n;
+
       const MANTLE_MAINNET = {
         chainIdHex: "0x1388",
         chainIdNum: 5000,
@@ -1427,6 +1434,7 @@
         deployment: null,
         account: null,
         chainId: null,
+        rpcUrls: [],
         publicClient: null,
         walletClient: null,
         allocation: [],
@@ -1449,6 +1457,44 @@
         $("toasts").appendChild(el);
         setTimeout(() => el.remove(), ms);
         return el;
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function unique(values) {
+        return Array.from(new Set(values.filter(Boolean)));
+      }
+
+      function rpcUrlsFromConfig(raw) {
+        const urls = unique(
+          String(raw || "")
+            .split(",")
+            .map((u) => u.trim())
+            .filter(Boolean),
+        );
+        if (urls.length === 0 || urls.includes(MANTLE_SEPOLIA.rpc)) {
+          return unique([...MANTLE_SEPOLIA_FALLBACK_RPCS, ...urls]);
+        }
+        return urls;
+      }
+
+      async function rpcRead(fn, label = "rpc read", attempts = 3) {
+        let lastErr;
+        for (let i = 0; i < attempts; i++) {
+          try {
+            return await fn();
+          } catch (e) {
+            lastErr = e;
+            const msg = errMsg(e);
+            const retryable =
+              /429|rate|timeout|network|fetch|failed|limit/i.test(msg);
+            if (!retryable || i === attempts - 1) break;
+            await sleep(300 * (i + 1));
+          }
+        }
+        throw new Error(`${label}: ${errMsg(lastErr)}`);
       }
 
       function errMsg(e) {
@@ -1571,8 +1617,11 @@
       }
 
       function rebuildClients() {
+        state.rpcUrls = rpcUrlsFromConfig(state.cfg.rpc);
+        const transports = state.rpcUrls.map((url) => http(url));
         state.publicClient = createPublicClient({
-          transport: http(state.cfg.rpc),
+          transport:
+            transports.length === 1 ? transports[0] : fallback(transports),
         });
         if (window.ethereum && state.account) {
           state.walletClient = createWalletClient({
@@ -1651,9 +1700,10 @@
         const chain = chainForId(state.chainId);
         let bal = "-";
         try {
-          const wei = await state.publicClient.getBalance({
-            address: state.account,
-          });
+          const wei = await rpcRead(
+            () => state.publicClient.getBalance({ address: state.account }),
+            "wallet balance",
+          );
           bal = `${Number(formatEther(wei)).toFixed(4)} ${chain.symbol}`;
         } catch {}
         setText(
@@ -1758,21 +1808,33 @@
           const c = state.publicClient;
           const idx = state.cfg.index;
           const [total, shares, vCount] = await Promise.all([
-            c.readContract({
-              address: idx,
-              abi: INDEX_ABI,
-              functionName: "totalAssets",
-            }),
-            c.readContract({
-              address: idx,
-              abi: INDEX_ABI,
-              functionName: "totalShares",
-            }),
-            c.readContract({
-              address: idx,
-              abi: INDEX_ABI,
-              functionName: "vaultCount",
-            }),
+            rpcRead(
+              () =>
+                c.readContract({
+                  address: idx,
+                  abi: INDEX_ABI,
+                  functionName: "totalAssets",
+                }),
+              "index totalAssets",
+            ),
+            rpcRead(
+              () =>
+                c.readContract({
+                  address: idx,
+                  abi: INDEX_ABI,
+                  functionName: "totalShares",
+                }),
+              "index totalShares",
+            ),
+            rpcRead(
+              () =>
+                c.readContract({
+                  address: idx,
+                  abi: INDEX_ABI,
+                  functionName: "vaultCount",
+                }),
+              "index vaultCount",
+            ),
           ]);
           setNotice("");
           const nav =
@@ -1789,12 +1851,16 @@
             setText("rebalResult", "");
 
           if (state.account) {
-            const my = await c.readContract({
-              address: idx,
-              abi: INDEX_ABI,
-              functionName: "balanceOf",
-              args: [state.account],
-            });
+            const my = await rpcRead(
+              () =>
+                c.readContract({
+                  address: idx,
+                  abi: INDEX_ABI,
+                  functionName: "balanceOf",
+                  args: [state.account],
+                }),
+              "index balanceOf",
+            );
             setText("idxYourShares", fmt18(my));
             const myAssets = shares === 0n ? 0n : (my * nav) / 10n ** 18n;
             setText("idxYourAssets", fmt18(myAssets));
@@ -1829,11 +1895,15 @@
         const c = state.publicClient;
         let alloc;
         try {
-          alloc = await c.readContract({
-            address: state.cfg.index,
-            abi: INDEX_ABI,
-            functionName: "getAllocation",
-          });
+          alloc = await rpcRead(
+            () =>
+              c.readContract({
+                address: state.cfg.index,
+                abi: INDEX_ABI,
+                functionName: "getAllocation",
+              }),
+            "index allocation",
+          );
         } catch (e) {
           $("lbBody").innerHTML =
             `<tr><td colspan="8" class="muted">getAllocation failed: ${errMsg(e)}</td></tr>`;
@@ -1854,26 +1924,38 @@
               count = 0n,
               lastReceiptAt = 0n;
             try {
-              nav = await c.readContract({
-                address: a.vault,
-                abi: VAULT_ABI,
-                functionName: "nav",
-              });
+              nav = await rpcRead(
+                () =>
+                  c.readContract({
+                    address: a.vault,
+                    abi: VAULT_ABI,
+                    functionName: "nav",
+                  }),
+                `vault ${a.agentId} nav`,
+              );
             } catch {}
             try {
-              [reputation, count] = await c.readContract({
-                address: state.cfg.identity,
-                abi: IDENTITY_ABI,
-                functionName: "getSummary",
-                args: [a.agentId],
-              });
+              [reputation, count] = await rpcRead(
+                () =>
+                  c.readContract({
+                    address: state.cfg.identity,
+                    abi: IDENTITY_ABI,
+                    functionName: "getSummary",
+                    args: [a.agentId],
+                  }),
+                `agent ${a.agentId} reputation`,
+              );
             } catch {}
             try {
-              lastReceiptAt = await c.readContract({
-                address: a.vault,
-                abi: VAULT_ABI,
-                functionName: "lastReceiptAt",
-              });
+              lastReceiptAt = await rpcRead(
+                () =>
+                  c.readContract({
+                    address: a.vault,
+                    abi: VAULT_ABI,
+                    functionName: "lastReceiptAt",
+                  }),
+                `vault ${a.agentId} lastReceiptAt`,
+              );
             } catch {}
             return { ...a, nav, reputation, count, lastReceiptAt };
           }),
@@ -2019,24 +2101,28 @@
         const c = state.publicClient;
         let head;
         try {
-          head = await c.getBlockNumber();
+          head = await rpcRead(() => c.getBlockNumber(), "block number");
         } catch {
           return;
         }
-        const from = head > 5000n ? head - 5000n : 0n;
+        const from = head > LOG_WINDOW_BLOCKS ? head - LOG_WINDOW_BLOCKS : 0n;
         const events = [];
 
         async function pull(address, abi, eventName) {
           if (!address) return;
           try {
-            const logs = await c.getLogs({
-              address,
-              event: abi.find(
-                (x) => x.type === "event" && x.name === eventName,
-              ),
-              fromBlock: from,
-              toBlock: head,
-            });
+            const logs = await rpcRead(
+              () =>
+                c.getLogs({
+                  address,
+                  event: abi.find(
+                    (x) => x.type === "event" && x.name === eventName,
+                  ),
+                  fromBlock: from,
+                  toBlock: head,
+                }),
+              `logs ${eventName}`,
+            );
             for (const l of logs) events.push({ log: l, eventName });
           } catch (e) {
             console.warn(`getLogs ${eventName}:`, errMsg(e));
@@ -2052,14 +2138,18 @@
 
         for (const a of state.allocation) {
           try {
-            const logs = await c.getLogs({
-              address: a.vault,
-              event: VAULT_ABI.find(
-                (x) => x.type === "event" && x.name === "ReceiptPublished",
-              ),
-              fromBlock: from,
-              toBlock: head,
-            });
+            const logs = await rpcRead(
+              () =>
+                c.getLogs({
+                  address: a.vault,
+                  event: VAULT_ABI.find(
+                    (x) => x.type === "event" && x.name === "ReceiptPublished",
+                  ),
+                  fromBlock: from,
+                  toBlock: head,
+                }),
+              `logs ReceiptPublished agent ${a.agentId}`,
+            );
             for (const l of logs)
               events.push({
                 log: l,
@@ -2089,7 +2179,11 @@
           top.map(async (e) => {
             let ts = "";
             try {
-              const blk = await c.getBlock({ blockNumber: e.log.blockNumber });
+              const blk = await rpcRead(
+                () => c.getBlock({ blockNumber: e.log.blockNumber }),
+                `block ${e.log.blockNumber}`,
+                2,
+              );
               ts = new Date(Number(blk.timestamp) * 1000).toLocaleTimeString();
             } catch {}
             const args = e.log.args || {};
@@ -2133,12 +2227,16 @@
           return toast("amount: invalid decimal", "err");
         }
         try {
-          const allow = await state.publicClient.readContract({
-            address: state.cfg.asset,
-            abi: ERC20_ABI,
-            functionName: "allowance",
-            args: [state.account, state.cfg.index],
-          });
+          const allow = await rpcRead(
+            () =>
+              state.publicClient.readContract({
+                address: state.cfg.asset,
+                abi: ERC20_ABI,
+                functionName: "allowance",
+                args: [state.account, state.cfg.index],
+              }),
+            "asset allowance",
+          );
           if (allow < assets) {
             const ar = await sendTx({
               address: state.cfg.asset,
@@ -2225,9 +2323,9 @@
         }
       }
 
-      function refreshAll() {
-        refreshIndex();
-        refreshFeed();
+      async function refreshAll() {
+        await refreshIndex();
+        await refreshFeed();
         if (state.account) renderConn();
       }
 
