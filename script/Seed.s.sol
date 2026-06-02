@@ -21,6 +21,49 @@ import {MockERC20} from "../test/mocks/MockERC20.sol";
 /// Usage:
 ///   forge script script/Seed.s.sol --rpc-url <rpc> --broadcast
 contract Seed is Script {
+    bytes32 constant RECEIPT_TYPEHASH =
+        keccak256("Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,int256 claimedDelta,uint64 period)");
+
+    /// EIP-712-sign a seq-0 receipt for `vault` with key `pk` (operator).
+    function _sign(uint256 pk, AgentVault vault, uint256 agentId, bytes32 evidence, int256 delta)
+        internal
+        view
+        returns (bytes memory)
+    {
+        bytes32 structHash =
+            keccak256(abi.encode(RECEIPT_TYPEHASH, agentId, uint256(0), evidence, delta, uint64(86_400)));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", vault.domainSeparator(), structHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(pk, digest);
+        return abi.encodePacked(r, s, v);
+    }
+
+    /// Register an agent, deploy + authorize its vault, manufacture a differentiated
+    /// per-share NAV gain (deposit 1e18 + donate `delta`), then submit an operator-signed
+    /// NAV-derived receipt so reputation accrues to `delta`.
+    function _seedAgent(
+        MockERC20 asset,
+        AgentIdentity identity,
+        AgentIndex index,
+        AdapterRegistry registry,
+        uint256 pk,
+        uint256 i,
+        int256 delta
+    ) internal {
+        uint256 agentId = identity.register();
+        AgentVault vault = new AgentVault(address(asset), agentId, address(identity), address(registry));
+        identity.setReputationSource(agentId, address(vault)); // vault-only reputation (#1)
+        index.addVault(address(vault));
+
+        asset.mint(vm.addr(pk), 1e18);
+        asset.approve(address(vault), 1e18);
+        vault.deposit(1e18);
+        asset.mint(address(vault), uint256(delta));
+
+        bytes32 evidence = keccak256(abi.encode("seed", i));
+        vault.publishReceipt(0, evidence, delta, uint64(86_400), _sign(pk, vault, agentId, evidence, delta));
+        console.log("agent", agentId, "vault", address(vault));
+    }
+
     function run() external {
         uint256 pk = vm.envUint("PRIVATE_KEY");
         MockERC20 asset = MockERC20(vm.envAddress("ASSET"));
@@ -42,21 +85,7 @@ contract Seed is Script {
         AdapterRegistry registry = new AdapterRegistry();
 
         for (uint256 i = 0; i < navDeltas.length; i++) {
-            uint256 agentId = identity.register();
-            AgentVault vault = new AgentVault(address(asset), agentId, address(identity), address(registry));
-            identity.setReputationSource(agentId, address(vault)); // vault-only reputation (#1)
-            index.addVault(address(vault));
-
-            // Manufacture a real, differentiated per-share NAV gain so the NAV-derived
-            // receipt (#4) credits navDeltas[i]: deposit 1e18 (nav = 1.0), then donate
-            // the target delta to the vault (nav -> 1.0 + delta).
-            uint256 delta = uint256(navDeltas[i]);
-            asset.mint(deployer, 1e18);
-            asset.approve(address(vault), 1e18);
-            vault.deposit(1e18);
-            asset.mint(address(vault), delta);
-            vault.publishReceipt(abi.encode(uint256(0), keccak256(abi.encode("seed", i)), navDeltas[i], uint64(86_400)));
-            console.log("agent", agentId, "vault", address(vault));
+            _seedAgent(asset, identity, index, registry, pk, i, navDeltas[i]);
         }
 
         index.deposit(deposit);
