@@ -22,13 +22,17 @@ The first public, on-chain index of autonomous AI yield agents on Mantle — ERC
 
 **Deployed & verified on Mantle Sepolia (chain 5003):**
 
-| Contract | Address (verified on Mantlescan) |
+| Contract | Address (verified on Mantlescan, chain 5003) |
 |---|---|
-| AgentIdentity (ERC-8004) | [`0x75Ddb3Ef346C6C4995536D0368EE7C11160eddac`](https://sepolia.mantlescan.xyz/address/0x75Ddb3Ef346C6C4995536D0368EE7C11160eddac) |
-| AgentIndex | [`0x9071f05834123ed4F71Ce342f1Af8e0a7077215E`](https://sepolia.mantlescan.xyz/address/0x9071f05834123ed4F71Ce342f1Af8e0a7077215E) |
+| AgentIdentity (ERC-8004) | [`0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7`](https://sepolia.mantlescan.xyz/address/0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7) |
+| AgentIndex (rINDEX) | [`0xC10eCcC78492395f12a8455C8A13471990c53047`](https://sepolia.mantlescan.xyz/address/0xC10eCcC78492395f12a8455C8A13471990c53047) |
+| AdapterRegistry | [`0xc1ed73d6707701561df96abbbc37fc7e81f9cc36`](https://sepolia.mantlescan.xyz/address/0xc1ed73d6707701561df96abbbc37fc7e81f9cc36) |
+| MockYieldAdapter (agent 1, live NAV) | [`0x63bad8f71455099ebc7a01743c42f9471301edeb`](https://sepolia.mantlescan.xyz/address/0x63bad8f71455099ebc7a01743c42f9471301edeb) |
+| ReputationBond | [`0xef2f3602d5fe04487a971e5d749dac7343b8f895`](https://sepolia.mantlescan.xyz/address/0xef2f3602d5fe04487a971e5d749dac7343b8f895) |
+| Seasons | [`0xbf8f5e4434f4467cd1d9e10ea5c58fdcf67e5a80`](https://sepolia.mantlescan.xyz/address/0xbf8f5e4434f4467cd1d9e10ea5c58fdcf67e5a80) |
 | Asset (demo MockERC20) | [`0xbc17D7F8f265d069781ed765914ED092989d92e7`](https://sepolia.mantlescan.xyz/address/0xbc17D7F8f265d069781ed765914ED092989d92e7) |
 
-Seeded with **5 AgentVaults** (all verified on Mantlescan); index holds 1,000 demo units with a reputation-weighted allocation of 526 / 1052 / 1578 / 2631 / 4210 bps. A paper-mode receipt loop (`agents/scripts/tick.sh`) publishes strict-sequence signed receipts on-chain.
+Seeded with **5 AgentVaults** (all verified on Mantlescan); index holds 1,000 demo units with a reputation-weighted allocation of 526 / 1052 / 1578 / 2631 / 4210 bps. A VPS cron receipt loop (`agents/scripts/receipt_tick.py`) publishes **EIP-712-signed** strict-sequence receipts on-chain every 10 minutes (any keeper can relay them), keeping the agents live; the full per-vault address list is in `deployments/mantle-sepolia.json`.
 
 ## What Problem Are We Solving?
 
@@ -81,20 +85,22 @@ AgentIndex
 | Component | Status |
 |---|---|
 | `AgentIdentity.sol` (ERC-8004) | Done. 14 tests. Vault-only reputation gate. |
-| `AgentVault.sol` | Done. 14 tests. NAV-derived receipts; reentrancy-guarded. |
-| `AgentIndex.sol` (ERC-20) | Done. 21 tests. Reputation-weighted rebalance + tradeable share + bond gate. |
-| `SignalMarket.sol` (A2A) | Done. 9 tests. |
-| `ReputationBond.sol` | Done. 9 tests. Slashable bonds + dispute layer. |
-| `UsdyAdapter.sol` | Done. 7 local + **2 fork tests passing against live Ondo USDY on Mantle mainnet**. |
-| `MethAdapter.sol` | Done. 5 tests. |
-| `MockYieldAdapter.sol` | Done. 8 tests. Testnet linear-accruing adapter (real-NAV demo). |
+| `AgentVault.sol` | Done. EIP-712-signed receipts (relayable, gasless agents) + risk-adjusted high-water-mark reputation; reentrancy-guarded + circuit breaker. |
+| `AgentIndex.sol` (ERC-20) | Done. Reputation-weighted rebalance + tradeable share + bond gate + withdrawPool reserve + permissionless bonded self-listing. |
+| `AdapterRegistry.sol` | Done. Governance allowlist of vetted strategy adapters. |
+| `SignalMarket.sol` (A2A) | Done. |
+| `ReputationBond.sol` | Done. Slashable bonds + dispute layer + rotatable (2-step) arbiter. |
+| `Seasons.sol` | Done. On-chain time-boxed Human-vs-AI seasons (enroll → snapshot → finalize → winner). |
+| `UsdyAdapter.sol` | Done. Local + **2 fork tests passing against live Ondo USDY on Mantle mainnet**. |
+| `MethAdapter.sol` / `FbtcAdapter.sol` / `UsdeAdapter.sol` / `Mi4Adapter.sol` | Done. RWA/yield adapters (mETH, Ignition FBTC, Ethena USDe, Securitize MI4); mainnet addresses on-chain-verified. |
+| `MockYieldAdapter.sol` | Done. Testnet linear-accruing adapter (live-NAV demo). |
 | Deploy scripts | `script/Deploy.s.sol` + `Seed.s.sol` (Sepolia) + `DeployMainnet.s.sol` (mainnet-ready, real USDY) |
 | Reference Python agents | `agents/allora_agent/` (Allora + Z.ai GLM-5.1) + `agents/nansen_agent/` (mock signal v1); fall back to a deterministic rule without API keys |
 | Live dashboard | `ui/index.html` — single-file viem dashboard with AgentIndex stats, leaderboard, deposit/withdraw, rebalance button, Human-vs-AI twin |
 | Hackathon deck | `slides.html` (reveal.js) |
 | nginx + cert deploy config | `deploy/` |
 
-**Total: 87 unit tests + 2 mainnet-fork integration tests, all passing** (`forge test`). All deployed Sepolia contracts are verified on Mantlescan. Forge 1.7.1, solc 0.8.24, evm_version paris. Internal security review in `SECURITY.md`.
+**Total: 130 unit tests + 2 mainnet-fork integration tests, all passing** (`forge test`). All deployed Sepolia contracts are verified on Mantlescan. Forge 1.7.1, solc 0.8.24, evm_version paris. Internal security review in `SECURITY.md`.
 
 ## Hackathon Feature Alignment
 
