@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 /// @title IAgentVault
-/// @notice Per-agent vault. The agent (operator) signs EIP-712 receipts attesting
-/// to NAV and decisions; depositors hold shares; reputation accrues to the agent's
-/// ERC-8004 identity via the receipt pipeline.
+/// @notice Per-agent vault. The agent (operator) EIP-712-signs receipts attesting to
+/// NAV and decisions; any relayer may submit the signed receipt. Depositors hold shares;
+/// reputation accrues to the agent's ERC-8004 identity via the receipt pipeline.
 interface IAgentVault {
     struct VaultView {
         uint256 agentId;
@@ -28,9 +28,16 @@ interface IAgentVault {
     function deployToStrategy(address adapter, uint256 amount) external;
     function recallFromStrategy(address adapter, uint256 amount) external;
 
-    /// @notice Operator publishes a signed receipt covering the latest period.
-    /// @dev Forwards a reputation update to the AgentIdentity contract.
-    function publishReceipt(bytes calldata eip712Receipt) external;
+    /// @notice Submit an operator-EIP-712-signed receipt covering the latest period.
+    /// Callable by anyone (keeper/relayer); the signature must recover to the agent's
+    /// operator. Forwards a NAV-derived reputation update to AgentIdentity.
+    function publishReceipt(
+        uint256 seq,
+        bytes32 evidenceHash,
+        int256 claimedDelta,
+        uint64 period,
+        bytes calldata signature
+    ) external;
 
     function snapshot() external view returns (VaultView memory);
     function nav() external view returns (uint256);

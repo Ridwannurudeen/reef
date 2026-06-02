@@ -15,12 +15,29 @@ contract AgentVaultTest is Test {
     MockERC20 token;
     MockStrategyAdapter strategy;
 
-    address operator = makeAddr("operator");
+    address operator;
+    uint256 operatorPk;
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
     uint256 agentId;
 
+    bytes32 constant RECEIPT_TYPEHASH =
+        keccak256("Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,int256 claimedDelta,uint64 period)");
+
+    /// EIP-712-sign a receipt for `vault` with key `pk`.
+    function _sign(uint256 pk, uint256 seq, bytes32 evidence, int256 claimedDelta, uint64 period)
+        internal
+        view
+        returns (bytes memory)
+    {
+        bytes32 structHash = keccak256(abi.encode(RECEIPT_TYPEHASH, agentId, seq, evidence, claimedDelta, period));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", vault.domainSeparator(), structHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(pk, digest);
+        return abi.encodePacked(r, s, v);
+    }
+
     function setUp() public {
+        (operator, operatorPk) = makeAddrAndKey("operator");
         identity = new AgentIdentity();
         token = new MockERC20();
 
@@ -214,10 +231,11 @@ contract AgentVaultTest is Test {
         token.mint(address(vault), 5e17); // donate yield -> nav = 1.5e18
 
         bytes32 evidence = keccak256("ev1");
-        // The claimed delta in the payload is a lie (1e24); it is ignored on-chain.
-        bytes memory r = abi.encode(uint256(0), evidence, int256(1e24), uint64(3600));
-        vm.prank(operator);
-        vault.publishReceipt(r);
+        // The claimed delta in the signed receipt is a lie (1e24); it is ignored on-chain.
+        // Submitted by `bob` (a relayer), proving the tx sender need not be the operator.
+        bytes memory sig = _sign(operatorPk, 0, evidence, int256(1e24), uint64(3600));
+        vm.prank(bob);
+        vault.publishReceipt(0, evidence, int256(1e24), uint64(3600), sig);
 
         assertEq(vault.nextReceiptSeq(), 1);
         assertEq(vault.lastReceiptEvidenceHash(), evidence);
@@ -226,18 +244,45 @@ contract AgentVaultTest is Test {
         assertEq(count, 1);
     }
 
-    function test_publishReceipt_badSeq_reverts() public {
-        bytes memory r = abi.encode(uint256(1), keccak256("ev"), int256(1), uint64(60));
-        vm.prank(operator);
-        vm.expectRevert(bytes("bad seq"));
-        vault.publishReceipt(r);
+    function test_reputation_highWaterMark_ignoresDrawdownRecovery() public {
+        vm.prank(alice);
+        vault.deposit(1e18); // nav 1.0
+        token.mint(address(vault), 1e18); // nav 2.0
+        vault.publishReceipt(0, keccak256("h0"), int256(0), uint64(60), _sign(operatorPk, 0, keccak256("h0"), 0, 60));
+        (int256 c0,) = identity.getSummary(agentId);
+        assertEq(c0, 1e18); // credited the +1.0 gain (new HWM = 2.0)
+
+        // Drawdown: vault loses 1.0 (nav back to 1.0); a receipt credits nothing.
+        vm.prank(address(vault));
+        token.transfer(address(0xdEaD), 1e18);
+        vault.publishReceipt(1, keccak256("h1"), int256(0), uint64(60), _sign(operatorPk, 1, keccak256("h1"), 0, 60));
+        (int256 c1,) = identity.getSummary(agentId);
+        assertEq(c1, 1e18); // unchanged — in drawdown
+
+        // Recovery back to the prior peak (nav 2.0): still no credit (not a NEW high).
+        token.mint(address(vault), 1e18);
+        vault.publishReceipt(2, keccak256("h2"), int256(0), uint64(60), _sign(operatorPk, 2, keccak256("h2"), 0, 60));
+        (int256 c2,) = identity.getSummary(agentId);
+        assertEq(c2, 1e18); // no double-count of recovered ground
+
+        // New high (nav 2.5): credit only the 0.5 above the high-water mark.
+        token.mint(address(vault), 5e17);
+        vault.publishReceipt(3, keccak256("h3"), int256(0), uint64(60), _sign(operatorPk, 3, keccak256("h3"), 0, 60));
+        (int256 c3,) = identity.getSummary(agentId);
+        assertEq(c3, 1e18 + 5e17);
     }
 
-    function test_publishReceipt_onlyOperator() public {
-        bytes memory r = abi.encode(uint256(0), keccak256("ev"), int256(1), uint64(60));
-        vm.prank(alice);
-        vm.expectRevert(bytes("not operator"));
-        vault.publishReceipt(r);
+    function test_publishReceipt_badSeq_reverts() public {
+        bytes memory sig = _sign(operatorPk, 1, keccak256("ev"), int256(1), uint64(60));
+        vm.expectRevert(bytes("bad seq"));
+        vault.publishReceipt(1, keccak256("ev"), int256(1), uint64(60), sig);
+    }
+
+    function test_publishReceipt_rejectsNonOperatorSignature() public {
+        (, uint256 strangerPk) = makeAddrAndKey("stranger");
+        bytes memory sig = _sign(strangerPk, 0, keccak256("ev"), int256(1), uint64(60));
+        vm.expectRevert(bytes("bad signature"));
+        vault.publishReceipt(0, keccak256("ev"), int256(1), uint64(60), sig);
     }
 
     // --- Views ---

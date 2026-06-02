@@ -41,8 +41,22 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     uint256 public nextReceiptSeq;
     bytes32 public lastReceiptEvidenceHash;
     uint64 public lastReceiptAt;
-    /// @dev Per-share NAV at the last receipt; reputation credits the delta since.
-    uint256 public lastReputableNav;
+    /// @dev All-time-high per-share NAV. Reputation credits only growth ABOVE this
+    /// high-water mark, so a drawdown-then-recovery is never double-counted — the score
+    /// is risk-adjusted (rewards sustained new highs) and capital-normalized (per-share).
+    uint256 public highWaterNav;
+
+    // --- EIP-712 receipt signing ---
+    // Receipts are typed-data signed by the agent's operator and may be submitted by
+    // anyone (a keeper/relayer), so agents need not hold gas. The per-vault domain
+    // (verifyingContract = this vault) prevents cross-vault replay; agentId + strict
+    // seq prevent in-vault replay.
+    bytes32 private constant _DOMAIN_TYPEHASH =
+        keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+    bytes32 private constant _RECEIPT_TYPEHASH =
+        keccak256("Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,int256 claimedDelta,uint64 period)");
+    uint256 private immutable _cachedChainId;
+    bytes32 private immutable _cachedDomainSeparator;
 
     event StrategyApproved(address indexed adapter);
 
@@ -60,7 +74,9 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         adapterRegistry = AdapterRegistry(registry_);
         // The agent's own wallet is the circuit-breaker guardian for its sovereign vault.
         _initGuardian(AgentIdentity(identity_).getAgentWallet(agentId_));
-        lastReputableNav = 1e18; // starting NAV; reputation accrues on gains above this
+        highWaterNav = 1e18; // reputation accrues only on new per-share NAV highs
+        _cachedChainId = block.chainid;
+        _cachedDomainSeparator = _buildDomainSeparator();
     }
 
     // --- Deposit / Withdraw ---
@@ -136,30 +152,83 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
 
     // --- Receipts ---
 
-    /// @notice Operator publishes a strict-sequence receipt for the latest period.
-    /// Reputation credited is the vault's REAL per-share NAV change since the last
-    /// receipt, computed on-chain — not the operator-supplied figure (the payload's
-    /// claimed delta is ignored for reputation; it remains only as off-chain claim
-    /// matched by the evidence hash). This closes the operator-overstatement vector.
-    /// @dev Payload layout (abi.encode): (uint256 seq, bytes32 evidenceHash, int256 claimedDelta, uint64 period)
-    function publishReceipt(bytes calldata eip712Receipt) external override onlyOperator {
-        (uint256 seq, bytes32 evidenceHash,, uint64 period) =
-            abi.decode(eip712Receipt, (uint256, bytes32, int256, uint64));
+    /// @notice Publish a strict-sequence receipt for the latest period. The receipt is
+    /// EIP-712 typed-data signed by the agent's operator; ANYONE may submit it (a keeper
+    /// or relayer), so agents need not hold gas. Reputation credited is the vault's REAL
+    /// per-share NAV change since the last receipt, computed on-chain — the operator's
+    /// `claimedDelta` is signed (an attestation matched by the evidence hash) but ignored
+    /// for reputation, closing the operator-overstatement vector.
+    function publishReceipt(
+        uint256 seq,
+        bytes32 evidenceHash,
+        int256 claimedDelta,
+        uint64 period,
+        bytes calldata signature
+    ) external override {
         require(seq == nextReceiptSeq, "bad seq");
         require(evidenceHash != bytes32(0), "zero evidence");
         require(period > 0, "zero period");
+        _verifyReceiptSig(seq, evidenceHash, claimedDelta, period, signature);
 
         nextReceiptSeq = seq + 1;
         lastReceiptEvidenceHash = evidenceHash;
         lastReceiptAt = uint64(block.timestamp);
 
-        // Credit the real on-chain per-share NAV delta since the last receipt.
+        // Risk-adjusted: credit only per-share NAV growth above the all-time high-water
+        // mark. Recovering from a drawdown earns nothing until a new high is set, so
+        // volatility/round-tripping cannot farm reputation.
         uint256 currentNav = nav();
-        int256 realDelta = int256(currentNav) - int256(lastReputableNav);
-        lastReputableNav = currentNav;
-        identity.giveFeedback(agentId, _clipToInt128(realDelta), 18);
+        int256 credit = 0;
+        if (currentNav > highWaterNav) {
+            credit = int256(currentNav - highWaterNav);
+            highWaterNav = currentNav;
+        }
+        identity.giveFeedback(agentId, _clipToInt128(credit), 18);
 
-        emit ReceiptPublished(seq, evidenceHash, realDelta);
+        emit ReceiptPublished(seq, evidenceHash, credit);
+    }
+
+    /// @dev Recover the receipt signer and require it is the agent's operator.
+    function _verifyReceiptSig(
+        uint256 seq,
+        bytes32 evidenceHash,
+        int256 claimedDelta,
+        uint64 period,
+        bytes calldata signature
+    ) private view {
+        bytes32 structHash = keccak256(abi.encode(_RECEIPT_TYPEHASH, agentId, seq, evidenceHash, claimedDelta, period));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator(), structHash));
+        address signer = _recover(digest, signature);
+        require(signer != address(0) && signer == identity.getAgentWallet(agentId), "bad signature");
+    }
+
+    /// @notice EIP-712 domain separator for this vault (recomputed if the chain forked).
+    function domainSeparator() public view returns (bytes32) {
+        return block.chainid == _cachedChainId ? _cachedDomainSeparator : _buildDomainSeparator();
+    }
+
+    function _buildDomainSeparator() private view returns (bytes32) {
+        return keccak256(
+            abi.encode(_DOMAIN_TYPEHASH, keccak256("Reef AgentVault"), keccak256("1"), block.chainid, address(this))
+        );
+    }
+
+    /// @dev Minimal ECDSA recovery (no external dependency). A malleable (high-s) variant
+    /// recovers the SAME signer, and replay is already blocked by the strict `seq` + the
+    /// per-vault domain, so an explicit low-s check is unnecessary here.
+    function _recover(bytes32 digest, bytes calldata sig) private pure returns (address) {
+        if (sig.length != 65) return address(0);
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := calldataload(sig.offset)
+            s := calldataload(add(sig.offset, 32))
+            v := byte(0, calldataload(add(sig.offset, 64)))
+        }
+        if (v < 27) v += 27;
+        if (v != 27 && v != 28) return address(0);
+        return ecrecover(digest, v, r, s);
     }
 
     // --- Views ---
