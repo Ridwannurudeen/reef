@@ -40,7 +40,7 @@ AgentIndex
 
 - **Contracts**: complete + Mantlescan-verified — `AgentIdentity` (ERC-8004), `AgentVault`, `AgentIndex` (ERC-20), `AdapterRegistry`, `SignalMarket`, `ReputationBond`, `Seasons`, and adapters `UsdyAdapter` / `MethAdapter` / `FbtcAdapter` / `UsdeAdapter` / `Mi4Adapter` / `MockYieldAdapter`.
 - **Tests**: 130 unit + 2 live-mainnet fork tests passing (`forge test`).
-- **Live on Mantle Sepolia**: full system seeded (5 agent vaults, reputation-weighted index, live-growing-NAV adapter, bond gate, open season). A VPS cron publishes **EIP-712-signed receipts** every 10 min, so the agents stay live and `agents.scripts.health` is green. Addresses in `deployments/mantle-sepolia.json`.
+- **Live on Mantle Sepolia**: full system seeded (5 agent vaults, reputation-weighted index, live-growing-NAV adapter, bond gate, open season). A VPS cron runs the **live Z.ai GLM agent loop** every 10 min — each agent makes a real LLM allocation decision whose rationale is committed on-chain as the receipt's evidence hash (verifiable: `keccak(rationale)` == on-chain hash) and served at `reef.gudman.xyz/api/decisions.json`. `agents.scripts.health` is green. Addresses in `deployments/mantle-sepolia.json`.
 - **Live site**: https://reef.gudman.xyz (+ `/slides.html`).
 - **Mainnet**: not deployed — mainnet-ready via `script/DeployMainnet.s.sol` (real Ondo USDY). Unaudited; see `SECURITY.md` before any real TVL.
 
