@@ -41,7 +41,90 @@ _ROUTER_ABI = [
         ],
         "outputs": [{"name": "amounts", "type": "uint256[]"}],
     },
+    {
+        "type": "function",
+        "name": "swapExactTokensForTokens",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {"name": "amountIn", "type": "uint256"},
+            {"name": "amountOutMin", "type": "uint256"},
+            {"name": "path", "type": "address[]"},
+            {"name": "to", "type": "address"},
+            {"name": "deadline", "type": "uint256"},
+        ],
+        "outputs": [{"name": "amounts", "type": "uint256[]"}],
+    },
 ]
+
+_ERC20_ABI = [
+    {
+        "type": "function",
+        "name": "approve",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {"name": "spender", "type": "address"},
+            {"name": "amount", "type": "uint256"},
+        ],
+        "outputs": [{"type": "bool"}],
+    },
+    {
+        "type": "function",
+        "name": "balanceOf",
+        "stateMutability": "view",
+        "inputs": [{"name": "owner", "type": "address"}],
+        "outputs": [{"type": "uint256"}],
+    },
+]
+
+
+def token_balance(w3: Web3, token: str, owner: str) -> int:
+    erc = w3.eth.contract(address=Web3.to_checksum_address(token), abi=_ERC20_ABI)
+    return int(
+        rpc_read(
+            lambda: erc.functions.balanceOf(Web3.to_checksum_address(owner)).call()
+        )
+    )
+
+
+def swap_token_for_wmnt(
+    w3: Web3,
+    account,
+    dex: dict[str, Any],
+    token_in: str,
+    amount_in: int,
+    slippage_bps: int = 3000,
+) -> dict[str, Any]:
+    """Execute a real token -> WMNT swap (de-risk / 'decrease'). Approves the router first."""
+    rt = router_contract(w3, dex)
+    token_in = Web3.to_checksum_address(token_in)
+    wmnt = Web3.to_checksum_address(dex["wmnt"])
+    path = [token_in, wmnt]
+    expected = int(
+        rpc_read(lambda: rt.functions.getAmountsOut(amount_in, path).call())[-1]
+    )
+    amount_out_min = expected * (10_000 - slippage_bps) // 10_000
+    erc = w3.eth.contract(address=token_in, abi=_ERC20_ABI)
+    send_tx(
+        w3,
+        account,
+        erc.functions.approve(Web3.to_checksum_address(dex["router"]), amount_in),
+    )
+    deadline = rpc_read(lambda: w3.eth.get_block("latest"))["timestamp"] + 600
+    fn = rt.functions.swapExactTokensForTokens(
+        amount_in, amount_out_min, path, account.address, deadline
+    )
+    receipt = send_tx(w3, account, fn)
+    return {
+        "dex": dex.get("name", "FusionX V2"),
+        "router": dex["router"],
+        "side": "sell",
+        "tokenIn": token_in,
+        "amountIn": str(amount_in),
+        "expectedOut": str(expected),
+        "amountOutMin": str(amount_out_min),
+        "txHash": receipt["transactionHash"].hex(),
+        "ts": int(time.time()),
+    }
 
 
 def load_dex(network: str = "mantle-sepolia") -> dict[str, Any]:
