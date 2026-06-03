@@ -29,7 +29,12 @@ from pathlib import Path
 from agents.shared.brain import decide_for_vault
 from agents.shared.client import get_w3, load_account, rpc_read, vault_contract
 from agents.shared.config import DEPLOYMENTS_DIR, REPO_ROOT, load_chain
-from agents.shared.dex import load_dex, swap_native_for_token
+from agents.shared.dex import (
+    load_dex,
+    swap_native_for_token,
+    swap_token_for_wmnt,
+    token_balance,
+)
 from agents.shared.signal import fetch_signal
 
 
@@ -65,10 +70,18 @@ def main() -> int:
             d = decide_for_vault(agent_id, nav, hwm, signal)
             execution = None
             if d.action == "increase":
+                # Increase exposure: buy the risk asset (real MNT -> USDC swap).
                 execution = swap_native_for_token(
                     w3, account, dex, dex["usdc"], w3.to_wei(exec_mnt, "ether")
                 )
                 traded += 1
+            elif d.action == "decrease":
+                # De-risk: sell part of the held USDC back to the reserve (real swap), if any.
+                bal = token_balance(w3, dex["usdc"], account.address)
+                sell = bal // 4  # trim a quarter of the position
+                if sell > 0:
+                    execution = swap_token_for_wmnt(w3, account, dex, dex["usdc"], sell)
+                    traded += 1
             records.append(
                 {
                     "agent": agent_id,

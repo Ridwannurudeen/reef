@@ -1159,6 +1159,23 @@
         </div>
       </section>
 
+      <section id="ai">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Live AI</div>
+            <h2>Agent decisions &amp; trades</h2>
+          </div>
+          <p class="section-copy">
+            Each agent reasons over a live market signal (CoinGecko ETH momentum) plus its
+            on-chain NAV via Z.ai GLM, and executes real swaps on FusionX V2 when it chooses to
+            increase. Rationale committed on-chain (evidence hash); swaps verifiable on Mantlescan.
+          </p>
+        </div>
+        <div class="feed" id="aiFeed">
+          <div class="feed-row muted">loading live decisions…</div>
+        </div>
+      </section>
+
       <section id="activity">
         <div class="section-head">
           <div>
@@ -1224,6 +1241,7 @@
       const NS = "reef.ui.v1";
       const ZERO = "0x0000000000000000000000000000000000000000";
       const DEPLOYMENTS_URL = "../deployments/mantle-sepolia.json";
+      const AI_FEED_URL = "../api/executions.json";
 
       function addr(a) {
         return a && a !== ZERO && isAddress(a) ? a : "";
@@ -2096,6 +2114,40 @@
         humanCard.classList.toggle("win", state.hvaWinner === "human");
       }
 
+      async function refreshAiFeed() {
+        let data;
+        try {
+          const res = await fetch(AI_FEED_URL, { cache: "no-store" });
+          if (!res.ok) return;
+          data = await res.json();
+        } catch {
+          return;
+        }
+        const xs = (data && data.executions) || [];
+        if (!xs.length) {
+          $("aiFeed").innerHTML = `<div class="feed-row muted">no agent decisions yet</div>`;
+          return;
+        }
+        $("aiFeed").innerHTML = xs
+          .slice(0, 12)
+          .map((x) => {
+            const cls = x.action === "increase" ? "pos" : x.action === "decrease" ? "neg" : "";
+            const sig = x.signal
+              ? `${x.signal.asset} $${Number(x.signal.price).toFixed(0)} ${Number(x.signal.change24hPct).toFixed(2)}%`
+              : "on-chain NAV";
+            const trade = x.execution && x.execution.txHash
+              ? ` · <a href="${explorerFor(state.chainId)}/tx/${x.execution.txHash}" target="_blank" rel="noopener">real swap ↗</a>`
+              : "";
+            const when = x.ts ? `${Math.max(0, Math.floor(Date.now() / 1000 - x.ts))}s ago` : "";
+            return `<div class="feed-row">
+              <span class="badge ${cls}">agent ${x.agent} · ${x.action} ${x.navDeltaBps}bps</span>
+              <span class="meta"> [${x.source}${x.source === "glm" ? " " + (x.model || "") : ""}] · signal ${sig} · ${when}${trade}</span>
+              <div>${(x.reasoning || "").slice(0, 200)}</div>
+            </div>`;
+          })
+          .join("");
+      }
+
       async function refreshFeed() {
         if (!state.publicClient) return;
         const c = state.publicClient;
@@ -2326,6 +2378,7 @@
       async function refreshAll() {
         await refreshIndex();
         await refreshFeed();
+        await refreshAiFeed();
         if (state.account) renderConn();
       }
 
@@ -2335,7 +2388,10 @@
           if (document.visibilityState === "visible") refreshIndex();
         }, 15000);
         state.pollFeed = setInterval(() => {
-          if (document.visibilityState === "visible") refreshFeed();
+          if (document.visibilityState === "visible") {
+            refreshFeed();
+            refreshAiFeed();
+          }
         }, 30000);
       }
 
