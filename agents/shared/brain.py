@@ -30,15 +30,23 @@ def _zai_cfg() -> tuple[str | None, str, str]:
     return key, base, model
 
 
-def decide_for_vault(agent_id: int, nav_1e18: int, high_water_1e18: int) -> Decision:
-    """Make a real LLM allocation decision from the vault's on-chain NAV state."""
+def decide_for_vault(
+    agent_id: int, nav_1e18: int, high_water_1e18: int, signal: dict | None = None
+) -> Decision:
+    """Make a real LLM allocation decision from the vault's on-chain NAV state + a market signal."""
     nav = nav_1e18 / 1e18
     hwm = high_water_1e18 / 1e18
     drawdown_bps = 0 if hwm <= 0 else max(0, round((hwm - nav) / hwm * 10_000))
+    market = ""
+    if signal:
+        market = (
+            f" Market: {signal['asset']} ${signal['price']:.2f}, 24h change {signal['change24hPct']:+.2f}%. "
+            f"Increase exposure when momentum is favorable; cut when it turns down."
+        )
     prompt = (
         f"Agent #{agent_id}. Per-share NAV={nav:.6f}, all-time high NAV={hwm:.6f}, "
         f"current drawdown={drawdown_bps} bps. Reputation is credited only for NEW NAV highs, "
-        f"so favor durable gains over chasing volatility. Decide your next allocation action."
+        f"so favor durable gains over chasing volatility.{market} Decide your next allocation action."
     )
     key, base, model = _zai_cfg()
     try:

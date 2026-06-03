@@ -30,6 +30,7 @@ from agents.shared.brain import decide_for_vault
 from agents.shared.client import get_w3, load_account, rpc_read, vault_contract
 from agents.shared.config import DEPLOYMENTS_DIR, REPO_ROOT, load_chain
 from agents.shared.dex import load_dex, swap_native_for_token
+from agents.shared.signal import fetch_signal
 
 
 def main() -> int:
@@ -48,14 +49,20 @@ def main() -> int:
     w3 = get_w3(chain.rpc_url)
     account = load_account()
 
+    # Fetch the real market signal once, and process ONE rotating agent per run so a
+    # single GLM call/run stays under the free-tier rate limit. Override with AGENT_INDEX.
+    signal = fetch_signal("ETH")
+    i = int(os.getenv("AGENT_INDEX", str((int(time.time()) // 600) % len(vaults))))
+    selected = [vaults[i % len(vaults)]]
+
     records, traded, failures = [], 0, 0
-    for v in vaults:
+    for v in selected:
         try:
             vc = vault_contract(w3, v["vault"])
             agent_id = rpc_read(lambda: vc.functions.agentId().call())
             nav = rpc_read(lambda: vc.functions.nav().call())
             hwm = rpc_read(lambda: vc.functions.highWaterNav().call())
-            d = decide_for_vault(agent_id, nav, hwm)
+            d = decide_for_vault(agent_id, nav, hwm, signal)
             execution = None
             if d.action == "increase":
                 execution = swap_native_for_token(
@@ -70,6 +77,7 @@ def main() -> int:
                     "reasoning": d.reasoning,
                     "source": d.source,
                     "model": model if d.source == "glm" else "deterministic-fallback",
+                    "signal": signal,
                     "execution": execution,
                     "ts": int(time.time()),
                 }

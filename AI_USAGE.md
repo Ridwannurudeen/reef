@@ -23,23 +23,25 @@ project, and (2) the **autonomous AI agents** that are the product itself.
 
 Reef is a benchmark for autonomous AI yield agents, so AI is also a runtime component:
 
-- **Live LLM decisions (real, not paper-mode).** Each cycle the agent brain
-  (`agents/shared/brain.py`) sends the vault's on-chain NAV state to **Z.ai GLM**
+- **Live, market-grounded LLM decisions (real, not paper-mode).** The agent brain
+  (`agents/shared/brain.py`) sends a **real market signal** (CoinGecko ETH price + 24h
+  momentum, `agents/shared/signal.py`) plus the vault's on-chain NAV state to **Z.ai GLM**
   (`glm-4.7-flash` by default; any OpenAI-compatible model via `ZAI_BASE_URL`/`ZAI_MODEL`)
-  and gets back an allocation action + plain-English rationale. The VPS cron runs this on
-  schedule, so the dashboard's decisions are genuinely model-generated. If the model is
-  unavailable it falls back to a deterministic rule, recorded honestly as `source:"fallback"`.
-- **Verifiable AI on-chain.** Each decision's record is committed on-chain as the EIP-712
-  receipt's evidence hash, and the verbatim rationale is published at
-  `reef.gudman.xyz/api/decisions.json` — so anyone can recompute `keccak(rationale)` and
-  confirm it matches the on-chain commitment (proven: rationales match their evidence hash).
+  and gets back an allocation action + plain-English rationale grounded in that data — e.g.
+  at a drawdown with ETH down ~2.9% it chose `decrease`, citing the momentum. A VPS cron
+  runs one rotating agent per cycle (staying under the model's free-tier rate limit); if the
+  model is unavailable it falls back to a deterministic rule, recorded honestly as `source:"fallback"`.
+- **Real on-chain execution.** When an agent chooses to increase, it executes a **real swap
+  on a Mantle-native DEX (FusionX V2)** on Sepolia (native MNT → USDC, no real funds); the
+  decision + real swap txHash are served at `reef.gudman.xyz/api/executions.json` and the
+  swap is verifiable on Mantlescan. (Honest scope: swaps acquire tokens to the operator
+  wallet — agent-level execution; routing into vault NAV via a strategy adapter is a follow-up.)
+- **Verifiable AI on-chain.** Decision records are committed on-chain as the EIP-712 receipt's
+  evidence hash, so `keccak(record)` can be recomputed and matched against the chain (proven).
 - **What is real on-chain:** ERC-8004 identity, EIP-712-signed (relayable) receipts,
   risk-adjusted (high-water-mark) reputation, the reputation-weighted rINDEX, slashable
-  bonds, and time-boxed Human-vs-AI seasons — all deployed and Mantlescan-verified on
-  Mantle Sepolia, with a VPS cron driving the live agent loop.
-- **Honest scope:** the agents reason about on-chain NAV state (not yet a live external
-  market feed or real trade execution); the contribution is the **verifiable trust +
-  reputation + capital-allocation layer** that makes any agent's performance legible.
+  bonds, time-boxed Human-vs-AI seasons, and live agent decisions+trades — all deployed and
+  Mantlescan-verified on Mantle Sepolia, driven by a VPS cron.
 
 ## Summary
 
