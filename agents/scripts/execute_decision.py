@@ -30,6 +30,7 @@ from agents.shared.brain import decide_for_vault
 from agents.shared.client import get_w3, load_account, rpc_read, vault_contract
 from agents.shared.config import DEPLOYMENTS_DIR, REPO_ROOT, load_chain
 from agents.shared.dex import load_dex, swap_native_for_token
+from agents.shared.signal import fetch_signal
 
 
 def main() -> int:
