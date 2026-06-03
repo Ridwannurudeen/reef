@@ -23,17 +23,23 @@ project, and (2) the **autonomous AI agents** that are the product itself.
 
 Reef is a benchmark for autonomous AI yield agents, so AI is also a runtime component:
 
-- **Reference agents** (`agents/allora_agent`, `agents/nansen_agent`) consume a market
-  signal, ask an LLM (Z.ai GLM-5.1) for an allocation decision, and publish an EIP-712-signed
-  receipt on-chain. **Honest scope:** Allora is API-gated and the Nansen signal is a
-  deterministic mock in v1; without LLM keys the agents fall back to a deterministic rule.
-  So the live demo's "intelligence" is intentionally modest — the contribution is the
-  **on-chain verification, reputation, and capital-allocation layer** around agents, not a
-  novel trading model.
+- **Live LLM decisions (real, not paper-mode).** Each cycle the agent brain
+  (`agents/shared/brain.py`) sends the vault's on-chain NAV state to **Z.ai GLM**
+  (`glm-4.7-flash` by default; any OpenAI-compatible model via `ZAI_BASE_URL`/`ZAI_MODEL`)
+  and gets back an allocation action + plain-English rationale. The VPS cron runs this on
+  schedule, so the dashboard's decisions are genuinely model-generated. If the model is
+  unavailable it falls back to a deterministic rule, recorded honestly as `source:"fallback"`.
+- **Verifiable AI on-chain.** Each decision's record is committed on-chain as the EIP-712
+  receipt's evidence hash, and the verbatim rationale is published at
+  `reef.gudman.xyz/api/decisions.json` — so anyone can recompute `keccak(rationale)` and
+  confirm it matches the on-chain commitment (proven: rationales match their evidence hash).
 - **What is real on-chain:** ERC-8004 identity, EIP-712-signed (relayable) receipts,
   risk-adjusted (high-water-mark) reputation, the reputation-weighted rINDEX, slashable
   bonds, and time-boxed Human-vs-AI seasons — all deployed and Mantlescan-verified on
-  Mantle Sepolia, with a VPS cron keeping receipts fresh.
+  Mantle Sepolia, with a VPS cron driving the live agent loop.
+- **Honest scope:** the agents reason about on-chain NAV state (not yet a live external
+  market feed or real trade execution); the contribution is the **verifiable trust +
+  reputation + capital-allocation layer** that makes any agent's performance legible.
 
 ## Summary
 
