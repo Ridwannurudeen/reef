@@ -13,7 +13,7 @@
   ],
   "nativeToken": "MNT",
   "reef": {
-    "_comment": "REDEPLOY 2026-06-02 with real EIP-712 signed receipts (relayable) + risk-adjusted high-water-mark reputation, on top of the post-Phase-3/4 set (must-fixes #2/#3/#6/#7 + AdapterRegistry + circuit-breaker/withdrawPool + rotatable arbiter). All Mantlescan-verified via Etherscan V2. Sepolia uses a generic MockERC20 as the index asset (real USDY/mETH live on mainnet only - see mainnetReferences). Full on-chain parity: identity + index(rINDEX) + AdapterRegistry + 5 reputation-weighted vaults + MockYieldAdapter (live time-growing NAV on agent 1) + ReputationBond (bond-gate active) + Seasons (season 0 open) — see seeded.*. A receipt loop (agents/scripts/receipt_tick.py, cron) keeps receipts fresh. UNAUDITED. Prior instances: 0x94ea17aEA0415c86d16c85D788803917BA7E3C60 (2026-06-01), 0x9071f05834123ed4F71Ce342f1Af8e0a7077215E (pre-fix).",
+    "_comment": "REDEPLOY 2026-06-02 with real EIP-712 signed receipts (relayable) + risk-adjusted high-water-mark reputation, on top of the post-Phase-3/4 set (must-fixes #2/#3/#6/#7 + AdapterRegistry + circuit-breaker/withdrawPool + rotatable arbiter). All Mantlescan-verified via Etherscan V2. Sepolia uses a generic MockERC20 as the index asset (real USDY/mETH live on mainnet only - see mainnetReferences). Full on-chain parity: identity + index(rINDEX) + AdapterRegistry + 5 reputation-weighted vaults + MockYieldAdapter (live time-growing NAV on agent 1) + ReputationBond (bond-gate active) + Seasons (season 0 open) \u2014 see seeded.*. A receipt loop (agents/scripts/receipt_tick.py, cron) keeps receipts fresh. UNAUDITED. Prior instances: 0x94ea17aEA0415c86d16c85D788803917BA7E3C60 (2026-06-01), 0x9071f05834123ed4F71Ce342f1Af8e0a7077215E (pre-fix).",
     "AgentIdentity": "0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7",
     "AgentIndex": "0xC10eCcC78492395f12a8455C8A13471990c53047",
     "AdapterRegistry": "0xc1ed73d6707701561df96abbbc37fc7e81f9cc36",
@@ -29,16 +29,57 @@
     "deployer": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
     "asset": "0xbc17D7F8f265d069781ed765914ED092989d92e7",
     "indexTotalAssets": "999999999999999999986",
-    "tradeableIndex": { "address": "0xC10eCcC78492395f12a8455C8A13471990c53047", "symbol": "rINDEX", "name": "Reef AI Yield Index", "note": "The AgentIndex itself is the ERC-20 rINDEX (transfer/approve/transferFrom over index shares). Same address as reef.AgentIndex." },
-    "yieldAdapter": { "address": "0x63bad8f71455099ebc7a01743c42f9471301edeb", "vault": "0x7E4399B91bF6801d7D74E359d162065c88EA9d1B", "aprBps": 2000, "note": "MockYieldAdapter (testnet, linear-accruing) wired into agent 1's vault 2026-06-02; ~half the vault's idle deployed, so its per-share NAV grows on-chain and (with the receipt loop) sets new high-water marks → rising risk-adjusted reputation. Mantlescan-verified." },
-    "reputationBond": { "address": "0xef2f3602d5fe04487a971e5d749dac7343b8f895", "arbiter": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43", "challengeStake": "5000000000000000000", "slashAmount": "10000000000000000000", "disputeWindowSec": 86400, "note": "Rotatable arbiter (transferArbiter/acceptArbiter). All 5 indexed agents bonded 50e18; index bond-gate ACTIVE via setReputationBond(bond, 10e18). Mantlescan-verified." },
-    "seasons": { "address": "0xbf8f5e4434f4467cd1d9e10ea5c58fdcf67e5a80", "seasonId": 0, "note": "On-chain Human-vs-AI Seasons. Season 0 open (7-day); all 5 agents enrolled (even agentId=AI, odd=Human), entry reputation snapshotted. Mantlescan-verified." },
+    "tradeableIndex": {
+      "address": "0xC10eCcC78492395f12a8455C8A13471990c53047",
+      "symbol": "rINDEX",
+      "name": "Reef AI Yield Index",
+      "note": "The AgentIndex itself is the ERC-20 rINDEX (transfer/approve/transferFrom over index shares). Same address as reef.AgentIndex."
+    },
+    "yieldAdapter": {
+      "address": "0x63bad8f71455099ebc7a01743c42f9471301edeb",
+      "vault": "0x7E4399B91bF6801d7D74E359d162065c88EA9d1B",
+      "aprBps": 2000,
+      "note": "MockYieldAdapter (testnet, linear-accruing) wired into agent 1's vault 2026-06-02; ~half the vault's idle deployed, so its per-share NAV grows on-chain and (with the receipt loop) sets new high-water marks \u2192 rising risk-adjusted reputation. Mantlescan-verified."
+    },
+    "reputationBond": {
+      "address": "0xef2f3602d5fe04487a971e5d749dac7343b8f895",
+      "arbiter": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
+      "challengeStake": "5000000000000000000",
+      "slashAmount": "10000000000000000000",
+      "disputeWindowSec": 86400,
+      "note": "Rotatable arbiter (transferArbiter/acceptArbiter). All 5 indexed agents bonded 50e18; index bond-gate ACTIVE via setReputationBond(bond, 10e18). Mantlescan-verified."
+    },
+    "seasons": {
+      "address": "0xbf8f5e4434f4467cd1d9e10ea5c58fdcf67e5a80",
+      "seasonId": 0,
+      "note": "On-chain Human-vs-AI Seasons. Season 0 open (7-day); all 5 agents enrolled (even agentId=AI, odd=Human), entry reputation snapshotted. Mantlescan-verified."
+    },
     "vaults": [
-      { "agentId": 1, "vault": "0x7E4399B91bF6801d7D74E359d162065c88EA9d1B", "weightBps": 526 },
-      { "agentId": 2, "vault": "0x06e196408356D2BDa4d21301B3bbB78c931AE9E3", "weightBps": 1052 },
-      { "agentId": 3, "vault": "0xBA8075d91983D15628DE99CDC510cD6C70F434EE", "weightBps": 1578 },
-      { "agentId": 4, "vault": "0x7E1827697843f377761F19f6F3386D8750d75BBD", "weightBps": 2631 },
-      { "agentId": 5, "vault": "0xa40AF1a30E4094b2807fDfbF6195C06245ab0822", "weightBps": 4210 }
+      {
+        "agentId": 1,
+        "vault": "0x7E4399B91bF6801d7D74E359d162065c88EA9d1B",
+        "weightBps": 526
+      },
+      {
+        "agentId": 2,
+        "vault": "0x06e196408356D2BDa4d21301B3bbB78c931AE9E3",
+        "weightBps": 1052
+      },
+      {
+        "agentId": 3,
+        "vault": "0xBA8075d91983D15628DE99CDC510cD6C70F434EE",
+        "weightBps": 1578
+      },
+      {
+        "agentId": 4,
+        "vault": "0x7E1827697843f377761F19f6F3386D8750d75BBD",
+        "weightBps": 2631
+      },
+      {
+        "agentId": 5,
+        "vault": "0xa40AF1a30E4094b2807fDfbF6195C06245ab0822",
+        "weightBps": 4210
+      }
     ]
   },
   "mainnetReferences": {
@@ -57,5 +98,14 @@
     "zaiApiBase": "https://api.z.ai",
     "glmModelId": "zai-org/GLM-5.1",
     "erc8004ReferenceImpl": "https://github.com/ChaosChain/trustless-agents-erc-ri"
+  },
+  "dex": {
+    "name": "FusionX V2",
+    "_comment": "Mantle-native Uniswap-V2 DEX on Sepolia (chain 5003). Addresses RPC-verified on-chain 2026-06-03 (FusionX docs labels are swapped \u2014 these are the real ones). A real MNT->USDC swap was executed (tx 0xd90ed8d2...). Used for live AI agent execution.",
+    "router": "0x272465431A6b86E3B9E5b9bD33f5D103a3F59eDb",
+    "factory": "0x8734110e5e1dcF439c7F549db740E546fea82d66",
+    "wmnt": "0xc0eeCFA24E391E4259B7EF17be54Be5139DA1AC7",
+    "usdc": "0xc92747b1e4Bd5F89BBB66bAE657268a5F4c4850C",
+    "musdt": "0xa9b72cCC9968aFeC98A96239B5AA48d828e8D827"
   }
 }

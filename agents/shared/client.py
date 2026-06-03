@@ -125,17 +125,19 @@ def index_contract(w3: Web3, address: str) -> Contract:
 
 
 def send_tx(
-    w3: Web3, account: LocalAccount, fn_call, *, gas: int | None = None
+    w3: Web3, account: LocalAccount, fn_call, *, gas: int | None = None, value: int = 0
 ) -> dict[str, Any]:
     """Build, sign, send a transaction; wait for the receipt; return it as a dict.
 
     `fn_call` is a prepared contract function call (e.g. `vault.functions.publishReceipt(payload)`).
+    `value` (wei) is for payable calls (e.g. a native-token DEX swap).
     """
     nonce = rpc_read(lambda: w3.eth.get_transaction_count(account.address))
     tx: dict[str, Any] = {
         "from": account.address,
         "nonce": nonce,
         "chainId": w3.eth.chain_id,
+        "value": value,
     }
     # Try EIP-1559 fees; fall back to legacy gasPrice if base fee is unavailable.
     try:
@@ -153,7 +155,9 @@ def send_tx(
         tx["gas"] = gas
     else:
         # Let the node estimate; add a 25% buffer.
-        est = rpc_read(lambda: fn_call.estimate_gas({"from": account.address}))
+        est = rpc_read(
+            lambda: fn_call.estimate_gas({"from": account.address, "value": value})
+        )
         tx["gas"] = int(est * 5 // 4)
 
     built = fn_call.build_transaction(tx)
