@@ -926,10 +926,13 @@
               id="navSpark"
               viewBox="0 0 600 94"
               preserveAspectRatio="none"
-              aria-label="Recent rebalance sparkline"
+              aria-label="Index NAV trend"
             >
               <path d="M0,47 L600,47" stroke="#26323a" fill="none" />
             </svg>
+            <div class="metric-label" id="navSparkCaption">
+              Index NAV trend — accumulating samples.
+            </div>
           </div>
         </aside>
       </section>
@@ -1242,6 +1245,7 @@
       const ZERO = "0x0000000000000000000000000000000000000000";
       const DEPLOYMENTS_URL = "../deployments/mantle-sepolia.json";
       const AI_FEED_URL = "../api/executions.json";
+      const HISTORY_URL = "../api/history.json";
 
       function addr(a) {
         return a && a !== ZERO && isAddress(a) ? a : "";
@@ -1457,6 +1461,7 @@
         walletClient: null,
         allocation: [],
         navHistory: [],
+        history: null,
         hvaMode: "ai",
         hvaWinner: null,
         pollIndex: null,
@@ -2025,12 +2030,18 @@
 
       function drawSparkline() {
         const svg = $("navSpark");
-        const history = state.navHistory;
-        if (history.length === 0) {
+        // Prefer the persistent index-NAV series from the analytics layer (history.json);
+        // fall back to the ephemeral in-session rebalance series.
+        const persistent = state.history?.points ?? [];
+        const series =
+          persistent.length >= 2
+            ? persistent.map((p) => BigInt(p.indexNav))
+            : state.navHistory;
+        if (series.length === 0) {
           svg.innerHTML = `<path d="M0,47 L600,47" stroke="#26323a" fill="none" />`;
           return;
         }
-        const nums = history.map((n) => Number(formatEther(n)));
+        const nums = series.map((n) => Number(formatEther(n)));
         const min = Math.min(...nums),
           max = Math.max(...nums);
         const span = max - min || 1;
@@ -2375,8 +2386,35 @@
         }
       }
 
+      async function refreshHistory() {
+        try {
+          const res = await fetch(HISTORY_URL, { cache: "no-store" });
+          if (!res.ok) return;
+          state.history = await res.json();
+        } catch {
+          return;
+        }
+        const a = state.history?.analytics;
+        const cap = $("navSparkCaption");
+        if (a && a.samples >= 2) {
+          const pct = (a.indexNavChangeBps / 100).toFixed(2);
+          const sign = a.indexNavChangeBps > 0 ? "+" : "";
+          cap.textContent = `Index NAV ${sign}${pct}% · ${a.samples} samples over ${formatDuration(a.windowSeconds)}`;
+        } else {
+          cap.textContent = "Index NAV trend — accumulating samples.";
+        }
+        drawSparkline();
+      }
+
+      function formatDuration(seconds) {
+        if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+        if (seconds < 86400) return `${Math.round(seconds / 3600)}h`;
+        return `${Math.round(seconds / 86400)}d`;
+      }
+
       async function refreshAll() {
         await refreshIndex();
+        await refreshHistory();
         await refreshFeed();
         await refreshAiFeed();
         if (state.account) renderConn();
@@ -2389,6 +2427,7 @@
         }, 15000);
         state.pollFeed = setInterval(() => {
           if (document.visibilityState === "visible") {
+            refreshHistory();
             refreshFeed();
             refreshAiFeed();
           }

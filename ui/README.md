@@ -38,6 +38,12 @@ No build step. (Serving `-d ui` breaks the deployment-JSON load, since it lives 
 **https://reef.gudman.xyz/api/reef.json** and refreshed by cron. Reef as the
 ecosystem's agent-intelligence layer, with no backend.
 
+`agents/scripts/history.py` rolls each snapshot into an append-only time-series
+(`history.json`: index-NAV trend + per-agent reputation/NAV deltas over the retained
+window). It is a pure transform of `reef.json` — no chain reads — so cron runs it right
+after the snapshot. The dashboard reads it for a persistent index-NAV sparkline and the
+window analytics caption (falling back to in-session data before two samples accrue).
+
 ## Required config (saved to `localStorage` under `reef.ui.v1`)
 
 - `RPC_URL` — defaults to `https://rpc.sepolia.mantle.xyz` and automatically

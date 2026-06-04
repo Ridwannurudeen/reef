@@ -64,8 +64,8 @@ JSONs under `out/` + `deployments/mantle-sepolia.json` + `.env`; the host has `p
 */30 * * * * cd /opt/reef/app && /usr/bin/python3 -m agents.scripts.keeper >> /var/log/reef-keeper.log 2>&1
 # health check every 15 min (non-zero exit on staleness — wire to an alert)
 */15 * * * * cd /opt/reef/app && /usr/bin/python3 -m agents.scripts.health >> /var/log/reef-health.log 2>&1
-# public API snapshot every 10 min -> static /api/reef.json served by nginx
-*/10 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.api_snapshot >> /var/log/reef-api.log 2>&1
+# public API snapshot + history roll every 10 min -> static /api/{reef,history}.json served by nginx
+*/10 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.api_snapshot >> /var/log/reef-api.log 2>&1 && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.history >> /var/log/reef-api.log 2>&1
 ```
 
 `receipt_tick` and `keeper` resolve everything from `deployments/mantle-sepolia.json`
