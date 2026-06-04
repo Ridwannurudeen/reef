@@ -113,7 +113,10 @@ def main() -> int:
         )
         log["executions"] = (records + log.get("executions", []))[:50]
         log["updatedAt"] = int(time.time())
-        path.write_text(json.dumps(log, indent=2), encoding="utf-8")
+        # Atomic write so a crash mid-write can't corrupt the audit log (also served statically).
+        tmp = path.with_name(path.name + ".tmp")
+        tmp.write_text(json.dumps(log, indent=2), encoding="utf-8")
+        os.replace(tmp, path)
     print(f"swept {len(records)}/{len(vaults)} agents, {traded} real swaps executed")
     return 1 if failures else 0
 

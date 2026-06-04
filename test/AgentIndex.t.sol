@@ -8,6 +8,7 @@ import {AgentIndex} from "../src/AgentIndex.sol";
 import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {ReputationBond} from "../src/ReputationBond.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
+import {MockStrategyAdapter} from "./mocks/MockStrategyAdapter.sol";
 
 contract AgentIndexTest is Test {
     AgentIdentity identity;
@@ -285,6 +286,35 @@ contract AgentIndexTest is Test {
         uint256 got = index.withdraw(30e18);
         assertEq(got, 30e18);
         assertEq(token.balanceOf(alice), 1_000e18 - 100e18 + 30e18);
+    }
+
+    /// Index withdraw must pay what the vaults ACTUALLY realize, not their spot mark. If a
+    /// listed vault's recall under-delivers (its adapter realizes less than nav()), the index
+    /// pays the realized total instead of overdrawing — which would revert the last redeemer.
+    function test_withdraw_paysRealizedNotMarked_whenVaultUnderdelivers() public {
+        // vaultA deploys its index-allocated capital into a strategy that realizes less on recall.
+        MockStrategyAdapter adA = new MockStrategyAdapter(address(token), address(vaultA));
+        registry.approveAdapter(address(adA));
+        vm.prank(opA);
+        vaultA.approveStrategy(address(adA));
+
+        vm.prank(alice);
+        index.deposit(100e18);
+        index.rebalance(); // ~50 to each vault, 0 idle in the index
+
+        uint256 vaultAIdle = token.balanceOf(address(vaultA));
+        vm.prank(opA);
+        vaultA.deployToStrategy(address(adA), vaultAIdle); // vaultA fully deployed
+        adA.setRecallHaircutBps(200); // realizes 2% less than asked on recall
+
+        uint256 before = token.balanceOf(alice);
+        vm.prank(alice);
+        uint256 got = index.withdraw(100e18); // would overdraw -> revert under the old logic
+
+        assertEq(token.balanceOf(alice) - before, got, "paid != returned");
+        assertEq(index.totalShares(), 0, "shares not fully burned");
+        assertLt(got, 100e18); // bears vaultA's realization haircut
+        assertEq(token.balanceOf(address(index)), 0, "index overdrew its balance");
     }
 
     function test_getAllocation_includesAgentIds() public view {
