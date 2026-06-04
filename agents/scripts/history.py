@@ -65,10 +65,11 @@ def _analytics(points: list[dict]) -> dict:
         )
     top = max(agents, key=lambda a: int(a["reputationGain"]), default=None)
     return {
-        "windowSeconds": last["ts"] - first["ts"],
+        "windowSeconds": max(0, last["ts"] - first["ts"]),
         "samples": len(points),
         "indexNavChangeBps": _bps(first["indexNav"], last["indexNav"]),
-        "topMover": top["agentId"] if top else None,
+        # Only a genuine gainer is a "top mover"; an all-flat/loss window has none.
+        "topMover": top["agentId"] if top and int(top["reputationGain"]) > 0 else None,
         "agents": agents,
     }
 
@@ -76,12 +77,15 @@ def _analytics(points: list[dict]) -> dict:
 def roll(snapshot: dict, prev_points: list[dict]) -> tuple[list[dict], dict]:
     """Pure: fold a fresh snapshot into the retained series and recompute analytics.
 
-    A sample whose timestamp equals the last one replaces it (snapshot didn't advance),
-    so re-running on a stale snapshot never inflates the series.
+    A sample whose timestamp is not newer than the last one replaces it (stale re-run or a
+    clock step-back), so the series stays monotonic and never inflates.
     """
     point = _point(snapshot)
     points = list(prev_points)
-    if points and points[-1]["ts"] == point["ts"]:
+    # Only a strictly newer sample extends the series; an equal-or-older timestamp (re-run on a
+    # stale snapshot, or a clock step-back) replaces the last point, so the series stays
+    # monotonic and never inflates.
+    if points and point["ts"] <= points[-1]["ts"]:
         points[-1] = point
     else:
         points.append(point)
@@ -104,7 +108,11 @@ def main() -> int:
         "analytics": analytics,
         "points": points,
     }
-    hist_path.write_text(json.dumps(out, indent=2), encoding="utf-8")
+    # Atomic write: the accumulated series is the only copy, and the file is served statically.
+    # write-temp-then-rename avoids a torn file from a crash or a concurrent mid-write read.
+    tmp = hist_path.with_name(hist_path.name + ".tmp")
+    tmp.write_text(json.dumps(out, indent=2), encoding="utf-8")
+    os.replace(tmp, hist_path)
     print(
         f"wrote {hist_path} ({len(points)} samples, window {analytics['windowSeconds']}s)"
     )

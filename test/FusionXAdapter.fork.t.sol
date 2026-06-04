@@ -102,5 +102,15 @@ contract FusionXAdapterForkTest is Test {
         assertEq(vault.balanceOf(depositor), 500e6, "shares burned");
         // A live position still backs the remaining shares.
         assertGt(adapter.totalUnderlying(), 0, "position drained");
+
+        // Full drain on the live pool: withdraw the remaining shares -> recall sells the whole
+        // position. Asserts the vault exits cleanly (no overdraw) when the position is realized
+        // in full against real reserves/fees.
+        uint256 before2 = usdc.balanceOf(depositor);
+        vm.prank(depositor);
+        uint256 got2 = vault.withdraw(500e6);
+        assertEq(usdc.balanceOf(depositor) - before2, got2, "drain payout mismatch");
+        assertEq(vault.totalShares(), 0, "shares not fully burned");
+        assertEq(usdc.balanceOf(address(vault)), 0, "vault overdrew");
     }
 }

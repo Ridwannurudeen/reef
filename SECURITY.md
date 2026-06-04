@@ -17,6 +17,9 @@
 | 8 | Medium | `SignalMarket` free self-dealing reputation + provider-call reentrancy | **✅ Fixed** |
 | 9 | Low | `AgentVault.nav()` returns 1e18 ignoring stranded assets | Open (cosmetic for demo) |
 | 10 | Low | `ReputationBond` single immutable arbiter; no challenger≠agent check | **✅ Partly fixed** (self-challenge rejected; multisig arbiter = deploy choice) |
+| 11 | Med→Low | `AgentVault.withdraw` paid the spot mark, not the strategy's realized amount | **✅ Fixed** (pays `recall` return) |
+| 12 | Medium | `FusionXAdapter.recall` swapped with `minOut=0` (sandwichable forced sale) | **✅ Fixed** (slippage-bounded) |
+| 13 | Medium | `FusionXAdapter.totalUnderlying` spot router quote is flash-loan inflatable → fake NAV/reputation high-water | Open (audit item; adapter is mainnet-only, unlisted) |
 
 ## Fixed in this pass
 
@@ -29,6 +32,11 @@
 - **#6/#10 ReputationBond.** `openDispute` now rejects the agent's own operator (no self-slash farming/griefing) and enforces **one active dispute per agent**, so a depleting bond can never owe more upheld slashes than it holds (deterministic, order-independent payouts). The single-arbiter centralization (#10) is now addressed in code: the arbiter is rotatable via a 2-step `transferArbiter`/`acceptArbiter` handoff, so it can be moved to a multisig/timelock after deploy.
 - **#7 SafeERC20.** New minimal `src/utils/SafeTransferLib.sol` (treats "call succeeded and returned empty OR true" as success). Every external asset `transfer`/`transferFrom`/`approve` in `AgentVault`, `AgentIndex`, `ReputationBond`, and the adapters routes through it, so Reef supports USDT-style tokens that return no bool (proven by `test/mocks/NoReturnERC20.sol`).
 
+## Fixed in the adapter-review pass
+
+- **#11 Realized-vs-marked withdrawal.** `AgentVault.withdraw` priced the payout off `totalAssets()` (which includes a strategy's *spot mark*) but then ignored `recall`'s return value and transferred the full marked amount. A mark-to-market adapter (e.g. a DEX position) can realize slightly less than its mark when it actually sells, and the `IStrategyAdapter` contract explicitly lets `recall` return less than asked (a drained/slashed adapter, or rounding on a real AMM curve). Withdraw now pays `idle + recalled` — the amount the strategy actually delivered — so it can never overdraw the vault (reverting the last withdrawer) or pay one user out of another's principal. Shares are burned before the recall, so the withdrawer bears their own realization slippage and remaining holders stay whole. Regression-tested with an adapter that under-delivers (`test_withdraw_paysRealizedNotMarked_whenRecallUnderdelivers`). Severity is Med→Low in practice: because `totalUnderlying` quotes via `getAmountsOut` (fee included), a full drain realizes the mark exactly at realistic sizes, so the gap is a sub-wei rounding corner — but the fix removes the edge entirely.
+- **#12 Sandwichable forced sale.** `FusionXAdapter.recall` swapped with `amountOutMin = 0`, so a forced withdrawal sale could be sandwiched down to an arbitrary price. It now bounds the sale with the same `maxSlippageBps` tolerance as `deploy`.
+
 ## Safety primitives (added in the Phase 4 decentralization pass)
 
 - **Circuit breaker** — `src/utils/Pausable.sol`. A guardian (the operator for an `AgentVault`, the governor for `AgentIndex`) can pause the risk-taking entry points (`deposit`, `rebalance`, `deployToStrategy`). **Withdrawals are deliberately never gated**, so a pause halts new exposure without ever trapping user funds. The guardian is rotatable.
@@ -37,6 +45,7 @@
 ## Remaining
 
 - **#9** (Low, cosmetic) — `nav()` returns 1e18 for an empty vault. Left as-is for the demo.
+- **#13** (Medium, open) — `FusionXAdapter.totalUnderlying()` marks the position with a single-block `getAmountsOut` spot quote. A flash-loan price spike in the same block as a (operator-signed, anyone-relayable) `publishReceipt` could ratchet the sticky `highWaterNav` up at a manipulated mark, inflating ERC-8004 reputation / index weight without real PnL. Not a direct fund-theft from the vault, and the adapter is **mainnet-only and not listed on any live registry**, so it cannot be triggered on the current testnet instance. Proper mitigation (a TWAP mark, or accruing reputation off realized PnL rather than mark-to-market) is an architectural change deferred to the pre-mainnet audit — flagged here rather than patched with a rushed half-measure.
 - **Third-party audit** — the one true prerequisite before any mainnet TVL; cannot be self-performed.
 - **ERC-8004 cross-chain reputation** — deferred: needs a cross-chain messaging layer + a second chain, not buildable/verifiable on a single testnet (see `ROADMAP.md`).
 
