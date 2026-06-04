@@ -816,6 +816,36 @@
           text-align: right;
         }
       }
+      @keyframes sparkPulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+      .spark-dot {
+        filter: drop-shadow(0 0 4px rgba(25, 230, 164, 0.85));
+        animation: sparkPulse 1.8s ease-in-out infinite;
+      }
+      @keyframes livePulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(25, 230, 164, 0.45);
+        }
+        70% {
+          box-shadow: 0 0 0 7px rgba(25, 230, 164, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(25, 230, 164, 0);
+        }
+      }
+      .live-dot {
+        animation: livePulse 2s ease-out infinite;
+      }
+      .signature-value {
+        text-shadow: 0 0 26px rgba(25, 230, 164, 0.18);
+      }
       @media (prefers-reduced-motion: reduce) {
         *,
         *::before,
@@ -2048,20 +2078,33 @@
         const w = 600,
           h = 94,
           pad = 8;
-        const pts = nums.map((v, i) => {
-          const x = (i / Math.max(nums.length - 1, 1)) * w;
-          const y = h - pad - ((v - min) / span) * (h - 2 * pad);
-          return `${x.toFixed(1)},${y.toFixed(1)}`;
-        });
+        const coords = nums.map((v, i) => ({
+          x: (i / Math.max(nums.length - 1, 1)) * w,
+          y: h - pad - ((v - min) / span) * (h - 2 * pad),
+        }));
+        const line = coords
+          .map((c, i) => `${i ? "L" : "M"}${c.x.toFixed(1)},${c.y.toFixed(1)}`)
+          .join(" ");
+        const area = `${line} L${w},${h} L0,${h} Z`;
+        const last = coords[coords.length - 1];
+        // Color the trend by direction: green if NAV is up over the window, gold if flat/down.
+        const up = nums[nums.length - 1] >= nums[0];
+        const tip = up ? "#19e6a4" : "#f2c866";
         svg.innerHTML = `
     <defs>
       <linearGradient id="sparkLine" x1="0" x2="1">
         <stop offset="0%" stop-color="#19e6a4" />
         <stop offset="100%" stop-color="#f2c866" />
       </linearGradient>
+      <linearGradient id="sparkArea" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="rgba(25, 230, 164, 0.26)" />
+        <stop offset="100%" stop-color="rgba(25, 230, 164, 0)" />
+      </linearGradient>
     </defs>
     <path d="M0,47 L600,47" stroke="#26323a" stroke-dasharray="4 6" fill="none" />
-    <polyline points="${pts.join(" ")}" stroke="url(#sparkLine)" stroke-width="2" fill="none" />`;
+    <path d="${area}" fill="url(#sparkArea)" stroke="none" />
+    <path d="${line}" fill="none" stroke="url(#sparkLine)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+    <circle class="spark-dot" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3" fill="${tip}" />`;
       }
 
       function refreshHumanVsAi(indexNav) {
