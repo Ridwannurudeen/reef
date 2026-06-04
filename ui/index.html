@@ -704,6 +704,95 @@
         text-transform: none;
         letter-spacing: 0;
       }
+      .hva-gauge {
+        margin-top: 16px;
+      }
+      .hva-gauge-track {
+        position: relative;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--surface-3);
+      }
+      .hva-gauge-center {
+        position: absolute;
+        left: 50%;
+        top: -2px;
+        bottom: -2px;
+        width: 1px;
+        background: var(--line-strong);
+        transform: translateX(-50%);
+        z-index: 2;
+      }
+      .hva-gauge-fill {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 0;
+        border-radius: 999px;
+        transition:
+          width 420ms ease,
+          left 420ms ease,
+          right 420ms ease;
+      }
+      .hva-gauge-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--subtle);
+      }
+      .feed-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .feed-when {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--subtle);
+        white-space: nowrap;
+      }
+      .feed-reason {
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .feed-detail {
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .swap-pill {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(25, 230, 164, 0.4);
+        background: var(--accent-soft);
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+      .feed-up {
+        border-left: 3px solid var(--accent);
+      }
+      .feed-down {
+        border-left: 3px solid var(--red);
+      }
+      .feed-flat {
+        border-left: 3px solid var(--line-strong);
+      }
+      .ev-blue {
+        border-left: 3px solid var(--blue);
+      }
+      .ev-green {
+        border-left: 3px solid var(--accent);
+      }
+      .ev-red {
+        border-left: 3px solid var(--red);
+      }
+      .ev-gold {
+        border-left: 3px solid var(--gold);
+      }
       .proof-grid {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1137,6 +1226,15 @@
               <div class="hva-card">
                 <div class="metric-label">Delta bps</div>
                 <div class="metric-value" id="hvaDelta">-</div>
+              </div>
+            </div>
+            <div class="hva-gauge" aria-hidden="true">
+              <div class="hva-gauge-track">
+                <div class="hva-gauge-center"></div>
+                <div class="hva-gauge-fill" id="hvaGaugeFill"></div>
+              </div>
+              <div class="hva-gauge-labels">
+                <span>◀ Human</span><span>parity</span><span>AI ▶</span>
               </div>
             </div>
             <p id="hvaOutcome" class="small" style="margin-top: 13px">-</p>
@@ -2173,6 +2271,7 @@
           $("hvaDelta").className = "metric-value";
           setText("hvaOutcome", "Waiting for live vault data.");
           state.hvaWinner = null;
+          setHvaGauge(0n);
           applyHvaHighlight();
           return;
         }
@@ -2196,6 +2295,7 @@
           const sign = bps >= 0n ? "+" : "";
           setText("hvaDelta", `${sign}${bps.toString()}`);
           $("hvaDelta").className = `metric-value ${bps >= 0n ? "pos" : "neg"}`;
+          setHvaGauge(bps);
           if (bps === 0n) {
             setText("hvaOutcome", "AI-weighted and equal-weight are level.");
             state.hvaWinner = null;
@@ -2213,8 +2313,30 @@
           $("hvaDelta").className = "metric-value";
           setText("hvaOutcome", "Waiting for live vault data.");
           state.hvaWinner = null;
+          setHvaGauge(0n);
         }
         applyHvaHighlight();
+      }
+
+      // Head-to-head delta gauge: fill extends from center toward the leader, width
+      // proportional to |bps| (full half-bar at +/-200 bps). Smoothly transitions on update.
+      function setHvaGauge(bps) {
+        const fill = $("hvaGaugeFill");
+        if (!fill) return;
+        const mag = Math.min(50, (Math.abs(Number(bps)) / 200) * 50);
+        if (bps > 0n) {
+          fill.style.left = "50%";
+          fill.style.right = "auto";
+          fill.style.width = mag + "%";
+          fill.style.background = "var(--accent)";
+        } else if (bps < 0n) {
+          fill.style.right = "50%";
+          fill.style.left = "auto";
+          fill.style.width = mag + "%";
+          fill.style.background = "var(--gold)";
+        } else {
+          fill.style.width = "0%";
+        }
       }
 
       function applyHvaHighlight() {
@@ -2243,18 +2365,35 @@
         $("aiFeed").innerHTML = xs
           .slice(0, 12)
           .map((x) => {
-            const cls = x.action === "increase" ? "pos" : x.action === "decrease" ? "neg" : "";
+            const dir =
+              x.action === "increase"
+                ? "up"
+                : x.action === "decrease"
+                  ? "down"
+                  : "flat";
+            const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "■";
+            const cls = dir === "up" ? "pos" : dir === "down" ? "neg" : "";
             const sig = x.signal
               ? `${x.signal.asset} $${Number(x.signal.price).toFixed(0)} ${Number(x.signal.change24hPct).toFixed(2)}%`
               : "on-chain NAV";
-            const trade = x.execution && x.execution.txHash
-              ? ` · <a href="${explorerFor(state.chainId)}/tx/${x.execution.txHash}" target="_blank" rel="noopener">real swap ↗</a>`
+            const trade =
+              x.execution && x.execution.txHash
+                ? ` <a class="swap-pill" href="${explorerFor(state.chainId)}/tx/${x.execution.txHash}" target="_blank" rel="noopener">real swap ↗</a>`
+                : "";
+            const src =
+              x.source === "glm"
+                ? `glm ${x.model || ""}`.trim()
+                : x.source || "";
+            const when = x.ts
+              ? `${Math.max(0, Math.floor(Date.now() / 1000 - x.ts))}s ago`
               : "";
-            const when = x.ts ? `${Math.max(0, Math.floor(Date.now() / 1000 - x.ts))}s ago` : "";
-            return `<div class="feed-row">
-              <span class="badge ${cls}">agent ${x.agent} · ${x.action} ${x.navDeltaBps}bps</span>
-              <span class="meta"> [${x.source}${x.source === "glm" ? " " + (x.model || "") : ""}] · signal ${sig} · ${when}${trade}</span>
-              <div>${(x.reasoning || "").slice(0, 200)}</div>
+            return `<div class="feed-row feed-${dir}">
+              <div class="feed-line">
+                <span class="badge ${cls}">${arrow} agent ${x.agent} · ${x.action} ${x.navDeltaBps}bps</span>
+                <span class="feed-when">${when}</span>
+              </div>
+              <span class="meta">[${src}] · signal ${sig}${trade}</span>
+              <div class="feed-reason">${(x.reasoning || "").slice(0, 200)}</div>
             </div>`;
           })
           .join("");
@@ -2370,8 +2509,16 @@
                 break;
             }
             const exp = explorerFor(state.chainId);
-            return `<div class="feed-row">
-      <span class="badge">${e.eventName}</span> ${detail}
+            const evCls =
+              {
+                AgentRegistered: "ev-blue",
+                IndexDeposit: "ev-green",
+                IndexWithdraw: "ev-red",
+                Rebalanced: "ev-gold",
+                ReceiptPublished: "ev-green",
+              }[e.eventName] || "";
+            return `<div class="feed-row ${evCls}">
+      <span class="badge">${e.eventName}</span> <span class="feed-detail">${detail}</span>
       <div class="meta">${ts} / block ${e.log.blockNumber} / <a href="${exp}/tx/${e.log.transactionHash}" target="_blank" rel="noopener">${e.log.transactionHash.slice(0, 10)}...</a></div>
     </div>`;
           }),
