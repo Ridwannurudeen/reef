@@ -174,12 +174,22 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard, Pausable {
         assets = (shares * (totalAssets() + 1)) / (totalShares + 1);
         require(assets > 0, "zero assets");
 
-        uint256 idle = asset.balanceOf(address(this));
-        if (idle < assets) _pullFromVaults(assets - idle);
-
+        // Effects before interactions (CEI): burn shares before pulling from vaults, which
+        // calls out to AgentVault -> strategy adapter (external).
         balanceOf[msg.sender] -= shares;
         totalShares -= shares;
         emit Transfer(msg.sender, address(0), shares); // burn
+
+        uint256 idle = asset.balanceOf(address(this));
+        if (idle < assets) {
+            _pullFromVaults(assets - idle);
+            // Pay what the vaults ACTUALLY realized, never the spot mark. A vault's recall can
+            // return less than its nav() mark (a mark-to-market adapter realizes less when it
+            // sells), so transferring the marked `assets` would overdraw the index — reverting
+            // the last redeemer or paying one holder out of another's principal.
+            uint256 available = asset.balanceOf(address(this));
+            if (available < assets) assets = available;
+        }
         asset.safeTransfer(msg.sender, assets);
         emit IndexWithdraw(msg.sender, assets, shares);
     }

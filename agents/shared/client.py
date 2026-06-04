@@ -132,7 +132,7 @@ def send_tx(
     `fn_call` is a prepared contract function call (e.g. `vault.functions.publishReceipt(payload)`).
     `value` (wei) is for payable calls (e.g. a native-token DEX swap).
     """
-    nonce = rpc_read(lambda: w3.eth.get_transaction_count(account.address))
+    nonce = rpc_read(lambda: w3.eth.get_transaction_count(account.address, "pending"))
     tx: dict[str, Any] = {
         "from": account.address,
         "nonce": nonce,
@@ -166,4 +166,8 @@ def send_tx(
     raw = getattr(signed, "raw_transaction", None) or signed.rawTransaction
     tx_hash = w3.eth.send_raw_transaction(raw)
     receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=180)
+    # A mined-but-reverted tx (status 0) is a failure, not a trade — surface it so callers
+    # don't record a reverted swap/receipt as if it succeeded.
+    if receipt.get("status") != 1:
+        raise RuntimeError(f"tx reverted on-chain: {tx_hash.hex()}")
     return dict(receipt)
