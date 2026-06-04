@@ -564,6 +564,55 @@
         font-family: var(--mono);
         font-variant-numeric: tabular-nums;
       }
+      .rank {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 19px;
+        height: 19px;
+        border-radius: 999px;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        color: #06110d;
+      }
+      .rank-1 {
+        background: linear-gradient(135deg, #ffe08a, #f2c866);
+        box-shadow: 0 0 10px rgba(242, 200, 102, 0.45);
+      }
+      .rank-2 {
+        background: linear-gradient(135deg, #e7eef0, #aab6bb);
+      }
+      .rank-3 {
+        background: linear-gradient(135deg, #e2a06a, #b9763f);
+        color: #1a0f06;
+      }
+      .leader-row td {
+        background: rgba(25, 230, 164, 0.045);
+      }
+      .leader-row td:first-child {
+        box-shadow: inset 3px 0 0 var(--accent);
+      }
+      .weight-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+      }
+      .wbar {
+        width: 100%;
+        max-width: 96px;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--surface-3);
+        overflow: hidden;
+      }
+      .wbar-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--accent), var(--gold));
+      }
       .pos {
         color: var(--accent);
       }
@@ -2040,14 +2089,23 @@
               i === 0 && a.reputation > 0n
                 ? `<span class="badge good">leader</span>`
                 : "";
+            const rank =
+              i < 3
+                ? `<span class="rank rank-${i + 1}">${i + 1}</span>`
+                : `${i + 1}`;
+            const rowClass = i === 0 && a.reputation > 0n ? "leader-row" : "";
+            const wpct = Math.min(100, Number(a.weightBps) / 100);
             const age = formatAge(a.lastReceiptAt);
-            return `<tr>
-      <td data-label="#">${i + 1} ${lead}</td>
+            return `<tr class="${rowClass}">
+      <td data-label="#">${rank} ${lead}</td>
       <td data-label="Agent">agent ${a.agentId.toString()}</td>
       <td data-label="Vault"><a href="${explorerFor(state.chainId)}/address/${a.vault}" target="_blank" rel="noopener">${shortAddr(a.vault)}</a></td>
       <td data-label="Reputation" class="num ${repClass}">${fmtSigned18(a.reputation)}</td>
       <td data-label="NAV" class="num">${fmt18(a.nav, 6)}</td>
-      <td data-label="Weight" class="num">${fmtBps(a.weightBps)}</td>
+      <td data-label="Weight" class="num weight-cell">
+        <span>${fmtBps(a.weightBps)}</span>
+        <span class="wbar"><span class="wbar-fill" style="width:${wpct}%"></span></span>
+      </td>
       <td data-label="Deployed" class="num">${fmt18(a.deployed)}</td>
       <td data-label="Receipt"><span class="badge ${age.cls}">${age.label}</span></td>
     </tr>`;
