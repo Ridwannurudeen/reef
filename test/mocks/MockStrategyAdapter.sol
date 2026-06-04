@@ -9,10 +9,15 @@ import {IStrategyAdapter} from "../../src/interfaces/IStrategyAdapter.sol";
 contract MockStrategyAdapter is IStrategyAdapter {
     IERC20 public immutable token;
     address public immutable override vault;
+    uint256 public recallHaircutBps; // default 0; >0 simulates an adapter realizing less than asked
 
     constructor(address token_, address vault_) {
         token = IERC20(token_);
         vault = vault_;
+    }
+
+    function setRecallHaircutBps(uint256 bps) external {
+        recallHaircutBps = bps;
     }
 
     function asset() external view override returns (address) {
@@ -27,9 +32,9 @@ contract MockStrategyAdapter is IStrategyAdapter {
 
     function recall(uint256 amount) external override returns (uint256 recalled) {
         require(msg.sender == vault, "not vault");
-        require(token.transfer(vault, amount), "transfer");
-        emit Recalled(vault, amount, 0);
-        return amount;
+        recalled = (amount * (10_000 - recallHaircutBps)) / 10_000;
+        require(token.transfer(vault, recalled), "transfer");
+        emit Recalled(vault, recalled, 0);
     }
 
     function totalUnderlying() external view override returns (uint256) {

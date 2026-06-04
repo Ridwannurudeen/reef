@@ -80,8 +80,11 @@ contract FusionXAdapter is IStrategyAdapter {
             uint256 needLong = router.getAmountsIn(shortfall, path)[0];
             uint256 sell = needLong > longBal ? longBal : needLong;
             if (sell > 0) {
+                // Bound the sell with the same slippage tolerance as deploy so a forced
+                // withdrawal sale cannot be sandwiched down to an arbitrary price.
+                uint256 minOut = (router.getAmountsOut(sell, path)[1] * (10_000 - maxSlippageBps)) / 10_000;
                 longToken.safeApprove(address(router), sell);
-                router.swapExactTokensForTokens(sell, 0, path, address(this), block.timestamp);
+                router.swapExactTokensForTokens(sell, minOut, path, address(this), block.timestamp);
             }
         }
         uint256 bal = assetToken.balanceOf(address(this));

@@ -108,7 +108,14 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         uint256 idle = asset.balanceOf(address(this));
         if (idle < assets) {
             require(currentStrategy != address(0), "insufficient liquidity");
-            IStrategyAdapter(currentStrategy).recall(assets - idle);
+            // Pay what the strategy can ACTUALLY realize, not the spot mark. A mark-to-market
+            // adapter (e.g. a DEX position) realizes slightly less than `totalUnderlying`
+            // reports once it sells (fee + price impact), so paying the marked `assets` would
+            // overdraw the vault and revert the final withdrawer / overpay earlier ones. Shares
+            // were already burned at the pre-recall ratio, so the withdrawer bears their own
+            // realization slippage and remaining holders are left whole.
+            uint256 recalled = IStrategyAdapter(currentStrategy).recall(assets - idle);
+            assets = idle + recalled;
         }
 
         asset.safeTransfer(msg.sender, assets);

@@ -186,6 +186,28 @@ contract AgentVaultTest is Test {
         assertEq(token.balanceOf(alice), 1_000e18 - 100e18 + 60e18);
     }
 
+    /// Withdraw must pay what the strategy ACTUALLY realizes, not the spot mark. If a recall
+    /// under-delivers (DEX slippage, a slashed/drained adapter), the vault pays the realized
+    /// amount rather than transferring the marked amount it never received (which would revert
+    /// the final withdrawer or overpay earlier ones).
+    function test_withdraw_paysRealizedNotMarked_whenRecallUnderdelivers() public {
+        vm.prank(alice);
+        vault.deposit(100e18);
+        vm.prank(operator);
+        vault.deployToStrategy(address(strategy), 100e18); // fully deployed, zero idle buffer
+
+        strategy.setRecallHaircutBps(50); // adapter realizes 0.5% less than asked
+
+        uint256 before = token.balanceOf(alice);
+        vm.prank(alice);
+        uint256 got = vault.withdraw(100e18); // would overdraw -> revert under the old logic
+
+        assertEq(token.balanceOf(alice) - before, got, "paid != returned");
+        assertEq(got, 100e18 * 9950 / 10_000); // realized amount, not the 100e18 mark
+        assertEq(vault.totalShares(), 0, "shares not fully burned");
+        assertEq(token.balanceOf(address(vault)), 0, "vault overdrew its balance");
+    }
+
     // --- Circuit breaker ---
 
     function test_pause_blocksDeposit_allowsWithdraw() public {
