@@ -3,7 +3,22 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Reef - Mantle Agent Yield Arena</title>
+    <meta name="description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
+    <meta name="theme-color" content="#07100b" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2307100b'/%3E%3Crect%20x='1.5'%20y='1.5'%20width='29'%20height='29'%20rx='6'%20fill='none'%20stroke='%236bff9c'%20stroke-opacity='0.55'%20stroke-width='1.5'/%3E%3Cpath%20d='M11%2024V8h7.2c2.9%200%204.8%201.8%204.8%204.6%200%202.1-1.1%203.6-3%204.2L23.5%2024h-3.4l-2.2-6.2H14V24h-3Zm3-8.9h3.8c1.4%200%202.2-.8%202.2-2.1s-.8-2.1-2.2-2.1H14v4.2Z'%20fill='%236bff9c'/%3E%3C/svg%3E" />
+    <meta property="og:title" content="Reef — AI Yield Arena for Mantle RWA" />
+    <meta property="og:description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://reef.gudman.xyz" />
+    <meta property="og:image" content="https://reef.gudman.xyz/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Reef" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Reef — AI Yield Arena for Mantle RWA" />
+    <meta name="twitter:description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
+    <meta name="twitter:image" content="https://reef.gudman.xyz/og.png" />
+    <title>Reef — AI Yield Arena for Mantle RWA</title>
     <style>
       :root {
         color-scheme: dark;
@@ -892,6 +907,13 @@
           min-height: auto;
           padding-top: 46px;
         }
+        .hero > div,
+        .arena-layout > * {
+          min-width: 0;
+        }
+        h1 {
+          overflow-wrap: anywhere;
+        }
         h1 {
           font-size: 46px;
         }
@@ -901,6 +923,16 @@
         }
         .nav {
           display: none;
+        }
+        button {
+          min-height: 40px;
+        }
+        .beginner-toggle {
+          min-height: 40px;
+        }
+        .nowallet-x {
+          min-height: 36px;
+          min-width: 36px;
         }
       }
       @media (max-width: 680px) {
@@ -977,6 +1009,38 @@
         }
         .num {
           text-align: right;
+        }
+        .beginner-toggle-label {
+          display: none;
+        }
+        .beginner-toggle {
+          padding: 0 9px;
+          gap: 0;
+        }
+        .conn {
+          flex-wrap: wrap;
+          gap: 8px 10px;
+        }
+        #connectBtn {
+          flex: 1 1 auto;
+        }
+        .signature-value {
+          font-size: 40px;
+        }
+        .reef-viz-shell {
+          padding: 13px 12px 5px;
+        }
+        .reef-label {
+          font-size: 17px;
+        }
+        .reef-sub {
+          font-size: 14px;
+        }
+        .reef-viz .reef-empty {
+          font-size: 19px;
+        }
+        body {
+          overflow-x: hidden;
         }
       }
       @keyframes sparkPulse {
@@ -1389,6 +1453,68 @@
       .reef-node-glow {
         transform-box: fill-box;
         transform-origin: center;
+      }
+      @media (max-width: 460px) {
+        .signature-value {
+          font-size: 34px;
+        }
+        .reef-label {
+          font-size: 20px;
+        }
+        .reef-sub {
+          font-size: 16px;
+        }
+        .reef-viz .reef-empty {
+          font-size: 22px;
+        }
+        .reef-viz-legend {
+          font-size: 9px;
+        }
+        h1 {
+          font-size: 26px;
+          overflow-wrap: anywhere;
+        }
+        .ai-featured {
+          padding: 14px 13px;
+        }
+        .aif-reason {
+          padding: 10px 11px;
+          font-size: 12.5px;
+        }
+      }
+      /* ── Loading skeletons ── */
+      .skel {
+        position: relative;
+        display: inline-block;
+        border-radius: 5px;
+        background: var(--surface-3);
+        background-image: linear-gradient(
+          90deg,
+          var(--surface-3) 0%,
+          rgba(107, 255, 156, 0.14) 50%,
+          var(--surface-3) 100%
+        );
+        background-size: 200% 100%;
+        animation: skelSweep 1.25s ease-in-out infinite;
+        color: transparent !important;
+        user-select: none;
+        vertical-align: middle;
+      }
+      .skel-text {
+        height: 0.78em;
+      }
+      .skel-line {
+        display: block;
+        height: 11px;
+        margin: 4px 0;
+      }
+      @keyframes skelSweep {
+        from {
+          background-position: 200% 0;
+        }
+        to {
+          background-position: -200% 0;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
         *,
@@ -2110,6 +2236,58 @@
         if (el) el.textContent = value;
       }
 
+      const REDUCED_MOTION = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      function skeletonText(width = "4.5em") {
+        return `<span class="skel skel-text" style="width:${width}"></span>`;
+      }
+      function skeletonRow(lines = 2) {
+        let html = '<div class="feed-row">';
+        const widths = ["72%", "92%", "54%"];
+        for (let i = 0; i < lines; i++) {
+          html += `<span class="skel skel-line" style="width:${widths[i % widths.length]}"></span>`;
+        }
+        return html + "</div>";
+      }
+
+      const numAnim = new WeakMap();
+      function setNumberAnimated(id, newStr) {
+        const el = $(id);
+        if (!el) return;
+        const m = String(newStr).match(/-?\d+(?:\.\d+)?/);
+        if (!m) {
+          el.textContent = newStr;
+          numAnim.delete(el);
+          return;
+        }
+        const target = parseFloat(m[0]);
+        const decimals = m[0].includes(".") ? m[0].split(".")[1].length : 0;
+        const prefix = newStr.slice(0, m.index);
+        const suffix = newStr.slice(m.index + m[0].length);
+        const prev = numAnim.get(el);
+        if (prev !== undefined && prev === target) return;
+        if (REDUCED_MOTION || prev === undefined) {
+          el.textContent = newStr;
+          numAnim.set(el, target);
+          return;
+        }
+        const from = prev;
+        const dur = 500;
+        const start = performance.now();
+        numAnim.set(el, target);
+        const step = (now) => {
+          const t = Math.min(1, (now - start) / dur);
+          const eased = 1 - Math.pow(1 - t, 3);
+          const val = from + (target - from) * eased;
+          el.textContent = `${prefix}${val.toFixed(decimals)}${suffix}`;
+          if (t < 1 && numAnim.get(el) === target) requestAnimationFrame(step);
+          else if (numAnim.get(el) === target) el.textContent = newStr;
+        };
+        requestAnimationFrame(step);
+      }
+
       function toast(msg, kind = "info", ms = 6000) {
         const el = document.createElement("div");
         el.className = `toast ${kind}`;
@@ -2499,9 +2677,9 @@
           setNotice("");
           const nav =
             shares === 0n ? 10n ** 18n : (total * 10n ** 18n) / shares;
-          setText("idxTotalAssets", fmt18(total));
-          setText("idxTotalShares", fmt18(shares));
-          setText("idxNav", fmt18(nav, 6));
+          setNumberAnimated("idxTotalAssets", fmt18(total));
+          setNumberAnimated("idxTotalShares", fmt18(shares));
+          setNumberAnimated("idxNav", fmt18(nav, 6));
           setText("idxVaultCount", vCount.toString());
           setText("lastUpdated", new Date().toLocaleTimeString());
 
@@ -2521,9 +2699,9 @@
                 }),
               "index balanceOf",
             );
-            setText("idxYourShares", fmt18(my));
+            setNumberAnimated("idxYourShares", fmt18(my));
             const myAssets = shares === 0n ? 0n : (my * nav) / 10n ** 18n;
-            setText("idxYourAssets", fmt18(myAssets));
+            setNumberAnimated("idxYourAssets", fmt18(myAssets));
           } else {
             setText("idxYourShares", "-");
             setText("idxYourAssets", "-");
@@ -3480,6 +3658,26 @@
       initGlossary();
       initBeginnerMode();
       initNoWalletBanner();
+
+      // Initial loading skeletons (overwritten on first real data render).
+      for (const id of [
+        "idxNav",
+        "idxTotalAssets",
+        "idxTotalShares",
+        "idxVaultCount",
+        "idxYourShares",
+        "idxYourAssets",
+      ]) {
+        const el = $(id);
+        if (el) el.innerHTML = skeletonText(id === "idxNav" ? "3.2em" : "3.6em");
+      }
+      if ($("lbBody"))
+        $("lbBody").innerHTML =
+          '<tr><td colspan="8"><span class="skel skel-line" style="width:100%"></span><span class="skel skel-line" style="width:84%"></span><span class="skel skel-line" style="width:68%"></span></td></tr>';
+      if ($("aiFeed"))
+        $("aiFeed").innerHTML = skeletonRow(2) + skeletonRow(2) + skeletonRow(2);
+      if ($("feed"))
+        $("feed").innerHTML = skeletonRow(2) + skeletonRow(2) + skeletonRow(2);
 
       for (const b of $("hvaToggle").querySelectorAll("button")) {
         b.addEventListener("click", () => {
