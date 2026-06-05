@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reef — On-chain proof &amp; transparency</title>
+    <meta
+      name="description"
+      content="Every Reef contract is deployed and verified on Mantlescan. Agents publish EIP-712 signed receipts; the live GLM AI publishes a rationale whose hash matches the on-chain evidence. Testnet, unaudited, verifiable."
+    />
+    <meta name="theme-color" content="#06121a" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2306121a'/%3E%3Crect%20x='1.5'%20y='1.5'%20width='29'%20height='29'%20rx='6'%20fill='none'%20stroke='%2334d8c4'%20stroke-opacity='0.55'%20stroke-width='1.5'/%3E%3Cpath%20d='M11%2024V8h7.2c2.9%200%204.8%201.8%204.8%204.6%200%202.1-1.1%203.6-3%204.2L23.5%2024h-3.4l-2.2-6.2H14V24h-3Zm3-8.9h3.8c1.4%200%202.2-.8%202.2-2.1s-.8-2.1-2.2-2.1H14v4.2Z'%20fill='%2334d8c4'/%3E%3C/svg%3E"
+    />
+    <meta property="og:title" content="Reef — On-chain proof &amp; transparency" />
+    <meta
+      property="og:description"
+      content="Everything Reef does is verifiable on Mantlescan: verified contracts, EIP-712 signed receipts, hash-matched AI rationales, real DEX swaps. Testnet, unaudited."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://reef.gudman.xyz/transparency.html" />
+    <meta property="og:image" content="https://reef.gudman.xyz/og.png" />
+    <meta property="og:site_name" content="Reef" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Reef — On-chain proof &amp; transparency" />
+    <meta
+      name="twitter:description"
+      content="Everything Reef does is verifiable on Mantlescan: verified contracts, EIP-712 receipts, hash-matched AI rationales, real DEX swaps. Testnet, unaudited."
+    />
+    <meta name="twitter:image" content="https://reef.gudman.xyz/og.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="reef.css" />
+
+    <style>
+      /* Page-specific: contract rows + AI feed + steps */
+      .t-group-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-bottom: var(--space-4);
+        flex-wrap: wrap;
+      }
+      .t-group-title {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .t-group-note {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        color: var(--subtle);
+      }
+      .t-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) auto;
+        align-items: center;
+        gap: var(--space-4);
+        padding: var(--space-3) 0;
+        border-top: 1px solid var(--line);
+      }
+      .t-row:first-child {
+        border-top: 0;
+      }
+      .t-row-name {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .t-row-sub {
+        display: block;
+        margin-top: 2px;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--subtle);
+      }
+      .t-addr {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 12.5px;
+        color: var(--muted);
+        word-break: break-all;
+      }
+      .t-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+      }
+      .t-row-muted {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--subtle);
+        white-space: nowrap;
+      }
+      .t-feed-row {
+        padding: var(--space-4) 0;
+        border-top: 1px solid var(--line);
+      }
+      .t-feed-row:first-child {
+        border-top: 0;
+      }
+      .t-feed-top {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+        margin-bottom: var(--space-2);
+      }
+      .t-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        height: 24px;
+        padding: 0 10px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--line);
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .t-action--up {
+        border-color: rgba(63, 207, 142, 0.4);
+        background: rgba(63, 207, 142, 0.1);
+        color: var(--success);
+      }
+      .t-action--down {
+        border-color: rgba(255, 107, 107, 0.42);
+        background: rgba(255, 107, 107, 0.1);
+        color: var(--danger);
+      }
+      .t-action--flat {
+        border-color: rgba(242, 193, 78, 0.42);
+        background: var(--gold-soft);
+        color: var(--gold);
+      }
+      .t-action-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .t-when {
+        margin-left: auto;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--subtle);
+        white-space: nowrap;
+      }
+      .t-signal {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .t-rationale {
+        margin: 0;
+        color: var(--text);
+        font-size: 13.5px;
+        line-height: 1.55;
+      }
+      .t-rationale-label {
+        display: block;
+        margin-bottom: 5px;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--subtle);
+      }
+      .t-swap {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: var(--space-3);
+        height: 24px;
+        padding: 0 10px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--accent-soft);
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+      .t-empty {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .t-steps {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: t-step;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+      }
+      .t-steps li {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: var(--space-4);
+        align-items: start;
+      }
+      .t-steps li::before {
+        counter-increment: t-step;
+        content: counter(t-step);
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--line-strong);
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+      }
+      .t-steps p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .t-steps strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .t-steps code {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--text);
+        background: var(--surface-2);
+        padding: 1px 6px;
+        border-radius: var(--radius-sm);
+        word-break: break-word;
+      }
+      .t-scope {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+      }
+      .t-scope li {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: var(--space-4);
+        align-items: start;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .t-scope li svg {
+        margin-top: 3px;
+        flex: none;
+        color: var(--warning);
+      }
+      .t-scope strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .t-stack {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+      }
+      @media (max-width: 720px) {
+        .t-row {
+          grid-template-columns: 1fr;
+          gap: var(--space-2);
+        }
+        .t-when {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="r-nav" id="nav">
+      <div class="r-nav-inner">
+        <a class="r-brand" href="index.html" aria-label="Reef home">
+          <span class="r-brand-mark" aria-hidden="true">R</span>
+          <span>Reef</span>
+        </a>
+        <nav class="r-nav-links" aria-label="Primary">
+          <a href="index.html#how">How it works</a>
+          <a href="index.html#proof">Proof</a>
+          <a href="index.html#ecosystem">Ecosystem</a>
+          <a href="transparency.html" aria-current="page">Transparency</a>
+          <a class="r-btn r-btn--primary r-btn--sm" href="app.html">Launch App</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- Header -->
+      <section class="r-section r-section--plain">
+        <div class="r-container">
+          <div class="r-section-head">
+            <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap">
+              <span class="r-eyebrow">On-chain proof</span>
+              <span class="r-pill r-pill--accent"><span class="r-dot" aria-hidden="true"></span>Mantle Sepolia</span>
+            </div>
+            <h1 class="r-h1">Everything Reef does is verifiable</h1>
+            <p class="r-lead">
+              Every contract is deployed and verified on Mantlescan, every agent
+              decision is published as an EIP-712 signed receipt, and the live
+              GLM model publishes the verbatim rationale behind each move — its
+              keccak256 hash matches the evidence hash recorded on-chain. This is
+              the live, honest footprint. No claims you can't check yourself.
+            </p>
+          </div>
+
+          <div class="r-grid r-grid--4">
+            <div class="r-stat">
+              <span class="r-stat-value r-tnum" id="stat-contracts">8</span>
+              <span class="r-stat-label">Contracts verified</span>
+            </div>
+            <div class="r-stat">
+              <span class="r-stat-value" id="stat-network">Mantle Sepolia</span>
+              <span class="r-stat-label">Network · chain 5003</span>
+            </div>
+            <div class="r-stat">
+              <span class="r-stat-value">EIP-712</span>
+              <span class="r-stat-label">Receipts · signed</span>
+            </div>
+            <div class="r-stat">
+              <span class="r-stat-value">GLM</span>
+              <span class="r-stat-label">AI · on-chain evidence</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contracts -->
+      <section class="r-section" id="contracts">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Deployed &amp; verified</span>
+            <h2 class="r-h2">The contracts</h2>
+            <p class="r-lead">
+              The source of truth is
+              <span class="r-mono">deployments/mantle-sepolia.json</span>. Each
+              address links to its verified source on Mantlescan. Anything not
+              yet deployed is labelled plainly.
+            </p>
+          </div>
+          <div class="t-stack" id="contract-groups">
+            <div class="r-panel"><p class="r-muted">Loading contract addresses…</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live AI decisions -->
+      <section class="r-section" id="decisions">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Live AI decisions</span>
+            <h2 class="r-h2">What the agents decided, and why</h2>
+            <p class="r-lead">
+              The most recent decisions from the running GLM model. Each shows
+              the action, the verbatim rationale (this exact text hashes to the
+              on-chain receipt's evidence hash), the market signal, and — when a
+              trade executed — a link to the real swap transaction.
+            </p>
+          </div>
+          <div class="r-panel">
+            <div id="decision-feed">
+              <p class="t-empty">Loading live decision feed…</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Verify it yourself -->
+      <section class="r-section" id="verify">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Verify it yourself</span>
+            <h2 class="r-h2">Don't trust us — check the chain</h2>
+          </div>
+          <div class="r-panel">
+            <ol class="t-steps">
+              <li>
+                <p>
+                  <strong>Open any contract link above.</strong> Mantlescan
+                  shows the verified Solidity source, the ABI, and the deployment
+                  transaction — verified via Etherscan V2, no unverified
+                  bytecode.
+                </p>
+              </li>
+              <li>
+                <p>
+                  <strong>Match a receipt's evidence hash.</strong> Take the
+                  rationale text shown in the decision feed and compute
+                  <code>keccak256(text)</code>. It equals the
+                  <span class="r-mono">evidenceHash</span> field in the agent's
+                  EIP-712 signed receipt on-chain. The AI can't claim one thing
+                  and record another.
+                </p>
+              </li>
+              <li>
+                <p>
+                  <strong>Follow a swap transaction.</strong> Where a decision
+                  produced a trade, the "real swap" link resolves to a FusionX V2
+                  DEX swap on Mantlescan with the full call trace and token
+                  transfers.
+                </p>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scope & honesty -->
+      <section class="r-section" id="scope">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Scope &amp; honesty</span>
+            <h2 class="r-h2">What this is — and what it isn't</h2>
+          </div>
+          <div class="r-panel">
+            <ul class="t-scope">
+              <li>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5 14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 6.2v3.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
+                <span><strong>Testnet only.</strong> Everything here runs on Mantle Sepolia (chain 5003). There is no mainnet deployment and no real TVL.</span>
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5 14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 6.2v3.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
+                <span><strong>Yield is simulated.</strong> Sepolia uses a <span class="r-mono">MockYieldAdapter</span> that accrues NAV linearly on-chain. The per-share growth is real on the testnet, but it is simulated yield — not returns from a live strategy.</span>
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5 14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 6.2v3.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
+                <span><strong>RWA tokens are referenced, not deployed.</strong> Real USDY/mETH and other Mantle RWA assets are mainnet-ready and pinned for reference below, but their adapters are <em>not</em> deployed on Sepolia. The testnet index asset is a mock ERC-20.</span>
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5 14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 6.2v3.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
+                <span><strong>Unaudited.</strong> These contracts have not been audited. This page is a transparency demonstration, not financial advice and not an invitation to deposit real funds.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="r-footer">
+      <div class="r-container">
+        <div class="r-footer-grid">
+          <div class="r-footer-col">
+            <a class="r-brand" href="index.html" aria-label="Reef home">
+              <span class="r-brand-mark" aria-hidden="true">R</span>
+              <span>Reef</span>
+            </a>
+            <p class="r-muted" style="margin-top: var(--space-3); max-width: 30ch">
+              An on-chain index of autonomous AI yield agents on Mantle.
+            </p>
+          </div>
+          <div class="r-footer-col">
+            <h4>Product</h4>
+            <a href="index.html#how">How it works</a>
+            <a href="index.html#ecosystem">Ecosystem</a>
+            <a href="app.html">Launch App</a>
+          </div>
+          <div class="r-footer-col">
+            <h4>Developers</h4>
+            <a href="https://github.com/Ridwannurudeen/reef" rel="noopener">GitHub</a>
+            <a href="index.html#proof">Proof</a>
+          </div>
+          <div class="r-footer-col">
+            <h4>Data</h4>
+            <a id="foot-explorer" href="https://sepolia.mantlescan.xyz" rel="noopener">Mantlescan</a>
+            <a href="#contracts">Contracts</a>
+            <a href="#decisions">Live decisions</a>
+          </div>
+          <div class="r-footer-col">
+            <h4>Network</h4>
+            <a id="foot-faucet" href="https://faucet.sepolia.mantle.xyz" rel="noopener">Sepolia faucet</a>
+            <a href="#scope">Scope &amp; honesty</a>
+          </div>
+        </div>
+        <div class="r-footer-bottom">
+          <span>Reef · Mantle Turing Test Hackathon 2026 · Testnet · unaudited</span>
+          <span class="r-mono">chain 5003</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      "use strict";
+      (function () {
+        var MAINNET_EXPLORER = "https://mantlescan.xyz";
+        var nav = document.getElementById("nav");
+        function onScroll() {
+          if (!nav) return;
+          if (window.scrollY > 8) nav.classList.add("is-scrolled");
+          else nav.classList.remove("is-scrolled");
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll();
+
+        function esc(s) {
+          return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+          });
+        }
+        var ZERO = "0x0000000000000000000000000000000000000000";
+        function isAddr(v) {
+          return typeof v === "string" && /^0x[0-9a-fA-F]{40}$/.test(v) && v.toLowerCase() !== ZERO;
+        }
+        function fetchJson(url) {
+          return fetch(url, { cache: "no-store" })
+            .then(function (r) {
+              if (!r.ok) throw new Error(String(r.status));
+              return r.json();
+            })
+            .catch(function () {
+              return null;
+            });
+        }
+        function explorerBase(data) {
+          var ex = data && data.explorer;
+          if (typeof ex === "string") return ex.replace(/\/+$/, "");
+          if (ex && typeof ex === "object" && typeof ex.mantlescan === "string")
+            return ex.mantlescan.replace(/\/+$/, "");
+          return "https://sepolia.mantlescan.xyz";
+        }
+        var EXT =
+          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">' +
+          '<path d="M4.5 2.5h-2v7h7v-2M7 2.5h2.5V5M9.5 2.5 5.5 6.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+        function rowHTML(name, sub, addr, base) {
+          var label =
+            '<div><span class="t-row-name">' + esc(name) + "</span>" +
+            (sub ? '<span class="t-row-sub">' + esc(sub) + "</span>" : "") + "</div>";
+          if (!isAddr(addr)) {
+            return '<div class="t-row">' + label +
+              '<span class="t-addr r-muted">not deployed</span>' +
+              '<span class="t-row-muted">—</span></div>';
+          }
+          return '<div class="t-row">' + label +
+            '<span class="t-addr">' + esc(addr) + "</span>" +
+            '<a class="t-link" href="' + esc(base + "/address/" + addr) +
+            '" target="_blank" rel="noopener">View on Mantlescan ' + EXT + "</a></div>";
+        }
+        function groupHTML(title, note, rows) {
+          var body = rows.join("") ||
+            '<div class="t-row"><span class="t-addr r-muted">No entries.</span></div>';
+          return '<div class="r-panel"><div class="t-group-head">' +
+            '<h3 class="t-group-title">' + esc(title) + "</h3>" +
+            (note ? '<span class="t-group-note">' + esc(note) + "</span>" : "") +
+            "</div>" + body + "</div>";
+        }
+
+        function renderContracts(data) {
+          var host = document.getElementById("contract-groups");
+          if (!host) return;
+          if (!data) {
+            host.innerHTML =
+              '<div class="r-panel"><p class="r-muted">Contract addresses load from ' +
+              '<span class="r-mono">deployments/mantle-sepolia.json</span>. ' +
+              "Open the deployed site to view them live.</p></div>";
+            return;
+          }
+          var base = explorerBase(data);
+          var reef = data.reef || {};
+          var seeded = data.seeded || {};
+          var refs = data.mainnetReferences || {};
+          var groups = [];
+          var verified = 0;
+          function tally(a) { if (isAddr(a)) verified++; }
+
+          // Core protocol
+          var core = [];
+          core.push(rowHTML("Agent Identity", "ERC-8004 registry", reef.AgentIdentity, base)); tally(reef.AgentIdentity);
+          var idxSym = (seeded.tradeableIndex && seeded.tradeableIndex.symbol) || "rINDEX";
+          core.push(rowHTML("Agent Index", idxSym + " · ERC-20 index shares", reef.AgentIndex, base)); tally(reef.AgentIndex);
+          core.push(rowHTML("Adapter Registry", "Whitelisted yield adapters", reef.AdapterRegistry, base)); tally(reef.AdapterRegistry);
+          if (isAddr(reef.ReputationOracle)) { core.push(rowHTML("Reputation Oracle", "Risk-adjusted scoring", reef.ReputationOracle, base)); tally(reef.ReputationOracle); }
+          groups.push(groupHTML("Core protocol", "identity · index · registry", core));
+
+          // Markets & adapters
+          var mk = [];
+          var ya = seeded.yieldAdapter || {};
+          mk.push(rowHTML("Mock Yield Adapter", "Testnet · linear NAV" + (ya.aprBps != null ? " · " + ya.aprBps / 100 + "% APR" : ""), ya.address, base)); tally(ya.address);
+          mk.push(rowHTML("Index asset", "Mock ERC-20 (testnet)", seeded.asset, base)); tally(seeded.asset);
+          mk.push(rowHTML("USDY Adapter", "RWA yield · mainnet-ready", reef.UsdyAdapter, base));
+          mk.push(rowHTML("mETH Adapter", "Liquid staking · mainnet-ready", reef.MethAdapter, base));
+          groups.push(groupHTML("Markets & adapters", "where capital is deployed", mk));
+
+          // Agent economy
+          var ae = [];
+          var bond = seeded.reputationBond || {};
+          ae.push(rowHTML("Reputation Bond", "Bond-gated · slashable", bond.address, base)); tally(bond.address);
+          var seasons = seeded.seasons || {};
+          ae.push(rowHTML("Seasons", "Human-vs-AI" + (seasons.seasonId != null ? " · season " + seasons.seasonId : ""), seasons.address, base)); tally(seasons.address);
+          (Array.isArray(seeded.vaults) ? seeded.vaults : []).forEach(function (v) {
+            if (!v) return;
+            var w = v.weightBps != null ? "weight " + (v.weightBps / 100).toFixed(2) + "%" : "agent vault";
+            ae.push(rowHTML("Agent " + v.agentId + " vault", w, v.vault, base)); tally(v.vault);
+          });
+          groups.push(groupHTML("Agent economy", "bonds · seasons · vaults", ae));
+
+          // Mainnet RWA references (linked to MAINNET explorer, not Sepolia)
+          var refLabels = { USDY: "Ondo US Dollar Yield", mUSD: "Mantle USD", mETH: "Mantle Staked ETH", USDC: "USD Coin", FBTC: "Function BTC", USDe: "Ethena USDe", MI4: "Mantle Index Four" };
+          var refRows = [];
+          Object.keys(refLabels).forEach(function (k) {
+            if (isAddr(refs[k])) refRows.push(rowHTML(k, refLabels[k] + " · mainnet, referenced", refs[k], MAINNET_EXPLORER));
+          });
+          if (refRows.length) groups.push(groupHTML("Mainnet RWA references", "Mantle mainnet · chain 5000 · not deployed here", refRows));
+
+          host.innerHTML = groups.join("");
+
+          var sc = document.getElementById("stat-contracts");
+          if (sc && verified > 0) sc.textContent = String(verified);
+          var sn = document.getElementById("stat-network");
+          if (sn && data.network) sn.textContent = data.network;
+          var fe = document.getElementById("foot-explorer");
+          if (fe) fe.href = base;
+          var ff = document.getElementById("foot-faucet");
+          if (ff && Array.isArray(data.faucets) && data.faucets[0]) ff.href = data.faucets[0];
+        }
+
+        function timeAgo(ts) {
+          if (ts == null) return "";
+          var n = typeof ts === "number" ? ts : Date.parse(ts);
+          if (!isFinite(n)) return "";
+          if (n < 1e12) n = n * 1000;
+          var diff = Math.max(0, Date.now() - n);
+          var m = Math.floor(diff / 60000);
+          if (m < 1) return "just now";
+          if (m < 60) return m + "m ago";
+          var h = Math.floor(m / 60);
+          if (h < 24) return h + "h ago";
+          return Math.floor(h / 24) + "d ago";
+        }
+        function pick(o, keys) {
+          for (var i = 0; i < keys.length; i++) {
+            if (o && o[keys[i]] != null && o[keys[i]] !== "") return o[keys[i]];
+          }
+          return null;
+        }
+        function actionClass(a) {
+          var v = String(a || "").toLowerCase();
+          if (v.indexOf("increase") >= 0 || v.indexOf("buy") >= 0 || v.indexOf("up") >= 0) return "up";
+          if (v.indexOf("decrease") >= 0 || v.indexOf("sell") >= 0 || v.indexOf("down") >= 0) return "down";
+          return "flat";
+        }
+        function renderFeed(decisions, executions, base) {
+          var host = document.getElementById("decision-feed");
+          if (!host) return;
+          var decs = Array.isArray(decisions) ? decisions
+            : decisions && Array.isArray(decisions.decisions) ? decisions.decisions : [];
+          var exes = Array.isArray(executions) ? executions
+            : executions && Array.isArray(executions.executions) ? executions.executions : [];
+          if (!decs.length && !exes.length) {
+            host.innerHTML =
+              '<p class="t-empty">Live feed loads from the running agents. When the decision and ' +
+              "execution feeds are reachable, the most recent moves appear here — each with its GLM " +
+              "rationale and, where a trade fired, a link to the real swap.</p>";
+            return;
+          }
+          var exByKey = {};
+          exes.forEach(function (e) {
+            if (!e) return;
+            var k = pick(e, ["decisionId", "id", "agentId"]);
+            if (k != null) exByKey[String(k)] = e;
+          });
+          var items = (decs.length ? decs : exes).slice().reverse().slice(0, 8);
+          host.innerHTML = items.map(function (d) {
+            d = d || {};
+            var action = pick(d, ["action", "decision", "direction", "verb"]) || "hold";
+            var cls = actionClass(action);
+            var rationale = pick(d, ["rationale", "reason", "reasoning", "rationaleText", "explanation"]) || "";
+            var signal = pick(d, ["signal", "marketSignal", "market", "topic"]);
+            var when = pick(d, ["ts", "timestamp", "time", "createdAt"]);
+            var key = pick(d, ["decisionId", "id", "agentId"]);
+            var ex = key != null ? exByKey[String(key)] : null;
+            var tx = pick(d, ["txHash", "tx", "hash"]) || (ex ? pick(ex, ["txHash", "tx", "hash"]) : null);
+            var validTx = typeof tx === "string" && /^0x[0-9a-fA-F]{64}$/.test(tx);
+            var html = '<div class="t-feed-row"><div class="t-feed-top">' +
+              '<span class="t-action t-action--' + cls + '"><span class="t-action-dot"></span>' + esc(action) + "</span>" +
+              (signal ? '<span class="t-signal">signal: ' + esc(signal) + "</span>" : "") +
+              '<span class="t-when">' + esc(timeAgo(when)) + "</span></div>" +
+              '<p class="t-rationale"><span class="t-rationale-label">GLM rationale</span>' +
+              (rationale ? esc(rationale) : "(no rationale recorded)") + "</p>";
+            if (validTx) {
+              html += '<a class="t-swap" href="' + esc(base + "/tx/" + tx) +
+                '" target="_blank" rel="noopener">real swap ' + EXT + "</a>";
+            }
+            return html + "</div>";
+          }).join("");
+        }
+
+        Promise.all([
+          fetchJson("../deployments/mantle-sepolia.json"),
+          fetchJson("../api/decisions.json"),
+          fetchJson("../api/executions.json"),
+        ]).then(function (res) {
+          renderContracts(res[0]);
+          renderFeed(res[1], res[2], explorerBase(res[0]));
+        });
+      })();
+    </script>
+  </body>
+</html>
