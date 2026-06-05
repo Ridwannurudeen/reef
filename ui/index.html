@@ -1242,6 +1242,136 @@
         opacity: 1;
         transform: translateY(0);
       }
+      /* ── Agent detail modal ── */
+      .agent-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(4, 9, 6, 0.72);
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        transition: opacity 140ms ease;
+      }
+      .agent-modal.show {
+        opacity: 1;
+      }
+      .agent-modal[hidden] {
+        display: none;
+      }
+      .agent-modal-card {
+        width: 100%;
+        max-width: 430px;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+        border-radius: 12px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+        box-shadow: 0 24px 60px var(--shadow);
+        transform: translateY(8px);
+        transition: transform 160ms ease;
+      }
+      .agent-modal.show .agent-modal-card {
+        transform: translateY(0);
+      }
+      .agent-modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .agent-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-family: var(--sans);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .agent-modal-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 7px;
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .agent-modal-close:hover {
+        border-color: var(--line-strong);
+        color: var(--text);
+      }
+      .agent-modal-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--line);
+      }
+      .agent-stat {
+        background: var(--surface);
+        padding: 13px 18px;
+      }
+      .agent-stat-label {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--subtle);
+      }
+      .agent-stat-value {
+        margin-top: 4px;
+        font-family: var(--mono);
+        font-size: 15px;
+        color: var(--text);
+      }
+      .agent-stat-value.pos {
+        color: var(--accent);
+      }
+      .agent-stat-value.neg {
+        color: var(--red);
+      }
+      .agent-modal-foot {
+        padding: 14px 18px 18px;
+        border-top: 1px solid var(--line);
+      }
+      .agent-modal-foot a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        min-height: 40px;
+        border-radius: 8px;
+        border: 1px solid var(--line-strong);
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+      }
+      .agent-modal-foot a:hover {
+        background: rgba(107, 255, 156, 0.18);
+      }
+      .lb-row {
+        cursor: pointer;
+      }
+      .lb-row:focus-visible {
+        outline: none;
+        box-shadow: inset 0 0 0 2px var(--accent);
+      }
       /* ── Beginner-mode toggle ── */
       .beginner-toggle {
         display: inline-flex;
@@ -1988,6 +2118,31 @@
     </main>
 
     <span id="reef-tip" class="reef-tip" role="tooltip" aria-hidden="true"></span>
+
+    <div
+      id="agentModal"
+      class="agent-modal"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="agentModalTitle"
+    >
+      <div class="agent-modal-card">
+        <div class="agent-modal-head">
+          <h3 id="agentModalTitle" class="agent-modal-title"></h3>
+          <button
+            id="agentModalClose"
+            class="agent-modal-close"
+            type="button"
+            aria-label="Close agent details"
+          >
+            &times;
+          </button>
+        </div>
+        <div id="agentModalBody"></div>
+      </div>
+    </div>
+
     <div class="toasts" id="toasts"></div>
 
     <script type="module">
@@ -2833,7 +2988,7 @@
             const rowClass = i === 0 && a.reputation > 0n ? "leader-row" : "";
             const wpct = Math.min(100, Number(a.weightBps) / 100);
             const age = formatAge(a.lastReceiptAt);
-            return `<tr class="${rowClass}">
+            return `<tr class="lb-row ${rowClass}" data-agent-id="${a.agentId.toString()}" tabindex="0" role="button" aria-label="Open details for agent ${a.agentId.toString()}">
       <td data-label="#">${rank} ${lead}</td>
       <td data-label="Agent">agent ${a.agentId.toString()}</td>
       <td data-label="Vault"><a href="${explorerFor(state.chainId)}/address/${a.vault}" target="_blank" rel="noopener">${shortAddr(a.vault)}</a></td>
@@ -3449,7 +3604,6 @@
             /[&<>"]/g,
             (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
           );
-        const base = explorerFor(state.chainId);
         const defs = `
     <defs>
       <radialGradient id="reefCoreGrad" cx="50%" cy="42%" r="60%">
@@ -3493,12 +3647,11 @@
             const haloR = (nd.r * (repPos ? 1.9 : 1.45)).toFixed(1);
             const haloOp = repPos ? 0.5 : 0.22;
             const labelDy = nd.y < cy ? -(nd.r + 16) : nd.r + 24;
-            const url = `${base}/address/${a.vault}`;
             const title = `Agent ${a.agentId.toString()} · weight ${wpct}% · ${esc(a.vault)}`;
             return `
-    <g class="reef-node reef-drift${nd.isLeader ? " reef-leader" : ""}" tabindex="0" role="link"
-       data-url="${esc(url)}"
-       aria-label="Agent ${a.agentId.toString()}, weight ${wpct} percent. Open vault on explorer."
+    <g class="reef-node reef-drift${nd.isLeader ? " reef-leader" : ""}" tabindex="0" role="button"
+       data-agent-id="${a.agentId.toString()}"
+       aria-label="Agent ${a.agentId.toString()}, weight ${wpct} percent. Open agent details."
        style="animation-delay:${(nd.i * 0.45).toFixed(2)}s">
       <title>${esc(title)}</title>
       <circle class="reef-node-glow" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${haloR}" fill="url(#reefGlow)" opacity="${haloOp}" />
@@ -3512,8 +3665,8 @@
         svg.innerHTML = defs + bg + links + core + nodeMarkup;
         svg.querySelectorAll(".reef-node").forEach((g) => {
           const open = () => {
-            const u = g.getAttribute("data-url");
-            if (u) window.open(u, "_blank", "noopener");
+            const aid = g.getAttribute("data-agent-id");
+            if (aid) openAgentModal(aid);
           };
           g.addEventListener("click", open);
           g.addEventListener("keydown", (e) => {
@@ -3648,6 +3801,81 @@
         });
       }
 
+      // ── Agent detail modal ──
+      let agentModalLastFocus = null;
+      function openAgentModal(agentId) {
+        const modal = $("agentModal");
+        if (!modal) return;
+        const id = BigInt(agentId);
+        const idx = state.allocation.findIndex((a) => a.agentId === id);
+        if (idx < 0) return;
+        const a = state.allocation[idx];
+        const rank = idx + 1;
+        const isLeader = idx === 0 && a.reputation > 0n;
+        const repClass =
+          a.reputation > 0n ? "pos" : a.reputation < 0n ? "neg" : "";
+        const age = formatAge(a.lastReceiptAt);
+        $("agentModalTitle").innerHTML =
+          `Agent ${a.agentId.toString()} <span class="badge ${isLeader ? "good" : ""}">rank ${rank}${isLeader ? " · leader" : ""}</span>`;
+        $("agentModalBody").innerHTML = `
+    <div class="agent-modal-grid">
+      <div class="agent-stat"><div class="agent-stat-label">Reputation</div><div class="agent-stat-value ${repClass}">${fmtSigned18(a.reputation)}</div></div>
+      <div class="agent-stat"><div class="agent-stat-label">NAV / share</div><div class="agent-stat-value">${fmt18(a.nav, 6)}</div></div>
+      <div class="agent-stat"><div class="agent-stat-label">Index weight</div><div class="agent-stat-value">${fmtBps(a.weightBps)}</div></div>
+      <div class="agent-stat"><div class="agent-stat-label">Deployed</div><div class="agent-stat-value">${fmt18(a.deployed)}</div></div>
+      <div class="agent-stat"><div class="agent-stat-label">Receipts</div><div class="agent-stat-value">${a.count.toString()}</div></div>
+      <div class="agent-stat"><div class="agent-stat-label">Last receipt</div><div class="agent-stat-value"><span class="badge ${age.cls}">${age.label}</span></div></div>
+    </div>
+    <div class="agent-modal-foot">
+      <a href="${explorerFor(state.chainId)}/address/${a.vault}" target="_blank" rel="noopener">View vault on explorer ↗</a>
+    </div>`;
+        agentModalLastFocus = document.activeElement;
+        modal.hidden = false;
+        requestAnimationFrame(() => modal.classList.add("show"));
+        $("agentModalClose").focus();
+      }
+      function closeAgentModal() {
+        const modal = $("agentModal");
+        if (!modal || modal.hidden) return;
+        modal.classList.remove("show");
+        const done = () => {
+          modal.hidden = true;
+          modal.removeEventListener("transitionend", done);
+        };
+        if (REDUCED_MOTION) done();
+        else modal.addEventListener("transitionend", done);
+        if (agentModalLastFocus && agentModalLastFocus.focus)
+          agentModalLastFocus.focus();
+        agentModalLastFocus = null;
+      }
+      function initAgentModal() {
+        const modal = $("agentModal");
+        if (!modal) return;
+        $("agentModalClose").addEventListener("click", closeAgentModal);
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) closeAgentModal();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !modal.hidden) closeAgentModal();
+        });
+        const lb = $("lbBody");
+        if (lb) {
+          lb.addEventListener("click", (e) => {
+            if (e.target.closest("a")) return;
+            const row = e.target.closest("tr[data-agent-id]");
+            if (row) openAgentModal(row.dataset.agentId);
+          });
+          lb.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            const row = e.target.closest("tr[data-agent-id]");
+            if (row && e.target === row) {
+              e.preventDefault();
+              openAgentModal(row.dataset.agentId);
+            }
+          });
+        }
+      }
+
       $("connectBtn").addEventListener("click", connect);
       $("cfgSave").addEventListener("click", saveCfg);
       $("cfgReload").addEventListener("click", refreshAll);
@@ -3658,6 +3886,7 @@
       initGlossary();
       initBeginnerMode();
       initNoWalletBanner();
+      initAgentModal();
 
       // Initial loading skeletons (overwritten on first real data render).
       for (const id of [
