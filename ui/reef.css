@@ -145,6 +145,7 @@ a:hover {
   font-weight: 600;
   letter-spacing: -0.02em;
   margin: 0;
+  overflow-wrap: break-word;
 }
 .r-h2 {
   font-size: clamp(1.6rem, 3.2vw, 2.4rem);
@@ -152,6 +153,7 @@ a:hover {
   font-weight: 600;
   letter-spacing: -0.015em;
   margin: 0;
+  overflow-wrap: break-word;
 }
 .r-lead {
   font-size: clamp(1rem, 1.6vw, 1.18rem);
@@ -453,5 +455,15 @@ a:hover {
   }
   .r-section {
     padding: var(--space-7) 0;
+  }
+}
+@media (max-width: 480px) {
+  .r-container,
+  .r-nav-inner {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+  .r-h1 {
+    font-size: clamp(2rem, 9vw, 2.4rem);
   }
 }
