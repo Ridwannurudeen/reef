@@ -675,29 +675,50 @@
               "rationale and, where a trade fired, a link to the real swap.</p>";
             return;
           }
-          var exByKey = {};
-          exes.forEach(function (e) {
-            if (!e) return;
-            var k = pick(e, ["decisionId", "id", "agentId"]);
-            if (k != null) exByKey[String(k)] = e;
-          });
-          var items = (decs.length ? decs : exes).slice().reverse().slice(0, 8);
+          function tsMs(d) {
+            var t = pick(d, ["ts", "timestamp", "time", "createdAt"]);
+            var n = typeof t === "number" ? t : Date.parse(t);
+            if (!isFinite(n)) return 0;
+            return n < 1e12 ? n * 1000 : n;
+          }
+          function sigText(s) {
+            if (!s) return "";
+            if (typeof s === "string") return s;
+            var a = s.asset || s.symbol || "";
+            var c = s.change24hPct != null ? s.change24hPct : s.changePct;
+            if (a && c != null && isFinite(Number(c))) {
+              var n = Number(c);
+              return a + " " + (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+            }
+            return a || "";
+          }
+          function swapTx(d) {
+            var ex = d && d.execution;
+            var raw = ex && (ex.txHash || ex.tx);
+            if (!raw) return null;
+            var h = String(raw);
+            if (h.indexOf("0x") !== 0) h = "0x" + h;
+            return /^0x[0-9a-fA-F]{64}$/.test(h) ? h : null;
+          }
+          var items = decs.concat(exes).filter(Boolean)
+            .sort(function (a, b) { return tsMs(b) - tsMs(a); })
+            .slice(0, 8);
           host.innerHTML = items.map(function (d) {
             d = d || {};
             var action = pick(d, ["action", "decision", "direction", "verb"]) || "hold";
             var cls = actionClass(action);
             var rationale = pick(d, ["rationale", "reason", "reasoning", "rationaleText", "explanation"]) || "";
-            var signal = pick(d, ["signal", "marketSignal", "market", "topic"]);
+            var signal = sigText(pick(d, ["signal", "marketSignal", "market", "topic"]));
             var when = pick(d, ["ts", "timestamp", "time", "createdAt"]);
-            var key = pick(d, ["decisionId", "id", "agentId"]);
-            var ex = key != null ? exByKey[String(key)] : null;
-            var tx = pick(d, ["txHash", "tx", "hash"]) || (ex ? pick(ex, ["txHash", "tx", "hash"]) : null);
-            var validTx = typeof tx === "string" && /^0x[0-9a-fA-F]{64}$/.test(tx);
+            var src = String(pick(d, ["source"]) || "").toLowerCase();
+            var label = src && src !== "glm" ? "agent rationale" : "GLM rationale";
+            var tx = swapTx(d);
+            var validTx = tx != null;
             var html = '<div class="t-feed-row"><div class="t-feed-top">' +
               '<span class="t-action t-action--' + cls + '"><span class="t-action-dot"></span>' + esc(action) + "</span>" +
               (signal ? '<span class="t-signal">signal: ' + esc(signal) + "</span>" : "") +
               '<span class="t-when">' + esc(timeAgo(when)) + "</span></div>" +
-              '<p class="t-rationale"><span class="t-rationale-label">GLM rationale</span>' +
+              '<p class="t-rationale"><span class="t-rationale-label">' + label + "</span>" +
               (rationale ? esc(rationale) : "(no rationale recorded)") + "</p>";
             if (validTx) {
               html += '<a class="t-swap" href="' + esc(base + "/tx/" + tx) +
