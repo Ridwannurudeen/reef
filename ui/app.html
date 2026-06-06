@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
-    <meta name="theme-color" content="#06121a" />
+    <meta name="theme-color" content="#0a0a14" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2306121a'/%3E%3Crect%20x='1.5'%20y='1.5'%20width='29'%20height='29'%20rx='6'%20fill='none'%20stroke='%2334d8c4'%20stroke-opacity='0.55'%20stroke-width='1.5'/%3E%3Cpath%20d='M11%2024V8h7.2c2.9%200%204.8%201.8%204.8%204.6%200%202.1-1.1%203.6-3%204.2L23.5%2024h-3.4l-2.2-6.2H14V24h-3Zm3-8.9h3.8c1.4%200%202.2-.8%202.2-2.1s-.8-2.1-2.2-2.1H14v4.2Z'%20fill='%2334d8c4'/%3E%3C/svg%3E" />
     <meta property="og:title" content="Reef — AI Yield Arena for Mantle RWA" />
     <meta property="og:description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
@@ -48,7 +48,7 @@
         pointer-events: none;
         z-index: 0;
         background-image: radial-gradient(
-          rgba(120, 180, 200, 0.1) 1px,
+          rgba(150, 140, 220, 0.1) 1px,
           transparent 1px
         );
         background-size: 30px 30px;
@@ -67,12 +67,12 @@
         background:
           radial-gradient(
             ellipse 72% 46% at 50% -18%,
-            rgba(52, 216, 196, 0.13),
+            rgba(124, 116, 255, 0.13),
             transparent 72%
           ),
           radial-gradient(
             ellipse 54% 38% at 98% 10%,
-            rgba(94, 168, 255, 0.07),
+            rgba(167, 139, 250, 0.07),
             transparent 70%
           );
       }
@@ -81,7 +81,7 @@
         text-decoration: none;
       }
       a:hover {
-        color: #5be9d6;
+        color: #b3a9ff;
       }
       button,
       input {
@@ -112,14 +112,14 @@
       button.primary {
         background: var(--accent);
         border-color: var(--accent);
-        color: #06110d;
+        color: #0a0a14;
         font-weight: 700;
       }
       button.primary:hover:not(:disabled) {
         background: #58efbd;
         box-shadow:
-          0 0 0 1px rgba(52, 216, 196, 0.38),
-          0 12px 28px rgba(52, 216, 196, 0.13);
+          0 0 0 1px rgba(124, 116, 255, 0.38),
+          0 12px 28px rgba(124, 116, 255, 0.13);
       }
       button.ghost {
         background: transparent;
@@ -164,8 +164,8 @@
         position: sticky;
         top: 0;
         z-index: 20;
-        border-bottom: 1px solid rgba(59, 74, 82, 0.56);
-        background: rgba(8, 11, 13, 0.86);
+        border-bottom: 1px solid rgba(66, 62, 96, 0.56);
+        background: rgba(10, 10, 20, 0.86);
         backdrop-filter: blur(14px);
       }
       .topbar-inner {
@@ -190,11 +190,11 @@
         height: 30px;
         display: grid;
         place-items: center;
-        border: 1px solid rgba(52, 216, 196, 0.38);
+        border: 1px solid rgba(124, 116, 255, 0.38);
         border-radius: 6px;
         background: linear-gradient(
           145deg,
-          rgba(52, 216, 196, 0.18),
+          rgba(124, 116, 255, 0.18),
           rgba(242, 193, 78, 0.08)
         );
         color: var(--accent);
@@ -259,7 +259,7 @@
       .lead {
         max-width: 650px;
         margin-top: 22px;
-        color: #c4d2cd;
+        color: #cfcde0;
         font-size: 17px;
         line-height: 1.65;
       }
@@ -283,7 +283,7 @@
         font-size: 11px;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        box-shadow: 0 0 24px rgba(52, 216, 196, 0.12);
+        box-shadow: 0 0 24px rgba(124, 116, 255, 0.12);
       }
       .mantle-dot {
         width: 8px;
@@ -331,13 +331,13 @@
         font-variant-numeric: tabular-nums;
       }
       .terminal {
-        border: 1px solid rgba(59, 74, 82, 0.88);
+        border: 1px solid rgba(66, 62, 96, 0.88);
         border-radius: 10px;
         overflow: hidden;
         background: linear-gradient(
           180deg,
           rgba(21, 29, 34, 0.96),
-          rgba(9, 13, 16, 0.98)
+          rgba(10, 10, 20, 0.98)
         );
         box-shadow: 0 24px 80px var(--shadow);
       }
@@ -366,7 +366,7 @@
         height: 7px;
         border-radius: 999px;
         background: var(--accent);
-        box-shadow: 0 0 0 5px rgba(52, 216, 196, 0.12);
+        box-shadow: 0 0 0 5px rgba(124, 116, 255, 0.12);
       }
       .terminal-body {
         padding: 22px;
@@ -377,7 +377,7 @@
         gap: 18px;
         align-items: start;
         padding-bottom: 20px;
-        border-bottom: 1px solid rgba(59, 74, 82, 0.66);
+        border-bottom: 1px solid rgba(66, 62, 96, 0.66);
       }
       .signature-value {
         margin-top: 8px;
@@ -413,7 +413,7 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         overflow: hidden;
-        background: rgba(10, 14, 17, 0.72);
+        background: rgba(10, 10, 20, 0.72);
         mask-image: linear-gradient(
           90deg,
           transparent,
@@ -501,7 +501,7 @@
         text-transform: uppercase;
       }
       .badge.good {
-        border-color: rgba(52, 216, 196, 0.42);
+        border-color: rgba(124, 116, 255, 0.42);
         color: var(--accent);
         background: var(--accent-soft);
       }
@@ -521,7 +521,7 @@
         border-radius: 6px;
         border: 1px solid var(--line);
         border-left: 3px solid var(--blue);
-        background: rgba(10, 14, 17, 0.8);
+        background: rgba(10, 10, 20, 0.8);
         color: var(--muted);
         font-size: 13px;
       }
@@ -536,7 +536,7 @@
       th,
       td {
         padding: 12px 10px;
-        border-bottom: 1px solid rgba(59, 74, 82, 0.46);
+        border-bottom: 1px solid rgba(66, 62, 96, 0.46);
         text-align: left;
         vertical-align: middle;
       }
@@ -549,7 +549,7 @@
         font-weight: 500;
       }
       tr:hover td {
-        background: rgba(52, 216, 196, 0.035);
+        background: rgba(124, 116, 255, 0.035);
       }
       .num {
         text-align: right;
@@ -566,7 +566,7 @@
         font-family: var(--mono);
         font-size: 11px;
         font-weight: 700;
-        color: #06110d;
+        color: #0a0a14;
       }
       .rank-1 {
         background: linear-gradient(135deg, #f7d680, #f2c14e);
@@ -580,7 +580,7 @@
         color: #1a0f06;
       }
       .leader-row td {
-        background: rgba(52, 216, 196, 0.045);
+        background: rgba(124, 116, 255, 0.045);
       }
       .leader-row td:first-child {
         box-shadow: inset 3px 0 0 var(--accent);
@@ -627,7 +627,7 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         padding: 14px;
-        background: rgba(10, 14, 17, 0.52);
+        background: rgba(10, 10, 20, 0.52);
       }
       .row {
         display: flex;
@@ -665,10 +665,10 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         padding: 14px;
-        background: rgba(10, 14, 17, 0.5);
+        background: rgba(10, 10, 20, 0.5);
       }
       .hva-card.win {
-        border-color: rgba(52, 216, 196, 0.54);
+        border-color: rgba(124, 116, 255, 0.54);
       }
       .hva-card.dim {
         opacity: 0.62;
@@ -685,7 +685,7 @@
       }
       .feed-row {
         padding: 13px 14px;
-        border-bottom: 1px solid rgba(59, 74, 82, 0.46);
+        border-bottom: 1px solid rgba(66, 62, 96, 0.46);
         font-size: 13px;
       }
       .feed-row:last-child {
@@ -759,7 +759,7 @@
         display: inline-block;
         padding: 1px 8px;
         border-radius: 999px;
-        border: 1px solid rgba(52, 216, 196, 0.4);
+        border: 1px solid rgba(124, 116, 255, 0.4);
         background: var(--accent-soft);
         font-family: var(--mono);
         font-size: 11px;
@@ -940,7 +940,7 @@
           border-radius: 8px;
           margin-bottom: 10px;
           overflow: hidden;
-          background: rgba(10, 14, 17, 0.46);
+          background: rgba(10, 10, 20, 0.46);
         }
         td {
           display: flex;
@@ -1003,25 +1003,25 @@
         }
       }
       .spark-dot {
-        filter: drop-shadow(0 0 4px rgba(52, 216, 196, 0.85));
+        filter: drop-shadow(0 0 4px rgba(124, 116, 255, 0.85));
         animation: sparkPulse 1.8s ease-in-out infinite;
       }
       @keyframes livePulse {
         0% {
-          box-shadow: 0 0 0 0 rgba(52, 216, 196, 0.45);
+          box-shadow: 0 0 0 0 rgba(124, 116, 255, 0.45);
         }
         70% {
-          box-shadow: 0 0 0 7px rgba(52, 216, 196, 0);
+          box-shadow: 0 0 0 7px rgba(124, 116, 255, 0);
         }
         100% {
-          box-shadow: 0 0 0 0 rgba(52, 216, 196, 0);
+          box-shadow: 0 0 0 0 rgba(124, 116, 255, 0);
         }
       }
       .live-dot {
         animation: livePulse 2s ease-out infinite;
       }
       .signature-value {
-        text-shadow: 0 0 26px rgba(52, 216, 196, 0.18);
+        text-shadow: 0 0 26px rgba(124, 116, 255, 0.18);
       }
       /* ── Latest AI decision card ── */
       .ai-featured {
@@ -1313,7 +1313,7 @@
         text-decoration: none;
       }
       .agent-modal-foot a:hover {
-        background: rgba(52, 216, 196, 0.18);
+        background: rgba(124, 116, 255, 0.18);
       }
       .lb-row {
         cursor: pointer;
@@ -1369,7 +1369,7 @@
         border-radius: 8px;
         border: 1px solid var(--line);
         border-left: 3px solid var(--accent);
-        background: rgba(10, 14, 17, 0.8);
+        background: rgba(10, 10, 20, 0.8);
       }
       .nowallet[hidden] {
         display: none;
@@ -1380,7 +1380,7 @@
       }
       .nowallet-text {
         flex: 1;
-        color: #c4d2cd;
+        color: #cfcde0;
         font-size: 13.5px;
       }
       .nowallet-x {
@@ -1426,8 +1426,8 @@
         border-radius: 10px;
         padding: 16px 16px 6px;
         background:
-          radial-gradient(ellipse 60% 70% at 50% 12%, rgba(52, 216, 196, 0.07), transparent 70%),
-          linear-gradient(180deg, rgba(13, 23, 18, 0.9), rgba(7, 16, 11, 0.96));
+          radial-gradient(ellipse 60% 70% at 50% 12%, rgba(124, 116, 255, 0.07), transparent 70%),
+          linear-gradient(180deg, rgba(13, 23, 18, 0.9), rgba(10, 10, 20, 0.96));
         overflow: hidden;
       }
       .reef-viz-head {
@@ -1571,7 +1571,7 @@
         background-image: linear-gradient(
           90deg,
           var(--surface-3) 0%,
-          rgba(52, 216, 196, 0.14) 50%,
+          rgba(124, 116, 255, 0.14) 50%,
           var(--surface-3) 100%
         );
         background-size: 200% 100%;
@@ -1743,7 +1743,7 @@
               preserveAspectRatio="none"
               aria-label="Index NAV trend"
             >
-              <path d="M0,47 L600,47" stroke="#1c3d4e" fill="none" />
+              <path d="M0,47 L600,47" stroke="#272749" fill="none" />
             </svg>
             <div class="metric-label" id="navSparkCaption">
               Index NAV trend — accumulating samples.
@@ -2924,7 +2924,7 @@
             ? persistent.map((p) => BigInt(p.indexNav))
             : state.navHistory;
         if (series.length === 0) {
-          svg.innerHTML = `<path d="M0,47 L600,47" stroke="#1c3d4e" fill="none" />`;
+          svg.innerHTML = `<path d="M0,47 L600,47" stroke="#272749" fill="none" />`;
           return;
         }
         const nums = series.map((n) => Number(formatEther(n)));
@@ -2945,19 +2945,19 @@
         const last = coords[coords.length - 1];
         // Color the trend by direction: green if NAV is up over the window, gold if flat/down.
         const up = nums[nums.length - 1] >= nums[0];
-        const tip = up ? "#34d8c4" : "#f2c14e";
+        const tip = up ? "#7c74ff" : "#f2c14e";
         svg.innerHTML = `
     <defs>
       <linearGradient id="sparkLine" x1="0" x2="1">
-        <stop offset="0%" stop-color="#34d8c4" />
+        <stop offset="0%" stop-color="#7c74ff" />
         <stop offset="100%" stop-color="#f2c14e" />
       </linearGradient>
       <linearGradient id="sparkArea" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="rgba(52, 216, 196, 0.26)" />
-        <stop offset="100%" stop-color="rgba(52, 216, 196, 0)" />
+        <stop offset="0%" stop-color="rgba(124, 116, 255, 0.26)" />
+        <stop offset="100%" stop-color="rgba(124, 116, 255, 0)" />
       </linearGradient>
     </defs>
-    <path d="M0,47 L600,47" stroke="#1c3d4e" stroke-dasharray="4 6" fill="none" />
+    <path d="M0,47 L600,47" stroke="#272749" stroke-dasharray="4 6" fill="none" />
     <path d="${area}" fill="url(#sparkArea)" stroke="none" />
     <path d="${line}" fill="none" stroke="url(#sparkLine)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
     <circle class="spark-dot" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3" fill="${tip}" />`;
@@ -3512,19 +3512,19 @@
         const defs = `
     <defs>
       <radialGradient id="reefCoreGrad" cx="50%" cy="42%" r="60%">
-        <stop offset="0%" stop-color="#5be9d6" /><stop offset="55%" stop-color="#1fb8a6" /><stop offset="100%" stop-color="#0d2c1c" />
+        <stop offset="0%" stop-color="#b3a9ff" /><stop offset="55%" stop-color="#5b50e0" /><stop offset="100%" stop-color="#0d2c1c" />
       </radialGradient>
       <radialGradient id="reefNodeGrad" cx="50%" cy="40%" r="65%">
-        <stop offset="0%" stop-color="#bff7ee" /><stop offset="45%" stop-color="#34d8c4" /><stop offset="100%" stop-color="#0f2d2a" />
+        <stop offset="0%" stop-color="#bff7ee" /><stop offset="45%" stop-color="#7c74ff" /><stop offset="100%" stop-color="#0f2d2a" />
       </radialGradient>
       <radialGradient id="reefLeadGrad" cx="50%" cy="40%" r="65%">
-        <stop offset="0%" stop-color="#eafffb" /><stop offset="40%" stop-color="#5be9d6" /><stop offset="100%" stop-color="#1fb8a6" />
+        <stop offset="0%" stop-color="#eafffb" /><stop offset="40%" stop-color="#b3a9ff" /><stop offset="100%" stop-color="#5b50e0" />
       </radialGradient>
       <radialGradient id="reefGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="rgba(52,216,196,0.45)" /><stop offset="100%" stop-color="rgba(52,216,196,0)" />
+        <stop offset="0%" stop-color="rgba(124,116,255,0.45)" /><stop offset="100%" stop-color="rgba(124,116,255,0)" />
       </radialGradient>
       <radialGradient id="reefVignette" cx="50%" cy="46%" r="62%">
-        <stop offset="0%" stop-color="rgba(52,216,196,0.10)" /><stop offset="100%" stop-color="rgba(7,16,11,0)" />
+        <stop offset="0%" stop-color="rgba(124,116,255,0.10)" /><stop offset="100%" stop-color="rgba(10,10,20,0)" />
       </radialGradient>
     </defs>`;
         const bg = `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#reefVignette)" />`;
@@ -3533,13 +3533,13 @@
             const wfrac = Number(nd.a.weightBps) / maxWnum;
             const sw = (0.6 + wfrac * 2.4).toFixed(2);
             const op = (0.18 + wfrac * 0.5).toFixed(2);
-            return `<line class="reef-flow" x1="${cx}" y1="${cy}" x2="${nd.x.toFixed(1)}" y2="${nd.y.toFixed(1)}" stroke="${nd.isLeader ? "#5be9d6" : "#34d8c4"}" stroke-width="${sw}" stroke-opacity="${op}" stroke-linecap="round" />`;
+            return `<line class="reef-flow" x1="${cx}" y1="${cy}" x2="${nd.x.toFixed(1)}" y2="${nd.y.toFixed(1)}" stroke="${nd.isLeader ? "#b3a9ff" : "#7c74ff"}" stroke-width="${sw}" stroke-opacity="${op}" stroke-linecap="round" />`;
           })
           .join("");
         const core = `
     <g class="reef-drift">
       <circle cx="${cx}" cy="${cy}" r="74" fill="url(#reefGlow)" opacity="0.7" />
-      <circle cx="${cx}" cy="${cy}" r="34" fill="url(#reefCoreGrad)" stroke="rgba(52,216,196,0.55)" stroke-width="1.5" />
+      <circle cx="${cx}" cy="${cy}" r="34" fill="url(#reefCoreGrad)" stroke="rgba(124,116,255,0.55)" stroke-width="1.5" />
       <text x="${cx}" y="${cy - 2}" text-anchor="middle" class="reef-label" style="font-size:11px;letter-spacing:0.08em">VAULT</text>
       <text x="${cx}" y="${cy + 13}" text-anchor="middle" class="reef-sub" style="font-size:10px">CORE</text>
     </g>`;
@@ -3560,8 +3560,8 @@
        style="animation-delay:${(nd.i * 0.45).toFixed(2)}s">
       <title>${esc(title)}</title>
       <circle class="reef-node-glow" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${haloR}" fill="url(#reefGlow)" opacity="${haloOp}" />
-      <circle class="reef-node-ring" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${(nd.r + 6).toFixed(1)}" fill="none" stroke="#34d8c4" stroke-width="1.5" opacity="0" />
-      <circle class="reef-node-core" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${nd.r.toFixed(1)}" fill="url(#${grad})" stroke="rgba(52,216,196,0.6)" stroke-width="1.25" />
+      <circle class="reef-node-ring" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${(nd.r + 6).toFixed(1)}" fill="none" stroke="#7c74ff" stroke-width="1.5" opacity="0" />
+      <circle class="reef-node-core" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${nd.r.toFixed(1)}" fill="url(#${grad})" stroke="rgba(124,116,255,0.6)" stroke-width="1.25" />
       <text x="${nd.x.toFixed(1)}" y="${(nd.y + labelDy).toFixed(1)}" text-anchor="middle" class="reef-label">Agent ${a.agentId.toString()}</text>
       <text x="${nd.x.toFixed(1)}" y="${(nd.y + labelDy + 16).toFixed(1)}" text-anchor="middle" class="reef-sub">${wpct}%</text>
     </g>`;

@@ -7,28 +7,28 @@
 :root {
   color-scheme: dark;
 
-  /* Abyssal — deep ocean, teal-cyan signal */
-  --bg: #06121a;
-  --bg-soft: #0a1a24;
-  --surface: #0f2330;
-  --surface-2: #15303f;
-  --surface-3: #1c3d4e;
+  /* Cobalt — indigo-black, electric periwinkle-violet signal */
+  --bg: #0a0a14;
+  --bg-soft: #0f0f1e;
+  --surface: #15152a;
+  --surface-2: #1d1d38;
+  --surface-3: #272749;
 
-  --line: rgba(120, 180, 200, 0.14);
-  --line-strong: rgba(120, 180, 200, 0.28);
+  --line: rgba(150, 140, 220, 0.14);
+  --line-strong: rgba(150, 140, 220, 0.28);
 
-  --text: #eaf4f7;
-  --muted: #92aab5;
-  --subtle: #5e7783;
+  --text: #edecf7;
+  --muted: #9d9bb5;
+  --subtle: #6b6885;
 
-  --accent: #34d8c4;
-  --accent-deep: #1fb8a6;
-  --accent-2: #5ea8ff;
-  --accent-soft: rgba(52, 216, 196, 0.12);
+  --accent: #7c74ff;
+  --accent-deep: #5b50e0;
+  --accent-2: #a78bfa;
+  --accent-soft: rgba(124, 116, 255, 0.12);
 
-  /* legacy names the dashboard references — remapped into the Abyssal family */
-  --teal: #34d8c4;
-  --blue: #5ea8ff;
+  /* legacy names the dashboard references — remapped into the Cobalt family */
+  --teal: #7c74ff;
+  --blue: #a78bfa;
   --gold: #f2c14e;
   --gold-soft: rgba(242, 193, 78, 0.12);
   --red: #ff6b6b;
@@ -190,7 +190,7 @@ a:hover {
   top: 0;
   z-index: 50;
   border-bottom: 1px solid transparent;
-  background: rgba(6, 18, 26, 0.6);
+  background: rgba(10, 10, 20, 0.6);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   transition:
@@ -198,7 +198,7 @@ a:hover {
     border-color 200ms var(--ease);
 }
 .r-nav.is-scrolled {
-  background: rgba(6, 18, 26, 0.88);
+  background: rgba(10, 10, 20, 0.88);
   border-bottom-color: var(--line);
 }
 .r-nav-inner {
@@ -229,7 +229,7 @@ a:hover {
   height: 28px;
   border-radius: 8px;
   background: linear-gradient(150deg, var(--accent), var(--accent-deep));
-  color: #04201d;
+  color: #0c0a1a;
   font-weight: 700;
   font-size: 15px;
 }
@@ -279,12 +279,12 @@ a:hover {
 .r-btn--primary {
   background: linear-gradient(150deg, var(--accent), var(--accent-deep));
   border-color: transparent;
-  color: #04201d;
+  color: #0c0a1a;
   font-weight: 600;
 }
 .r-btn--primary:hover {
-  color: #04201d;
-  box-shadow: 0 8px 24px rgba(52, 216, 196, 0.22);
+  color: #0c0a1a;
+  box-shadow: 0 8px 24px rgba(124, 116, 255, 0.22);
 }
 .r-btn--sm {
   height: 34px;
