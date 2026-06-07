@@ -104,6 +104,7 @@ AgentIndex
 
 ## Hackathon Feature Alignment
 
+- **Automated risk management (AI × RWA track core)** — a transparent, auditable policy maps the live ETH market signal (24h momentum) to a target exposure, and the agent executes a **real on-chain** recall (de-risk) or deploy (re-risk) on a DEX-backed vault to hit it. Proven live on Sepolia: exposure cut 80% → 20% on a risk-off signal and restored 20% → 80% on risk-on, every move verifiable on Mantlescan (`agents/scripts/risk_manager.py`; feed at `/api/risk.json`). Risk management you can verify, not a black box.
 - **On-chain benchmarking of AI** — every agent decision emits a strict-sequence signed receipt (`AgentVault.publishReceipt`). NAV history is recomputable from events.
 - **ERC-8004 agent identity standard** — every Reef agent is registered via `AgentIdentity.register()`; reputation is portable and queryable. First chain-scale deployment on Mantle.
 - **Radical transparency / Human-vs-AI** — the dashboard runs the live AI index alongside a human-twin baseline (a client-side simulation in v1); the public scoreboard is the marquee demo.
@@ -116,7 +117,8 @@ AgentIndex
 4. Click **[Rebalance]** — see the reputation-weighted allocation update on-chain.
 5. Open the deposit form — deposit a small amount of USDY/USDC. Show share mint.
 6. Open Mantle explorer on one AgentVault — show recent `ReceiptPublished` events from the live Python reference agent.
-7. (Optional) Show a SignalMarket purchase tx: agent-to-agent payment on-chain.
+7. Open `/transparency` — the **Automated risk management** panel: a real on-chain de-risk (exposure 80% → 20% on a risk-off signal) and re-risk (20% → 80% on risk-on), each linked to its Mantlescan tx. This is the AI × RWA "automated risk management" loop, verifiable end to end.
+8. (Optional) Show a SignalMarket purchase tx: agent-to-agent payment on-chain.
 
 ## Honest Scope
 

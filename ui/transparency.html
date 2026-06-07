@@ -475,6 +475,26 @@
         </div>
       </section>
 
+      <!-- Automated risk management -->
+      <section class="r-section" id="riskmgmt">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Automated risk management</span>
+            <h2 class="r-h2">The agent cuts exposure when the market turns</h2>
+            <p class="r-lead">
+              A transparent, auditable policy maps the live ETH signal (24h momentum) to a
+              target exposure, and the agent executes a real on-chain
+              <span class="r-mono">recall</span> (de-risk) or <span class="r-mono">deploy</span>
+              (re-risk) on the DEX-NAV vault to hit it — risk management you can verify, not a
+              black box. Bands: 20 / 40 / 60 / 80% exposure at -6 / -3 / +3% momentum.
+            </p>
+          </div>
+          <div id="risk-feed">
+            <p class="t-empty">Loading risk actions…</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Scope & honesty -->
       <section class="r-section" id="scope">
         <div class="r-container">
@@ -775,13 +795,78 @@
           }).join("");
         }
 
+        function expPct(bps) {
+          return (Number(bps) / 100).toFixed(0) + "%";
+        }
+        function renderRisk(data, base) {
+          var host = document.getElementById("risk-feed");
+          if (!host) return;
+          var events = data && Array.isArray(data.events) ? data.events : [];
+          if (!events.length) {
+            host.innerHTML =
+              '<p class="t-empty">Each on-chain exposure change is logged here — the live ' +
+              "signal, the policy band, the before/after exposure, and the verifiable tx.</p>";
+            return;
+          }
+          host.innerHTML = events
+            .slice(0, 6)
+            .map(function (e) {
+              e = e || {};
+              var action = e.action || "hold";
+              var cls = action === "de-risk" ? "down" : action === "re-risk" ? "up" : "flat";
+              var mom =
+                typeof e.momentumPct === "number"
+                  ? (e.momentumPct >= 0 ? "+" : "") + e.momentumPct.toFixed(2) + "%"
+                  : "";
+              var src = e.scenario ? "scenario" : (e.signal && e.signal.source) || "live";
+              var tx =
+                typeof e.txHash === "string" && /^0x[0-9a-fA-F]{64}$/.test(e.txHash)
+                  ? e.txHash
+                  : null;
+              var html =
+                '<div class="t-feed-row"><div class="t-feed-top">' +
+                '<span class="t-action t-action--' +
+                cls +
+                '"><span class="t-action-dot"></span>' +
+                esc(action) +
+                "</span>" +
+                '<span class="t-signal">ETH ' +
+                esc(mom) +
+                " · " +
+                esc(src) +
+                "</span>" +
+                '<span class="t-when">' +
+                esc(timeAgo(e.ts)) +
+                "</span></div>" +
+                '<p class="t-rationale"><span class="t-rationale-label">exposure</span>' +
+                esc(expPct(e.prevExposureBps)) +
+                " &rarr; " +
+                esc(expPct(e.newExposureBps)) +
+                " &nbsp;·&nbsp; " +
+                esc(e.band || "") +
+                "</p>";
+              if (tx) {
+                html +=
+                  '<a class="t-swap" href="' +
+                  esc(base + "/tx/" + tx) +
+                  '" target="_blank" rel="noopener">on-chain tx ' +
+                  EXT +
+                  "</a>";
+              }
+              return html + "</div>";
+            })
+            .join("");
+        }
+
         Promise.all([
           fetchJson("../deployments/mantle-sepolia.json"),
           fetchJson("../api/decisions.json"),
           fetchJson("../api/executions.json"),
+          fetchJson("../api/risk.json"),
         ]).then(function (res) {
           renderContracts(res[0]);
           renderFeed(res[1], res[2], explorerBase(res[0]));
+          renderRisk(res[3], explorerBase(res[0]));
         });
       })();
     </script>
