@@ -8,49 +8,6 @@ import {AgentVault} from "../src/AgentVault.sol";
 import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {FusionXAdapter} from "../src/adapters/FusionXAdapter.sol";
 
-/// @notice Minimal named, openly-mintable ERC-20 for the testnet DEX-NAV demo.
-contract DemoToken is IERC20 {
-    string public name;
-    string public symbol;
-    uint8 public constant decimals = 18;
-    uint256 public override totalSupply;
-    mapping(address => uint256) public override balanceOf;
-    mapping(address => mapping(address => uint256)) public override allowance;
-
-    constructor(string memory n, string memory s) {
-        name = n;
-        symbol = s;
-    }
-
-    function mint(address to, uint256 amt) external {
-        balanceOf[to] += amt;
-        totalSupply += amt;
-        emit Transfer(address(0), to, amt);
-    }
-
-    function approve(address sp, uint256 amt) external override returns (bool) {
-        allowance[msg.sender][sp] = amt;
-        emit Approval(msg.sender, sp, amt);
-        return true;
-    }
-
-    function transfer(address to, uint256 amt) external override returns (bool) {
-        balanceOf[msg.sender] -= amt;
-        balanceOf[to] += amt;
-        emit Transfer(msg.sender, to, amt);
-        return true;
-    }
-
-    function transferFrom(address f, address to, uint256 amt) external override returns (bool) {
-        uint256 a = allowance[f][msg.sender];
-        if (a != type(uint256).max) allowance[f][msg.sender] = a - amt;
-        balanceOf[f] -= amt;
-        balanceOf[to] += amt;
-        emit Transfer(f, to, amt);
-        return true;
-    }
-}
-
 interface IFusionXFactory {
     function createPair(address a, address b) external returns (address pair);
     function getPair(address a, address b) external view returns (address pair);
@@ -63,7 +20,7 @@ interface IFusionXPair {
 /// @notice Standalone REAL DEX-backed-NAV demo on Mantle Sepolia (chain 5003).
 /// Stands up its own DEEP FusionX V2 pool (so price impact is small), an AgentVault,
 /// and a FusionXAdapter, then deposits and deploys the vault's reserve into a live long
-/// position. The vault's nav() is then a real on-chain AMM mark-to-market — NOT simulated
+/// position. The vault's nav() is then a real on-chain AMM mark-to-market, NOT simulated
 /// linear yield. Fully isolated from the live 5-vault leaderboard instance.
 ///
 /// Required env: PRIVATE_KEY (the Sepolia deployer; ~25 MNT gas is plenty).
@@ -73,7 +30,7 @@ contract DeployDexNav is Script {
     address constant ROUTER = 0x272465431A6b86E3B9E5b9bD33f5D103a3F59eDb;
     address constant FACTORY = 0x8734110e5e1dcF439c7F549db740E546fea82d66;
 
-    uint256 constant POOL_SEED = 1_000_000e18; // deep 1:1 pool → small price impact
+    uint256 constant POOL_SEED = 1_000_000e18; // deep 1:1 pool, small price impact
     uint256 constant DEPOSIT = 10_000e18;
     uint256 constant DEPLOY = 8_000e18; // 80% into the long, 20% idle redemption buffer
 
@@ -126,5 +83,50 @@ contract DeployDexNav is Script {
         console.log("agentId          :", agentId);
         console.log("nav after deploy :", navAfterDeploy);
         console.log("(nav is live AMM mark-to-market; ~1e18 minus real round-trip trading cost)");
+    }
+}
+
+/// @notice Minimal named, openly-mintable ERC-20 for the testnet DEX-NAV demo.
+/// Declared last: forge fmt 1.7.x mis-indents declarations that follow a contract
+/// with `public override` state variables, so this stays at the end of the file.
+contract DemoToken is IERC20 {
+    string public name;
+    string public symbol;
+    uint8 public constant decimals = 18;
+    uint256 public override totalSupply;
+    mapping(address => uint256) public override balanceOf;
+    mapping(address => mapping(address => uint256)) public override allowance;
+
+    constructor(string memory n, string memory s) {
+        name = n;
+        symbol = s;
+    }
+
+    function mint(address to, uint256 amt) external {
+        balanceOf[to] += amt;
+        totalSupply += amt;
+        emit Transfer(address(0), to, amt);
+    }
+
+    function approve(address sp, uint256 amt) external override returns (bool) {
+        allowance[msg.sender][sp] = amt;
+        emit Approval(msg.sender, sp, amt);
+        return true;
+    }
+
+    function transfer(address to, uint256 amt) external override returns (bool) {
+        balanceOf[msg.sender] -= amt;
+        balanceOf[to] += amt;
+        emit Transfer(msg.sender, to, amt);
+        return true;
+    }
+
+    function transferFrom(address f, address to, uint256 amt) external override returns (bool) {
+        uint256 a = allowance[f][msg.sender];
+        if (a != type(uint256).max) allowance[f][msg.sender] = a - amt;
+        balanceOf[f] -= amt;
+        balanceOf[to] += amt;
+        emit Transfer(f, to, amt);
+        return true;
     }
 }
