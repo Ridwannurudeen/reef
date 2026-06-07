@@ -66,7 +66,15 @@ JSONs under `out/` + `deployments/mantle-sepolia.json` + `.env`; the host has `p
 */15 * * * * cd /opt/reef/app && /usr/bin/python3 -m agents.scripts.health >> /var/log/reef-health.log 2>&1
 # public API snapshot + history roll every 10 min -> static /api/{reef,history}.json served by nginx
 */10 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.api_snapshot >> /var/log/reef-api.log 2>&1 && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.history >> /var/log/reef-api.log 2>&1
+# automated risk management hourly: signal -> target exposure -> on-chain de-risk/re-risk on the DEX-NAV vault -> /api/risk.json
+17 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api MANTLE_SEPOLIA_RPC="https://rpc.sepolia.mantle.xyz,https://mantle-sepolia.drpc.org" /usr/bin/python3 -m agents.scripts.risk_manager >> /var/log/reef-risk.log 2>&1
 ```
+
+`risk_manager` reads the `dexNavDemo` vault from `deployments/mantle-sepolia.json`, maps the
+live ETH 24h momentum to a target exposure (20/40/60/80% at -6/-3/+3% bands), and calls
+`deployToStrategy`/`recallFromStrategy` to hit it — logging each action (signal, band,
+before/after exposure, txHash) to `/api/risk.json`. Force a scenario with
+`RISK_FORCE_MOMENTUM=-7` (tagged `scenario`, never presented as a live reading).
 
 `receipt_tick` and `keeper` resolve everything from `deployments/mantle-sepolia.json`
 (`reef.AgentIndex` + `seeded.vaults`); override the index with `INDEX_ADDR`. `rebalance()`
