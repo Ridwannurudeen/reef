@@ -81,4 +81,21 @@ contract UsdyAdapterForkTest is Test {
         assertEq(got, 60e18);
         assertEq(usdy.balanceOf(depositor), 60e18);
     }
+
+    // The mainnet micro-instance (script/DeployMainnet.s.sol) custodies mUSD — the
+    // REBASING wrapper of USDY whose balanceOf accrues real yield — and reads Ondo's
+    // on-chain redemption oracle. This locks both real-asset facts into CI.
+    function test_fork_mUSD_isRealAndOracleShowsAccruedYield() public view {
+        address musd = 0xab575258d37EaA5C8956EfABe71F4eE8F6397cF3;
+        (bool okName, bytes memory nm) = musd.staticcall(abi.encodeWithSignature("name()"));
+        require(okName, "musd name");
+        assertEq(abi.decode(nm, (string)), "Mantle USD");
+
+        address oracle = 0xA96abbe61AfEdEB0D14a20440Ae7100D9aB4882f;
+        (bool okPrice, bytes memory pd) = oracle.staticcall(abi.encodeWithSignature("getPrice()"));
+        require(okPrice, "oracle getPrice");
+        uint256 price = abi.decode(pd, (uint256));
+        assertGt(price, 1e18, "USDY price reflects accrued yield");
+        assertLt(price, 2e18, "price sanity");
+    }
 }

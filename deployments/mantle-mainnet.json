@@ -5,7 +5,7 @@
   "rpc": "https://rpc.mantle.xyz",
   "explorer": { "mantlescan": "https://mantlescan.xyz" },
   "nativeToken": "MNT",
-  "status": "NOT DEPLOYED — mainnet-ready. Deploy with `forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url mantle --broadcast` from a funded mainnet key. Contracts are UNAUDITED (see SECURITY.md, open items #2/#3/#6/#7) — do not custody meaningful TVL until audited.",
+  "status": "NOT DEPLOYED — mainnet-ready, real-RWA micro-instance. Deploy wires the vault to mUSD (rebasing wrapper of Ondo USDY, so on-chain NAV accrues real yield). Run `DEPOSIT_AMOUNT=<mUSD wei> PRIVATE_KEY=<funded key> forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url mantle --broadcast` (omit DEPOSIT_AMOUNT to deploy wiring only). Needs a funded Mantle key: real MNT for gas + mUSD to deposit. Contracts are UNAUDITED (SECURITY.md) — keep deposits at demo scale.",
   "reef": {
     "AgentIdentity": "0x0000000000000000000000000000000000000000",
     "AgentIndex": "0x0000000000000000000000000000000000000000",
@@ -16,6 +16,7 @@
     "comment": "Verified live Mantle mainnet assets the system wires to.",
     "USDY": "0x5bE26527e817998A7206475496fDE1E68957c5A6",
     "mUSD": "0xab575258d37EaA5C8956EfABe71F4eE8F6397cF3",
+    "usdyRedemptionOracle": "0xA96abbe61AfEdEB0D14a20440Ae7100D9aB4882f",
     "mETH": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
     "USDC": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
     "WMNT": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8"
