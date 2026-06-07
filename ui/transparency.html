@@ -428,6 +428,53 @@
         </div>
       </section>
 
+      <!-- Live DEX-backed NAV proof -->
+      <section class="r-section" id="dexnav">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Real yield, not simulated</span>
+            <h2 class="r-h2">A vault whose NAV is a live DEX position</h2>
+            <p class="r-lead">
+              The seeded leaderboard vaults accrue via a testnet yield mock. This
+              standalone vault is different: it deposits its reserve into a real
+              FusionX&nbsp;V2 position, so its <span class="r-mono">nav()</span> is the
+              live on-chain mark-to-market of that position — not a simulated number.
+              Every contract below is Mantlescan-verified.
+            </p>
+          </div>
+          <div class="r-panel">
+            <p>
+              Observed on-chain: <span class="r-mono">nav() = 0.99683</span> — exactly
+              1.0 minus the real ~0.32% round-trip trading cost of opening the position.
+              The mark tracks the market because it's quoted live from the pool
+              (<span class="r-mono">getAmountsOut</span>), never hardcoded.
+            </p>
+            <p class="r-mono">
+              <a
+                href="https://sepolia.mantlescan.xyz/address/0xdb557e41d0611ff30d11bb690374ebbc7b6f8b6a"
+                target="_blank"
+                rel="noopener"
+                >AgentVault ↗</a
+              >
+              &nbsp;·&nbsp;
+              <a
+                href="https://sepolia.mantlescan.xyz/address/0x94d150a7bf4b9078f7e220bd7b1c05e90abcae3a"
+                target="_blank"
+                rel="noopener"
+                >FusionXAdapter ↗</a
+              >
+              &nbsp;·&nbsp;
+              <a
+                href="https://sepolia.mantlescan.xyz/address/0x1233Cb8fD3015402A768d41F0E1ebe3a91aE8009"
+                target="_blank"
+                rel="noopener"
+                >FusionX pool ↗</a
+              >
+            </p>
+          </div>
+        </div>
+      </section>
+
       <!-- Scope & honesty -->
       <section class="r-section" id="scope">
         <div class="r-container">

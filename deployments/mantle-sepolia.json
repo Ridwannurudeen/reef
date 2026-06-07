@@ -99,6 +99,17 @@
     "glmModelId": "zai-org/GLM-5.1",
     "erc8004ReferenceImpl": "https://github.com/ChaosChain/trustless-agents-erc-ri"
   },
+  "dexNavDemo": {
+    "_comment": "Standalone REAL DEX-backed-NAV proof (chain 5003, deployed 2026-06-07, all Mantlescan-verified). An AgentVault whose nav() is the LIVE FusionX V2 mark-to-market of a real long position (rdUSD->rdETH) \u2014 not simulated linear yield. Stands up its own deep 1:1 pool so price impact is small; isolated from the seeded 5-vault leaderboard. Observed on-chain nav() = 0.99683e18 (1.0 minus the real ~0.32% round-trip trading cost). Reproduce: script/DeployDexNav.s.sol.",
+    "asset_rdUSD": "0x762cae96fdd24f5786e4d794f9dd5e1f77a47218",
+    "long_rdETH": "0x724f6a9d194a4b87d3a51162690dfeb2d9f6fd27",
+    "pair": "0x1233Cb8fD3015402A768d41F0E1ebe3a91aE8009",
+    "agentIdentity": "0x841c62abc848f239360fb13e1013dab37d2c2155",
+    "adapterRegistry": "0x99eaefefd75b17a3af6add5e203e3e4c51ef96c9",
+    "agentVault": "0xdb557e41d0611ff30d11bb690374ebbc7b6f8b6a",
+    "fusionXAdapter": "0x94d150a7bf4b9078f7e220bd7b1c05e90abcae3a",
+    "observedNav": "996828470845789680"
+  },
   "dex": {
     "name": "FusionX V2",
     "_comment": "Mantle-native Uniswap-V2 DEX on Sepolia (chain 5003). Addresses RPC-verified on-chain 2026-06-03 (FusionX docs labels are swapped \u2014 these are the real ones). A real MNT->USDC swap was executed (tx 0xd90ed8d2...). Used for live AI agent execution.",
