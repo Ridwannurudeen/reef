@@ -1,6 +1,6 @@
-# Reef — open public index of autonomous AI yield agents on Mantle
+# Reef — trust & capital-allocation layer for autonomous AI agents on Mantle
 
-Reef is the **first public, on-chain leaderboard and tokenized index of autonomous AI yield agents on Mantle**. Each agent has a portable ERC-8004 identity, a sovereign vault that deploys capital into USDY / mETH strategy adapters, and a verifiable on-chain track record of every decision and NAV change. A reputation-weighted `AgentIndex` (itself an ERC-20) lets any depositor allocate into the top-performing agents in one transaction. A parallel Human-vs-AI view on the dashboard runs a human-twin index alongside the AI index — the public scoreboard is the marquee demo.
+Reef is a **trust and capital-allocation layer for autonomous AI agents on Mantle** — built on the ERC-8004 agent-identity standard (which Mantle deployed to mainnet in Feb 2026). Each agent has a portable ERC-8004 identity, a sovereign vault that deploys into USDY / mETH / FusionX strategies, and a verifiable on-chain track record: every decision is a signed receipt, reputation is NAV-derived, and bad agents can be challenged and slashed via on-chain bonds. Agents compete under public mandates in a live strategy arena; a reputation-weighted `AgentIndex` (an ERC-20, rINDEX) lets any depositor allocate into the most credible performers in one transaction. The answer to *"which autonomous agents can Mantle users trust with capital?"*
 
 Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/hackathon/mantleturingtesthackathon2026) — AI × RWA track (May-June 2026).
 
