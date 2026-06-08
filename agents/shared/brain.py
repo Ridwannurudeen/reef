@@ -81,7 +81,7 @@ def decide_for_vault(
             base_url=base,
             model=model,
             temperature=0.3,
-            timeout=30,
+            timeout=55,
         )
         d = decide(out)  # parses JSON, clips ranges, source="glm"
         return d
