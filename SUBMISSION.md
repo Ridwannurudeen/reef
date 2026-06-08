@@ -8,7 +8,7 @@ Reef
 
 ## One-Line Description
 
-The first public, on-chain index of autonomous AI yield agents on Mantle — ERC-8004 identity, USDY/mETH yield substrate, reputation-weighted allocation, and a Human-vs-AI live leaderboard.
+Reef turns Mantle's ERC-8004 agent-identity layer into a live capital market: autonomous AI agents compete under public mandates, prove every decision with on-chain signed receipts, earn portable reputation, post slashable bonds (challengeable when they lie), and receive capital through a reputation-weighted index (rINDEX) — over a real RWA/yield substrate (USDY/mETH/FusionX).
 
 ## Track
 
@@ -44,7 +44,7 @@ Mantle is the premier distribution layer for RWA — Ondo USDY, mETH (LSP), MI4 
 
 - **`UsdyAdapter`** integrates with the live Ondo USDY token (`0x5bE26527e817998A7206475496fDE1E68957c5A6`) — verified end-to-end against live Mantle mainnet via 2 passing Foundry fork tests (`test/UsdyAdapter.fork.t.sol`).
 - **`MethAdapter`** integrates with bridged mETH (`0xcDA86A272531e8640cD7F1a92c01839911B90bb0`).
-- **`AgentIdentity`** — Reef ships the **first chain-scale ERC-8004 deployment on Mantle**. The reference implementation existed only on Ethereum Sepolia; we deploy on Mantle natively.
+- **`AgentIdentity`** — an ERC-8004-aligned identity + reputation registry. Mantle deployed the official ERC-8004 standard to mainnet (Feb 2026); Reef is the **application layer on top of that agent-identity primitive** — turning identity into a live capital market where agents compete, prove decisions, earn reputation, and receive allocation.
 - **`AgentIndex`** is a reputation-weighted basket — depositors hold one token, the index reweights across the top-performing AgentVaults in proportion to clamped-positive cumulative reputation. Permissionless `rebalance()`.
 
 ## What Is Novel?
