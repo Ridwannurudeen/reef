@@ -26,22 +26,23 @@ from agents.shared.client import (
     vault_contract,
 )
 from agents.shared.config import load_agent_runtime, load_chain
-from agents.shared.receipt import build_evidence
+from agents.shared.receipt import build_evidence, sign_receipt
 
 log = logging.getLogger("allora_agent")
 
 
 def fetch_allora_prediction(
-    *, api_key: str | None, chain_id: int, topic_id: int, timeout: float = 15.0
+    *, api_key: str | None, chain_slug: str, topic_id: int, timeout: float = 15.0
 ) -> dict[str, Any]:
     """Fetch the latest inference for an Allora topic.
 
-    Endpoint: https://api.allora.network/v2/allora/consumer/{chainId}?allora_topic_id={id}
-    Source: https://docs.allora.network/marketplace/consumer-apis
+    Endpoint: https://api.allora.network/v2/allora/consumer/{chainSlug}?allora_topic_id={id}
+    `chainSlug` is a string like "ethereum-11155111" (NOT a numeric chain id).
+    Source: https://docs.allora.network/devs/consumers/allora-api-endpoint
     """
     if not api_key:
         raise RuntimeError("ALLORA_API_KEY not set")
-    url = f"https://api.allora.network/v2/allora/consumer/{chain_id}"
+    url = f"https://api.allora.network/v2/allora/consumer/{chain_slug}"
     headers = {"x-api-key": api_key, "Accept": "application/json"}
     params = {"allora_topic_id": str(topic_id)}
     resp = requests.get(url, headers=headers, params=params, timeout=timeout)
@@ -126,7 +127,7 @@ def run_once(w3, account, vault, identity, runtime, period_s: int) -> None:
     try:
         prediction = fetch_allora_prediction(
             api_key=runtime.allora_api_key,
-            chain_id=runtime.allora_chain_id,
+            chain_slug=runtime.allora_chain_slug,
             topic_id=runtime.allora_topic_id,
         )
     except (requests.RequestException, RuntimeError) as e:
@@ -140,7 +141,7 @@ def run_once(w3, account, vault, identity, runtime, period_s: int) -> None:
         "agent": "allora",
         "seq": seq,
         "allora_topic_id": runtime.allora_topic_id,
-        "allora_chain_id": runtime.allora_chain_id,
+        "allora_chain_slug": runtime.allora_chain_slug,
         "prediction": prediction,
         "action": decision.action,
         "nav_delta_bps": decision.nav_delta_bps,

@@ -31,9 +31,14 @@ def _zai_cfg() -> tuple[str | None, str, str]:
 
 
 def decide_for_vault(
-    agent_id: int, nav_1e18: int, high_water_1e18: int, signal: dict | None = None
+    agent_id: int,
+    nav_1e18: int,
+    high_water_1e18: int,
+    signal: dict | None = None,
+    prediction: dict | None = None,
 ) -> Decision:
-    """Make a real LLM allocation decision from the vault's on-chain NAV state + a market signal."""
+    """Make a real LLM allocation decision from the vault's on-chain NAV state, a market
+    signal, and (optionally) an Allora price prediction."""
     nav = nav_1e18 / 1e18
     hwm = high_water_1e18 / 1e18
     drawdown_bps = 0 if hwm <= 0 else max(0, round((hwm - nav) / hwm * 10_000))
@@ -43,10 +48,20 @@ def decide_for_vault(
             f" Market: {signal['asset']} ${signal['price']:.2f}, 24h change {signal['change24hPct']:+.2f}%. "
             f"Increase exposure when momentum is favorable; cut when it turns down."
         )
+    forecast = ""
+    if prediction and signal and signal.get("price"):
+        pp = prediction["predictedPrice"]
+        implied = (pp - signal["price"]) / signal["price"] * 100
+        forecast = (
+            f" Allora decentralized-inference ETH prediction: ${pp:.2f} "
+            f"(implied {implied:+.2f}% vs spot) — weight it into your action."
+        )
+    elif prediction:
+        forecast = f" Allora ETH prediction: ${prediction['predictedPrice']:.2f}."
     prompt = (
         f"Agent #{agent_id}. Per-share NAV={nav:.6f}, all-time high NAV={hwm:.6f}, "
         f"current drawdown={drawdown_bps} bps. Reputation is credited only for NEW NAV highs, "
-        f"so favor durable gains over chasing volatility.{market} Decide your next allocation action."
+        f"so favor durable gains over chasing volatility.{market}{forecast} Decide your next allocation action."
     )
     key, base, model = _zai_cfg()
     try:

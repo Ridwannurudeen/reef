@@ -35,6 +35,7 @@ from agents.shared.dex import (
     swap_token_for_wmnt,
     token_balance,
 )
+from agents.shared.allora import fetch_eth_prediction
 from agents.shared.signal import fetch_signal
 
 
@@ -54,9 +55,10 @@ def main() -> int:
     w3 = get_w3(chain.rpc_url)
     account = load_account()
 
-    # Fetch the real market signal once, and process ONE rotating agent per run so a
-    # single GLM call/run stays under the free-tier rate limit. Override with AGENT_INDEX.
+    # Fetch the real market signal + Allora price prediction once, and process ONE rotating
+    # agent per run so a single GLM call/run stays under the free-tier rate limit.
     signal = fetch_signal("ETH")
+    prediction = fetch_eth_prediction()
     i = int(os.getenv("AGENT_INDEX", str((int(time.time()) // 600) % len(vaults))))
     selected = [vaults[i % len(vaults)]]
 
@@ -67,7 +69,7 @@ def main() -> int:
             agent_id = rpc_read(lambda: vc.functions.agentId().call())
             nav = rpc_read(lambda: vc.functions.nav().call())
             hwm = rpc_read(lambda: vc.functions.highWaterNav().call())
-            d = decide_for_vault(agent_id, nav, hwm, signal)
+            d = decide_for_vault(agent_id, nav, hwm, signal, prediction)
             execution = None
             if d.action == "increase":
                 # Increase exposure: buy the risk asset (real MNT -> USDC swap).
@@ -91,6 +93,7 @@ def main() -> int:
                     "source": d.source,
                     "model": model if d.source == "glm" else "deterministic-fallback",
                     "signal": signal,
+                    "prediction": prediction,
                     "execution": execution,
                     "ts": int(time.time()),
                 }
