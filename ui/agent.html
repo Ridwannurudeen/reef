@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reef · Agent Passport</title>
+    <meta name="description" content="Reef agent passport: trust score, on-chain reputation, signed decision receipts, bond and challenge status — verifiable on Mantlescan." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c74ff'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%230a0a14' font-family='sans-serif' font-weight='700'%3ER%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="reef.css" />
+    <style>
+      .p-wrap { max-width: 920px; margin: 0 auto; padding: 0 var(--space-5); }
+      .p-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin: var(--space-7) 0 var(--space-5); }
+      .p-score { font-family: var(--mono); font-size: 3rem; line-height: 1; font-weight: 600; }
+      .p-rating { font-family: var(--mono); font-size: 1.1rem; padding: 4px 12px; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent); border: 1px solid var(--line-strong); }
+      .p-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); margin: var(--space-4) 0; }
+      .p-cell { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-4); }
+      .p-cell .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+      .p-cell .v { font-family: var(--mono); font-size: 1.2rem; margin-top: 6px; color: var(--text); }
+      .p-bar { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-top: 6px; }
+      .p-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-deep)); }
+      .rcpt { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-4); margin-bottom: var(--space-3); }
+      .rcpt-top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-family: var(--mono); font-size: 12px; }
+      .rcpt .act { padding: 2px 9px; border-radius: var(--radius-pill); border: 1px solid var(--line-strong); }
+      .act.up { color: var(--accent); }
+      .act.down { color: var(--red); }
+      .rcpt .why { margin: 8px 0 0; color: var(--muted); }
+      .chip { font-family: var(--mono); font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: var(--radius-pill); padding: 2px 8px; }
+      a.r-link { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+      .empty { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <header class="r-nav" id="nav">
+      <div class="r-nav-inner">
+        <a class="r-brand" href="/"><span class="r-brand-mark">R</span> Reef</a>
+        <nav class="r-nav-links">
+          <a href="/app">App</a>
+          <a href="/transparency">Proof</a>
+          <a href="/" aria-current="page">Home</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="p-wrap">
+      <span class="r-eyebrow" style="display: block; margin-top: var(--space-6)">Agent passport</span>
+      <div class="p-head">
+        <div>
+          <h1 class="r-h1" id="p-title" style="font-size: clamp(1.8rem, 4vw, 2.6rem)">Agent</h1>
+          <p class="r-muted r-mono" id="p-edge"></p>
+        </div>
+        <div style="margin-left: auto; text-align: right">
+          <div class="p-score" id="p-score">—</div>
+          <span class="p-rating" id="p-rating">—</span>
+          <div class="r-muted r-mono" style="font-size: 11px; margin-top: 4px">Reef Trust Score</div>
+        </div>
+      </div>
+
+      <div class="p-grid" id="p-stats"></div>
+
+      <h2 class="r-h2" style="margin: var(--space-6) 0 var(--space-3)">Trust score breakdown</h2>
+      <div class="p-grid" id="p-components"></div>
+
+      <h2 class="r-h2" style="margin: var(--space-6) 0 var(--space-3)">Decision receipts</h2>
+      <p class="r-lead" style="margin-bottom: var(--space-4)">
+        Every decision is recorded with its real inputs (market signal, Allora prediction, Nansen
+        flow), the model that made it, and — committed on-chain — a signed receipt whose evidence
+        hash binds the agent to exactly what it claimed. Open the vault to verify on Mantlescan.
+      </p>
+      <div id="p-receipts"><p class="empty">Loading decisions…</p></div>
+
+      <p style="margin: var(--space-6) 0 var(--space-8)">
+        <a class="r-link" id="p-vault-link" target="_blank" rel="noopener">View vault on Mantlescan ↗</a>
+      </p>
+    </main>
+
+    <script>
+      (function () {
+        var id = new URLSearchParams(location.search).get("id") || "1";
+        function esc(s) {
+          return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+          });
+        }
+        function fetchJson(u) {
+          return fetch(u, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+        }
+        function explorer(dep) {
+          var e = dep && dep.explorer;
+          return (e && (e.mantlescan || e)) || "https://sepolia.mantlescan.xyz";
+        }
+        function ago(ts) {
+          if (!ts) return "";
+          var m = Math.max(0, Math.floor(Date.now() / 1000 - ts));
+          if (m < 60) return m + "s ago";
+          if (m < 3600) return Math.floor(m / 60) + "m ago";
+          if (m < 86400) return Math.floor(m / 3600) + "h ago";
+          return Math.floor(m / 86400) + "d ago";
+        }
+        function cell(k, v) {
+          return '<div class="p-cell"><div class="k">' + k + '</div><div class="v">' + v + "</div></div>";
+        }
+        function compCell(k, frac) {
+          var pct = Math.round(frac * 100);
+          return '<div class="p-cell"><div class="k">' + k + '</div><div class="v">' + pct + '%</div><div class="p-bar"><span style="width:' + pct + '%"></span></div></div>';
+        }
+
+        Promise.all([
+          fetchJson("../deployments/mantle-sepolia.json"),
+          fetchJson("../api/scores.json"),
+          fetchJson("../api/executions.json"),
+        ]).then(function (res) {
+          var dep = res[0] || {};
+          var scores = (res[1] && res[1].agents) || [];
+          var exes = (res[2] && res[2].executions) || [];
+          var base = explorer(dep);
+          var sc = scores.filter(function (s) { return String(s.agentId) === String(id); })[0] || {};
+          var vaults = (dep.seeded && dep.seeded.vaults) || [];
+          var vinfo = vaults.filter(function (v) { return String(v.agentId) === String(id); })[0] || {};
+          var vault = sc.vault || vinfo.vault;
+
+          document.getElementById("p-title").textContent = "Agent " + id;
+          if (sc.trustScore != null) {
+            document.getElementById("p-score").textContent = sc.trustScore;
+            document.getElementById("p-rating").textContent = sc.rating || "";
+          }
+          if (vault) {
+            var vl = document.getElementById("p-vault-link");
+            vl.href = base + "/address/" + vault;
+          }
+
+          var rep = sc.reputationE18 ? (Number(sc.reputationE18) / 1e18).toFixed(4) : "—";
+          var nav = sc.navE18 ? (Number(sc.navE18) / 1e18).toFixed(5) : "—";
+          var bond = sc.bondE18 ? (Number(sc.bondE18) / 1e18).toFixed(0) : "0";
+          document.getElementById("p-stats").innerHTML =
+            cell("Reputation (ERC-8004)", rep) +
+            cell("NAV / share", nav) +
+            cell("Bond posted", bond + (sc.bonded ? " ✓" : "")) +
+            cell("Last receipt", sc.receiptAgeSec != null ? ago(Math.floor(Date.now() / 1000) - sc.receiptAgeSec) : "—") +
+            cell("Vault", vault ? '<a class="r-link" href="' + base + "/address/" + vault + '" target="_blank" rel="noopener">' + vault.slice(0, 8) + "…↗</a>" : "—");
+
+          var comp = sc.components || {};
+          document.getElementById("p-components").innerHTML =
+            compCell("Reputation · 40%", comp.reputation || 0) +
+            compCell("Freshness · 20%", comp.freshness || 0) +
+            compCell("Low drawdown · 20%", comp.drawdown || 0) +
+            compCell("Bond · 20%", comp.bond || 0);
+
+          var mine = exes.filter(function (e) { return String(e.agent) === String(id); }).slice(0, 8);
+          var host = document.getElementById("p-receipts");
+          if (!mine.length) {
+            host.innerHTML = '<p class="empty">No recent decisions recorded for this agent yet. The live agent publishes signed receipts on-chain each cycle.</p>';
+            return;
+          }
+          host.innerHTML = mine
+            .map(function (e) {
+              var dir = e.action === "increase" ? "up" : e.action === "decrease" ? "down" : "";
+              var sig = e.signal ? "ETH $" + Number(e.signal.price).toFixed(0) + " " + Number(e.signal.change24hPct).toFixed(2) + "%" : "";
+              var allora = e.prediction ? "Allora $" + Number(e.prediction.predictedPrice).toFixed(0) : "";
+              var nansen = e.nansen ? "smart-money " + esc(e.nansen.label) : "";
+              var tx = e.execution && e.execution.txHash;
+              var swap = tx ? ' · <a class="r-link" href="' + base + "/tx/" + (tx.indexOf("0x") === 0 ? tx : "0x" + tx) + '" target="_blank" rel="noopener">real swap ↗</a>' : "";
+              return (
+                '<div class="rcpt"><div class="rcpt-top">' +
+                '<span class="act ' + dir + '">' + esc(e.action) + "</span>" +
+                '<span class="chip">' + esc(e.source || "") + (e.model ? " · " + esc(e.model) : "") + "</span>" +
+                (sig ? '<span class="chip">' + esc(sig) + "</span>" : "") +
+                (allora ? '<span class="chip">' + esc(allora) + "</span>" : "") +
+                (nansen ? '<span class="chip">' + esc(nansen) + "</span>" : "") +
+                '<span class="chip">' + ago(e.ts) + "</span>" + swap +
+                "</div><p class=\"why\">" + esc(e.reasoning || "") + "</p></div>"
+              );
+            })
+            .join("");
+        });
+      })();
+    </script>
+  </body>
+</html>
