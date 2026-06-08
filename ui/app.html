@@ -1956,6 +1956,24 @@
         </div>
       </section>
 
+      <section id="strategies">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Benchmark on-chain AI</div>
+            <h2>Strategy arena</h2>
+          </div>
+          <p class="section-copy">
+            Five agents see the same live inputs — CoinGecko momentum, Allora's ETH
+            prediction, Nansen smart-money flow — but each trades a different edge. Every round
+            their calls are scored against the realised ETH move, so the ranking is a live
+            benchmark of which on-chain AI strategy is right most often.
+          </p>
+        </div>
+        <div class="feed" id="strategyArena">
+          <div class="feed-row muted">loading strategies…</div>
+        </div>
+      </section>
+
       <section id="ai">
         <div class="section-head">
           <div>
@@ -2068,6 +2086,7 @@
       const ZERO = "0x0000000000000000000000000000000000000000";
       const DEPLOYMENTS_URL = "../deployments/mantle-sepolia.json";
       const AI_FEED_URL = "../api/executions.json";
+      const STRATEGY_URL = "../api/agents.json";
       const HISTORY_URL = "../api/history.json";
 
       function addr(a) {
@@ -3048,6 +3067,46 @@
         humanCard.classList.toggle("win", state.hvaWinner === "human");
       }
 
+      async function refreshStrategies() {
+        let data;
+        try {
+          const res = await fetch(STRATEGY_URL, { cache: "no-store" });
+          if (!res.ok) return;
+          data = await res.json();
+        } catch {
+          return;
+        }
+        const agents = (data && data.agents) || [];
+        const board = (data && data.scoreboard) || {};
+        if (!agents.length) {
+          $("strategyArena").innerHTML = `<div class="feed-row muted">no strategy round yet</div>`;
+          return;
+        }
+        const acc = (s) => (board[s] && board[s].accuracyPct) || 0;
+        const ranked = agents.slice().sort((a, b) => acc(b.strategy) - acc(a.strategy));
+        const inp = data.inputs || {};
+        const head = `<div class="feed-row muted">round ${data.round || 1} · ETH $${Number(inp.spot || 0).toFixed(0)} · Allora $${Number(inp.alloraPred || 0).toFixed(0)} · smart money ${inp.nansen || "-"}</div>`;
+        $("strategyArena").innerHTML =
+          head +
+          ranked
+            .map((a, i) => {
+              const sc = board[a.strategy] || {};
+              const accTxt = sc.rounds ? `${sc.accuracyPct}% (${sc.correct}/${sc.rounds})` : "—";
+              const dir = a.action === "increase" ? "up" : a.action === "decrease" ? "down" : "flat";
+              const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "■";
+              const cls = dir === "up" ? "pos" : dir === "down" ? "neg" : "";
+              return `<div class="feed-row feed-${dir}">
+              <div class="feed-line">
+                <span class="badge ${cls}">#${i + 1} ${a.strategy} · ${arrow} ${a.action} ${a.navDeltaBps}bps</span>
+                <span class="feed-when">accuracy ${accTxt}</span>
+              </div>
+              <span class="meta">[${a.source}] ${a.edge}</span>
+              <div class="feed-reason">${(a.reasoning || "").slice(0, 160)}</div>
+            </div>`;
+            })
+            .join("");
+      }
+
       async function refreshAiFeed() {
         let data;
         try {
@@ -3370,6 +3429,7 @@
         await refreshHistory();
         await refreshFeed();
         await refreshAiFeed();
+        await refreshStrategies();
         if (state.account) renderConn();
       }
 
@@ -3383,6 +3443,7 @@
             refreshHistory();
             refreshFeed();
             refreshAiFeed();
+            refreshStrategies();
           }
         }, 30000);
       }
