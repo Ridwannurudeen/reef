@@ -83,7 +83,7 @@ class AgentRuntimeConfig:
     # Allora
     allora_api_key: str | None
     allora_topic_id: int
-    allora_chain_id: int
+    allora_chain_slug: str
     # Z.ai
     zai_api_key: str | None
     zai_model: str
@@ -100,13 +100,13 @@ def load_agent_runtime(
         private_key=_require(key_env),
         poll_interval_s=int(_optional("AGENT_POLL_INTERVAL_S", "30") or "30"),
         allora_api_key=_optional("ALLORA_API_KEY"),
-        # Default: Allora topic 14 — "ETH/USD 5min predictions" on Mantle.
-        # Source: https://docs.allora.network/datasets/topic-ids
-        allora_topic_id=int(_optional("ALLORA_TOPIC_ID", "14") or "14"),
-        # Allora consumer endpoint expects an eth-style chain id slug; the Allora
-        # v2 API uses string slugs like "mantle-sepolia-testnet". Default is the
-        # generic ETH price topic shard.
-        allora_chain_id=int(_optional("ALLORA_CHAIN_ID", "1") or "1"),
+        # Allora topic 13 = ETH/USD price prediction (verified live against the v2
+        # consumer API; topic 14 is BTC, not ETH).
+        allora_topic_id=int(_optional("ALLORA_TOPIC_ID", "13") or "13"),
+        # The v2 consumer endpoint takes a string chain slug, e.g. "ethereum-11155111"
+        # (Sepolia) — verified working. NOT a numeric chain id.
+        allora_chain_slug=_optional("ALLORA_CHAIN_SLUG", "ethereum-11155111")
+        or "ethereum-11155111",
         zai_api_key=_optional("ZAI_API_KEY"),
         # Z.ai OpenAI-compatible endpoint + model id.
         # Spec says model="glm-5.1", endpoint="https://api.z.ai/v4/chat/completions".
