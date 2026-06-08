@@ -141,5 +141,15 @@
         "adapter": "0x43ac93c7c2a9e17387fffe9381e6830479a66cfd"
       }
     ]
+  },
+  "reefGuard": {
+    "_comment": "On-chain policy gate (chain 5003, 2026-06-08): canExecute(agentId,asset,sizeBps)->(allowed,reason) checking registration, ERC-8004 reputation, bond, open disputes, asset allowlist, action size. Any Mantle protocol can query it before letting an agent act. Governor = arena key. Wired to live AgentIdentity + ReputationBond.",
+    "address": "0xe84E84D7e2E588aa8F88d1D1ADF2bdc70365a02b",
+    "asset": "0xbc17D7F8f265d069781ed765914ED092989d92e7",
+    "policy": {
+      "minReputationE18": "500000000000000000",
+      "minBondE18": "10000000000000000000",
+      "maxSizeBps": 5000
+    }
   }
 }
