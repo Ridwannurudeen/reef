@@ -36,6 +36,7 @@ from agents.shared.dex import (
     token_balance,
 )
 from agents.shared.allora import fetch_eth_prediction
+from agents.shared.nansen import fetch_smart_money_flow
 from agents.shared.signal import fetch_signal
 
 
@@ -55,10 +56,11 @@ def main() -> int:
     w3 = get_w3(chain.rpc_url)
     account = load_account()
 
-    # Fetch the real market signal + Allora price prediction once, and process ONE rotating
-    # agent per run so a single GLM call/run stays under the free-tier rate limit.
+    # Fetch the real market signal + Allora price prediction + Nansen smart-money flow once,
+    # and process ONE rotating agent per run so a single GLM call/run stays under the rate limit.
     signal = fetch_signal("ETH")
     prediction = fetch_eth_prediction()
+    flow = fetch_smart_money_flow()
     i = int(os.getenv("AGENT_INDEX", str((int(time.time()) // 600) % len(vaults))))
     selected = [vaults[i % len(vaults)]]
 
@@ -69,7 +71,7 @@ def main() -> int:
             agent_id = rpc_read(lambda: vc.functions.agentId().call())
             nav = rpc_read(lambda: vc.functions.nav().call())
             hwm = rpc_read(lambda: vc.functions.highWaterNav().call())
-            d = decide_for_vault(agent_id, nav, hwm, signal, prediction)
+            d = decide_for_vault(agent_id, nav, hwm, signal, prediction, flow)
             execution = None
             if d.action == "increase":
                 # Increase exposure: buy the risk asset (real MNT -> USDC swap).
@@ -94,6 +96,7 @@ def main() -> int:
                     "model": model if d.source == "glm" else "deterministic-fallback",
                     "signal": signal,
                     "prediction": prediction,
+                    "nansen": flow,
                     "execution": execution,
                     "ts": int(time.time()),
                 }

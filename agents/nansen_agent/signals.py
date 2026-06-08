@@ -1,67 +1,46 @@
-"""Mock Nansen smart-money signal.
+"""Real Nansen smart-money signal for the reference agent.
 
-v1 of the Reef reference stack cannot hit the real Nansen MCP without a paid
-key, so this module produces a deterministic-but-noisy `smart_money_inflow_bps`
-value derived from a public input (the current unix minute). Tests stay
-reproducible because the seed is the minute, not the second.
-
-TODO: replace with real Nansen MCP call once a key is provisioned. The expected
-contract is `fetch_signal()` returning the same dict shape as this mock so the
-agent loop does not need to change.
+Reads live Smart Money 24h netflow via `agents.shared.nansen` (verified Nansen
+API) and maps it to the `smart_money_inflow_bps` shape the Nansen agent's decision
+rule expects. When no Nansen key is set (or the call fails), returns a neutral
+signal so the reference agent still runs offline rather than fabricating data.
 """
 
 from __future__ import annotations
 
-import hashlib
-import math
 import time
 from typing import Any
 
-# Conservative band — basis points of inflow per period. ~3% max swing.
+from agents.shared.nansen import fetch_smart_money_flow
+
+# Map net USD flow to a bounded basis-points reading: $1k net ~= 1 bp, capped at
+# +/-300 bps (so ~$300k of net smart-money flow saturates the signal).
 MAX_BPS = 300
-
-
-def _deterministic_noise(seed: int) -> float:
-    """Return a number in [-1.0, 1.0] derived from `seed` via SHA-256."""
-    digest = hashlib.sha256(seed.to_bytes(8, "big", signed=False)).digest()
-    # Take the first 8 bytes as an unsigned int, map to [-1, 1].
-    n = int.from_bytes(digest[:8], "big", signed=False)
-    return (n / (2**64 - 1)) * 2.0 - 1.0
+_USD_PER_BPS = 1_000
+_LABEL_MAP = {"accumulating": "inflow", "distributing": "outflow", "neutral": "neutral"}
 
 
 def fetch_signal(now_unix: int | None = None) -> dict[str, Any]:
-    """Return a mock Nansen-style smart-money signal.
+    """Return a live Nansen smart-money signal, or a neutral one if unavailable.
 
-    The output is the same shape we'd expect from a real Nansen MCP wrapper:
-        {
-          "smart_money_inflow_bps": int in [-MAX_BPS, MAX_BPS],
-          "confidence": float in [0, 1],
-          "label": "inflow" | "outflow" | "neutral",
-          "ts": int unix seconds,
-          "source": "mock",
-        }
+    Shape: {smart_money_inflow_bps, confidence, label, ts, source}.
     """
     if now_unix is None:
         now_unix = int(time.time())
-    minute = now_unix // 60
-
-    # Slow sine for trend + deterministic hash noise for jitter.
-    trend = math.sin(minute / 11.0) * 0.6
-    jitter = _deterministic_noise(minute) * 0.4
-    signal = trend + jitter  # in roughly [-1, 1]
-    bps = max(-MAX_BPS, min(MAX_BPS, int(signal * MAX_BPS)))
-
-    if bps > 40:
-        label = "inflow"
-    elif bps < -40:
-        label = "outflow"
-    else:
-        label = "neutral"
-
+    flow = fetch_smart_money_flow()
+    if not flow:
+        return {
+            "smart_money_inflow_bps": 0,
+            "confidence": 0.0,
+            "label": "neutral",
+            "ts": now_unix,
+            "source": "nansen-unavailable",
+        }
+    bps = max(-MAX_BPS, min(MAX_BPS, round(flow["netFlow24hUsd"] / _USD_PER_BPS)))
     return {
         "smart_money_inflow_bps": bps,
-        "confidence": round(min(1.0, abs(signal)), 4),
-        "label": label,
+        "confidence": round(min(1.0, abs(bps) / MAX_BPS), 4),
+        "label": _LABEL_MAP.get(flow["label"], "neutral"),
         "ts": now_unix,
-        "source": "mock",
+        "source": "nansen",
     }
