@@ -3085,6 +3085,10 @@
               x.source === "glm"
                 ? `glm ${x.model || ""}`.trim()
                 : x.source || "";
+            const allora = x.prediction
+              ? ` · allora $${Number(x.prediction.predictedPrice).toFixed(0)}`
+              : "";
+            const nansen = x.nansen ? ` · smart-money ${x.nansen.label}` : "";
             const when = x.ts
               ? `${Math.max(0, Math.floor(Date.now() / 1000 - x.ts))}s ago`
               : "";
@@ -3093,7 +3097,7 @@
                 <span class="badge ${cls}">${arrow} agent ${x.agent} · ${x.action} ${x.navDeltaBps}bps</span>
                 <span class="feed-when">${when}</span>
               </div>
-              <span class="meta">[${src}] · signal ${sig}${trade}</span>
+              <span class="meta">[${src}] · signal ${sig}${allora}${nansen}${trade}</span>
               <div class="feed-reason">${(x.reasoning || "").slice(0, 200)}</div>
             </div>`;
           })
@@ -3456,6 +3460,12 @@
         const srcChip = isGlm
           ? `<span class="aif-chip is-glm">GLM · ${aifEscape(x.model || "z.ai")}</span>`
           : `<span class="aif-chip">deterministic fallback</span>`;
+        const alloraChip = x.prediction
+          ? `<span class="aif-chip">Allora $${Number(x.prediction.predictedPrice).toFixed(0)}</span>`
+          : "";
+        const nansenChip = x.nansen
+          ? `<span class="aif-chip">Nansen · smart money ${aifEscape(x.nansen.label)}</span>`
+          : "";
         el.innerHTML = `
           <div class="aif-top">
             <span class="aif-eyebrow"><span class="live-dot"></span> Latest AI decision</span>
@@ -3464,7 +3474,7 @@
           <h3 class="aif-headline">${aifEscape(name)} <span class="${verb.cls}">${verb.word}</span>${bpsTxt}.</h3>
           <p class="aif-sub">Reasoning over a live market signal — ${sig} — testnet, real on-chain execution.</p>
           <p class="aif-reason"><span class="aif-reason-label">Why it decided this</span>${aifEscape(x.reasoning || "No rationale recorded.")}</p>
-          <div class="aif-meta">${srcChip}${tx}</div>`;
+          <div class="aif-meta">${srcChip}${alloraChip}${nansenChip}${tx}</div>`;
       }
 
       // ── Living reef visualization ──
