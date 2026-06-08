@@ -2939,7 +2939,7 @@
             const age = formatAge(a.lastReceiptAt);
             return `<tr class="lb-row ${rowClass}" data-agent-id="${a.agentId.toString()}" tabindex="0" role="button" aria-label="Open details for agent ${a.agentId.toString()}">
       <td data-label="#">${rank} ${lead}</td>
-      <td data-label="Agent">agent ${a.agentId.toString()} ${trust}</td>
+      <td data-label="Agent"><a href="agent?id=${a.agentId.toString()}" style="color: var(--accent)" title="Open agent passport">agent ${a.agentId.toString()} ↗</a> ${trust}</td>
       <td data-label="Vault"><a href="${explorerFor(state.chainId)}/address/${a.vault}" target="_blank" rel="noopener">${shortAddr(a.vault)}</a></td>
       <td data-label="Reputation" class="num ${repClass}">${fmtSigned18(a.reputation)}</td>
       <td data-label="NAV" class="num">${fmt18(a.nav, 6)}</td>
