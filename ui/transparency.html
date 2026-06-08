@@ -781,9 +781,19 @@
             var label = src && src !== "glm" ? "agent rationale" : "GLM rationale";
             var tx = swapTx(d);
             var validTx = tx != null;
+            var allora =
+              d.prediction && d.prediction.predictedPrice
+                ? '<span class="t-signal">Allora $' + Number(d.prediction.predictedPrice).toFixed(0) + "</span>"
+                : "";
+            var smart =
+              d.nansen && d.nansen.label
+                ? '<span class="t-signal">smart money ' + esc(d.nansen.label) + "</span>"
+                : "";
             var html = '<div class="t-feed-row"><div class="t-feed-top">' +
               '<span class="t-action t-action--' + cls + '"><span class="t-action-dot"></span>' + esc(action) + "</span>" +
               (signal ? '<span class="t-signal">signal: ' + esc(signal) + "</span>" : "") +
+              allora +
+              smart +
               '<span class="t-when">' + esc(timeAgo(when)) + "</span></div>" +
               '<p class="t-rationale"><span class="t-rationale-label">' + label + "</span>" +
               (rationale ? esc(rationale) : "(no rationale recorded)") + "</p>";
