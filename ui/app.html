@@ -1972,6 +1972,17 @@
         <div class="feed" id="strategyArena">
           <div class="feed-row muted">loading strategies…</div>
         </div>
+        <h3 class="aif-headline" style="margin: 22px 0 8px">
+          Live on-chain duel <span class="muted" style="font-weight: 400">— real NAV &amp; reputation</span>
+        </h3>
+        <p class="section-copy" style="margin-bottom: 10px">
+          Two of these strategies run real AgentVaults that deploy into a FusionX position
+          pegged to live ETH. Their NAV and ERC-8004 reputation move with real exposure timing —
+          on-chain, verifiable on Mantlescan.
+        </p>
+        <div class="feed" id="arenaOnchain">
+          <div class="feed-row muted">loading on-chain duel…</div>
+        </div>
       </section>
 
       <section id="ai">
@@ -2087,6 +2098,7 @@
       const DEPLOYMENTS_URL = "../deployments/mantle-sepolia.json";
       const AI_FEED_URL = "../api/executions.json";
       const STRATEGY_URL = "../api/agents.json";
+      const ARENA_URL = "../api/arena.json";
       const HISTORY_URL = "../api/history.json";
 
       function addr(a) {
@@ -3107,6 +3119,40 @@
             .join("");
       }
 
+      async function refreshArena() {
+        let data;
+        try {
+          const res = await fetch(ARENA_URL, { cache: "no-store" });
+          if (!res.ok) return;
+          data = await res.json();
+        } catch {
+          return;
+        }
+        const agents = (data && data.agents) || [];
+        if (!agents.length) {
+          $("arenaOnchain").innerHTML = `<div class="feed-row muted">on-chain duel initialising…</div>`;
+          return;
+        }
+        const base = explorerFor(state.chainId);
+        const ranked = agents
+          .slice()
+          .sort((a, b) => Number(b.navE18 || 0) - Number(a.navE18 || 0));
+        $("arenaOnchain").innerHTML = ranked
+          .map((a, i) => {
+            const nav = Number(a.navE18 || 0) / 1e18;
+            const exp = ((a.exposureBps || 0) / 100).toFixed(0);
+            const rep = (Number(a.reputation || 0) / 1e18).toFixed(4);
+            return `<div class="feed-row">
+              <div class="feed-line">
+                <span class="badge">#${i + 1} ${a.strategy} · NAV ${nav.toFixed(5)}</span>
+                <span class="feed-when">${exp}% ETH · rep ${rep}</span>
+              </div>
+              <span class="meta">${a.action} · ${a.edge} · <a class="swap-pill" href="${base}/address/${a.vault}" target="_blank" rel="noopener">vault ↗</a></span>
+            </div>`;
+          })
+          .join("");
+      }
+
       async function refreshAiFeed() {
         let data;
         try {
@@ -3430,6 +3476,7 @@
         await refreshFeed();
         await refreshAiFeed();
         await refreshStrategies();
+        await refreshArena();
         if (state.account) renderConn();
       }
 
@@ -3444,6 +3491,7 @@
             refreshFeed();
             refreshAiFeed();
             refreshStrategies();
+            refreshArena();
           }
         }, 30000);
       }

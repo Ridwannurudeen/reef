@@ -118,5 +118,28 @@
     "wmnt": "0xc0eeCFA24E391E4259B7EF17be54Be5139DA1AC7",
     "usdc": "0xc92747b1e4Bd5F89BBB66bAE657268a5F4c4850C",
     "musdt": "0xa9b72cCC9968aFeC98A96239B5AA48d828e8D827"
+  },
+  "arena": {
+    "_comment": "Strategy-arena head-to-head (chain 5003, 2026-06-08): 2 AgentVaults, one per persona, holding raUSD and deploying into a SHARED raUSD/raETH FusionX pool pegged to live ETH by arena_keeper.py (uses ARENA_PRIVATE_KEY). Reputation is NAV-derived, so the leaderboard reflects which strategy times ETH exposure best. Deployed from a dedicated arena key to avoid nonce races with the deployer-key crons.",
+    "raUSD": "0xa3ce32eac684e5f4a9ed0f14789efb4c4984b17f",
+    "raETH": "0x0e135254842fbdc5a2e2eb84ae197a3016d79a4d",
+    "pair": "0x5Ba29768158B3516A43DfCBEc7849a274e98bC97",
+    "identity": "0x02db3516c3b28663e88a19faa38e4cf8a76f3392",
+    "index": "0xe4c9d7222f7c2074c764927c7d90e6377afe6263",
+    "registry": "0xbc5bc14ba1912bbc7ce2bfdc2c6fb2bc64c481ae",
+    "vaults": [
+      {
+        "agentId": 1,
+        "strategy": "Allora Quant",
+        "vault": "0xe6dbfdc798c8272f5edb20baf1f7ee7117987fa2",
+        "adapter": "0xc986f2b27fab1f194b163d329b0114afc245ffc1"
+      },
+      {
+        "agentId": 2,
+        "strategy": "Smart Money",
+        "vault": "0xf6047c1b2d91c31665c9c375ede4d04592ee5022",
+        "adapter": "0x43ac93c7c2a9e17387fffe9381e6830479a66cfd"
+      }
+    ]
   }
 }
