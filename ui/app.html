@@ -2909,10 +2909,23 @@
           ? `${stale}/${enriched.length} receipts stale`
           : "receipts live";
 
+        let scoresByAgent = {};
+        try {
+          const sres = await fetch("../api/scores.json", { cache: "no-store" });
+          if (sres.ok)
+            ((await sres.json()).agents || []).forEach((s) => {
+              scoresByAgent[String(s.agentId)] = s;
+            });
+        } catch {}
+
         $("lbBody").innerHTML = enriched
           .map((a, i) => {
             const repClass =
               a.reputation > 0n ? "pos" : a.reputation < 0n ? "neg" : "";
+            const sc = scoresByAgent[a.agentId.toString()];
+            const trust = sc
+              ? `<span class="badge ${sc.trustScore >= 70 ? "good" : sc.trustScore >= 55 ? "" : "warn"}" title="Reef Trust Score">${sc.trustScore} ${sc.rating}</span>`
+              : "";
             const lead =
               i === 0 && a.reputation > 0n
                 ? `<span class="badge good">leader</span>`
@@ -2926,7 +2939,7 @@
             const age = formatAge(a.lastReceiptAt);
             return `<tr class="lb-row ${rowClass}" data-agent-id="${a.agentId.toString()}" tabindex="0" role="button" aria-label="Open details for agent ${a.agentId.toString()}">
       <td data-label="#">${rank} ${lead}</td>
-      <td data-label="Agent">agent ${a.agentId.toString()}</td>
+      <td data-label="Agent">agent ${a.agentId.toString()} ${trust}</td>
       <td data-label="Vault"><a href="${explorerFor(state.chainId)}/address/${a.vault}" target="_blank" rel="noopener">${shortAddr(a.vault)}</a></td>
       <td data-label="Reputation" class="num ${repClass}">${fmtSigned18(a.reputation)}</td>
       <td data-label="NAV" class="num">${fmt18(a.nav, 6)}</td>
