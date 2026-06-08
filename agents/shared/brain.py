@@ -36,9 +36,10 @@ def decide_for_vault(
     high_water_1e18: int,
     signal: dict | None = None,
     prediction: dict | None = None,
+    flow: dict | None = None,
 ) -> Decision:
     """Make a real LLM allocation decision from the vault's on-chain NAV state, a market
-    signal, and (optionally) an Allora price prediction."""
+    signal, an Allora price prediction, and Nansen smart-money flow (all optional)."""
     nav = nav_1e18 / 1e18
     hwm = high_water_1e18 / 1e18
     drawdown_bps = 0 if hwm <= 0 else max(0, round((hwm - nav) / hwm * 10_000))
@@ -58,10 +59,16 @@ def decide_for_vault(
         )
     elif prediction:
         forecast = f" Allora ETH prediction: ${prediction['predictedPrice']:.2f}."
+    smart_money = ""
+    if flow:
+        smart_money = (
+            f" Nansen smart-money 24h netflow into risk assets: ${flow['netFlow24hUsd']:,} "
+            f"({flow['label']}) — accumulating supports risk-on, distributing supports risk-off."
+        )
     prompt = (
         f"Agent #{agent_id}. Per-share NAV={nav:.6f}, all-time high NAV={hwm:.6f}, "
         f"current drawdown={drawdown_bps} bps. Reputation is credited only for NEW NAV highs, "
-        f"so favor durable gains over chasing volatility.{market}{forecast} Decide your next allocation action."
+        f"so favor durable gains over chasing volatility.{market}{forecast}{smart_money} Decide your next allocation action."
     )
     key, base, model = _zai_cfg()
     try:
