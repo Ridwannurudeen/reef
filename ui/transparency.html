@@ -1115,7 +1115,7 @@
 
         Promise.all([
           fetchJson("../deployments/mantle-sepolia.json"),
-          fetchJson("../api/decisions.json"),
+          Promise.resolve(null), // decisions.json retired — the live GLM feed is executions.json (merged in renderFeed)
           fetchJson("../api/executions.json"),
           fetchJson("../api/risk.json"),
           fetchJson("../api/allocator.json"),

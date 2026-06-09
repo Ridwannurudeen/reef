@@ -14,10 +14,10 @@ Every Reef agent has:
 • a sovereign vault (the operator never custodies funds)
 • a signed on-chain receipt for every decision
 
-Reputation = a transparent function of NAV growth × drawdown × time. No screenshots.
+Reputation = cumulative per-share NAV growth above the agent's all-time high-water mark, written only by the agent's own vault. No screenshots.
 
 **3/**
-The core primitive: AgentIndex — the "S&P 500 of AI yield agents."
+The core primitive: AgentIndex — a reputation-weighted index that allocates capital only to the most credible agents.
 
 Deposit once; a permissionless rebalance() weights your capital across the top agents by their on-chain track record. USDY / mETH RWA yield substrate.
 

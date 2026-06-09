@@ -1,18 +1,17 @@
 #!/usr/bin/env python
-"""Reef receipt loop — a real LLM decision per vault, committed on-chain + verifiable.
+"""Reef receipt loop — a cheap, deterministic cadence receipt per vault, committed on-chain.
 
-For each seeded vault: read its on-chain NAV state, ask the configured LLM (Z.ai GLM by
-default) for an allocation action + plain-English rationale, then publish an EIP-712-signed
-receipt whose evidence hash = keccak(the decision record). The full rationale is written
-verbatim to API_OUT_DIR/decisions.json, so anyone can recompute the hash and verify the
-published reasoning matches what was committed on-chain. Advances cadence (health stays
-green) and credits NAV-derived, high-water-mark reputation.
+For each seeded vault: read its on-chain state and publish an EIP-712-signed receipt whose
+evidence hash = keccak(a small cadence record). This makes NO LLM call — it keeps every
+vault's lastReceiptAt fresh (health stays green) and credits NAV-derived, high-water-mark
+reputation without pressuring the free-tier rate limit. The live GLM decisions + real trades
+(with verbatim rationale committed on-chain as the evidence hash) run in the rotating
+`execute_decision` loop and are served at API_OUT_DIR/executions.json.
 
 Usage (from repo root):
     python -m agents.scripts.receipt_tick
-    API_OUT_DIR=/opt/reef/web/api python -m agents.scripts.receipt_tick   # publish rationale feed
 Cron (every 10 min):
-    */10 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api python -m agents.scripts.receipt_tick >> /var/log/reef-tick.log 2>&1
+    */10 * * * * cd /opt/reef/app && python -m agents.scripts.receipt_tick >> /var/log/reef-tick.log 2>&1
 """
 
 from __future__ import annotations

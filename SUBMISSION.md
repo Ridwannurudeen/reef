@@ -8,7 +8,7 @@ Reef
 
 ## One-Line Description
 
-Reef turns Mantle's ERC-8004 agent-identity layer into a live capital market: autonomous AI agents compete under public mandates, prove every decision with on-chain signed receipts, earn portable reputation, post slashable bonds (challengeable when they lie), and receive capital through a reputation-weighted index (rINDEX) — over a real RWA/yield substrate (USDY/mETH/FusionX).
+**Reef is the trust, risk, and capital-allocation layer for autonomous AI agents on Mantle.** Built on Mantle's ERC-8004 agent-identity standard, it turns identity into a live capital market: autonomous AI agents compete under public mandates, prove every decision with on-chain signed receipts, earn portable NAV-derived reputation, post slashable bonds (challengeable when they lie), and receive capital through a reputation-weighted index (rINDEX) — gated by an on-chain policy primitive (ReefGuard) that any Mantle protocol can call to ask *"can this agent touch this capital right now?"* — over a real RWA/yield substrate (USDY/mETH/FusionX).
 
 ## Track
 
@@ -77,7 +77,7 @@ AgentIndex
        │── rebalance() weights by AgentIdentity reputation
        │── depositors hold one tokenized share
        ▼
-   The "S&P 500 of AI yield agents"
+   Trust-weighted allocation into the most credible agents
 ```
 
 ## What Ships
@@ -95,18 +95,18 @@ AgentIndex
 | `MethAdapter.sol` / `FbtcAdapter.sol` / `UsdeAdapter.sol` / `Mi4Adapter.sol` | Done. RWA/yield adapters (mETH, Ignition FBTC, Ethena USDe, Securitize MI4); mainnet addresses on-chain-verified. |
 | `MockYieldAdapter.sol` | Done. Testnet linear-accruing adapter (live-NAV demo). |
 | Deploy scripts | `script/Deploy.s.sol` + `Seed.s.sol` (Sepolia) + `DeployMainnet.s.sol` (mainnet-ready, real USDY) |
-| Reference Python agents | `agents/allora_agent/` (Allora + Z.ai GLM-5.1) + `agents/nansen_agent/` (mock signal v1); fall back to a deterministic rule without API keys |
+| Reference Python agents | `agents/allora_agent/` (Allora + Z.ai GLM `glm-4.7-flash`) + `agents/nansen_agent/` (mock signal v1); fall back to a deterministic rule without API keys |
 | Live dashboard | `ui/index.html` — single-file viem dashboard with AgentIndex stats, leaderboard, deposit/withdraw, rebalance button, Human-vs-AI twin |
 | Hackathon deck | `slides.html` (reveal.js) |
 | nginx + cert deploy config | `deploy/` |
 
-**Total: 130 unit tests + 2 mainnet-fork integration tests, all passing** (`forge test`). All deployed Sepolia contracts are verified on Mantlescan. Forge 1.7.1, solc 0.8.24, evm_version paris. Internal security review in `SECURITY.md`.
+**Total: 175 tests, all passing** (`forge test`) — unit + fuzz/invariant suites + 2 live-mainnet fork integration tests. All deployed Sepolia contracts are verified on Mantlescan. Forge 1.7.1, solc 0.8.24, evm_version paris. Internal security review in `SECURITY.md`.
 
 ## Hackathon Feature Alignment
 
 - **Automated risk management (AI × RWA track core)** — a transparent, auditable policy maps the live ETH market signal (24h momentum) to a target exposure, and the agent executes a **real on-chain** recall (de-risk) or deploy (re-risk) on a DEX-backed vault to hit it. Proven live on Sepolia: exposure cut 80% → 20% on a risk-off signal and restored 20% → 80% on risk-on, every move verifiable on Mantlescan (`agents/scripts/risk_manager.py`; feed at `/api/risk.json`). Risk management you can verify, not a black box.
 - **On-chain benchmarking of AI** — every agent decision emits a strict-sequence signed receipt (`AgentVault.publishReceipt`). NAV history is recomputable from events.
-- **ERC-8004 agent identity standard** — every Reef agent is registered via `AgentIdentity.register()`; reputation is portable and queryable. First chain-scale deployment on Mantle.
+- **ERC-8004 agent identity standard** — every Reef agent is registered via `AgentIdentity.register()`; reputation is portable and queryable. Built on the ERC-8004 standard Mantle deployed to its mainnet (Feb 2026) — Reef is the trust + capital-allocation layer on top.
 - **Radical transparency / Human-vs-AI** — the dashboard runs the live AI index alongside a human-twin baseline (a client-side simulation in v1); the public scoreboard is the marquee demo.
 
 ## Demo Flow (≥ 2 min)

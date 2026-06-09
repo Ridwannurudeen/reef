@@ -109,15 +109,13 @@ def load_agent_runtime(
         or "ethereum-11155111",
         zai_api_key=_optional("ZAI_API_KEY"),
         # Z.ai OpenAI-compatible endpoint + model id.
-        # Spec says model="glm-5.1", endpoint="https://api.z.ai/v4/chat/completions".
+        # Default model is glm-4.7-flash (free tier); glm-4.6 is the paid upgrade.
         # NOTE: Z.ai's public docs list the current production base path as
-        # "https://api.z.ai/api/paas/v4" and the current top model as glm-4.6
-        # (https://docs.z.ai). glm-5.1 + a /v4/ root may be the latest release the
-        # user has access to. We default to the spec values; override via env if the
-        # public docs path is what your key uses:
+        # "https://api.z.ai/api/paas/v4" (https://docs.z.ai). Override via env if the
+        # public docs path is what your key uses, or to switch to the paid model:
         #   ZAI_BASE_URL=https://api.z.ai/api/paas/v4
         #   ZAI_MODEL=glm-4.6
-        zai_model=_optional("ZAI_MODEL", "glm-5.1") or "glm-5.1",
+        zai_model=_optional("ZAI_MODEL", "glm-4.7-flash") or "glm-4.7-flash",
         zai_base_url=_optional("ZAI_BASE_URL", "https://api.z.ai/v4")
         or "https://api.z.ai/v4",
     )

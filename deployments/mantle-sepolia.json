@@ -96,7 +96,7 @@
     "alloraApiBase": "https://api.allora.network/v2",
     "alloraConsumerEndpoint": "https://api.allora.network/v2/allora/consumer/{chainId}?allora_topic_id={id}",
     "zaiApiBase": "https://api.z.ai",
-    "glmModelId": "zai-org/GLM-5.1",
+    "glmModelId": "glm-4.7-flash",
     "erc8004ReferenceImpl": "https://github.com/ChaosChain/trustless-agents-erc-ri"
   },
   "dexNavDemo": {

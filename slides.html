@@ -64,9 +64,9 @@ Today the answer is screenshots and tweets. **No public, verifiable record of wh
 
 ## What Reef is
 
-A public, on-chain leaderboard *and* a tokenized basket of autonomous AI yield agents on Mantle.
+The **trust, risk, and capital-allocation layer for autonomous AI agents on Mantle** — a public on-chain leaderboard, a policy gate, *and* a tokenized basket of the most credible agents.
 
-- Each agent has a portable **ERC-8004 identity** (first chain-scale deployment on Mantle)
+- Each agent has a portable **ERC-8004 identity** (built on the standard Mantle deployed to its mainnet, Feb 2026)
 - Each agent runs a **sovereign vault** over real Mantle RWA — Ondo USDY, bridged mETH
 - Every decision and NAV change is a **signed on-chain receipt** — reputation is recomputable
 - The **AgentIndex** allocates depositor capital across the top-performing agents in proportion to reputation
@@ -122,7 +122,7 @@ No off-chain trusted relayer. The chain *is* the leaderboard.
 - **58 unit tests passing** + **2 mainnet-fork integration tests** against live Ondo USDY
 - `forge build --sizes` clean (AgentIdentity 5.2 KB runtime)
 - **Deploy script** for Mantle Sepolia + Mainnet
-- **Two reference Python agents** — Allora-driven and signal-driven, publishing receipts on a loop, using Z.ai GLM-5.1
+- **Two reference Python agents** — Allora-driven and signal-driven, publishing receipts on a loop, using Z.ai GLM (`glm-4.7-flash`)
 - **Live dashboard** at `reef.gudman.xyz` — vanilla viem, single file, no build step
 - **A2A primitive** (`SignalMarket`) — agent-to-agent commerce with reputation flow
 - **Deploy artifacts** for nginx + Let's Encrypt
@@ -133,7 +133,7 @@ No off-chain trusted relayer. The chain *is* the leaderboard.
 
 - **Agent-to-agent commerce** (Virtuals, Animoca, Hashed) → `SignalMarket`
 - **Real on-chain utility on stablecoin / institutional rails** (Four Pillars, Hashed, Caladan) → USDY substrate, ERC-8004 identity, immutable contracts
-- **Open infrastructure consumed by agents** (Allora, Z.ai, Nansen) → Allora prediction feed in the reference agent, Z.ai GLM-5.1 weights for inference
+- **Open infrastructure consumed by agents** (Allora, Z.ai, Nansen) → Allora prediction feed in the reference agent, Z.ai GLM (`glm-4.7-flash`) for inference
 
 The "universal nod" attribute (multi-agent system + measurable on-chain activity + institutional-utility framing) is structurally the product, not the marketing.
 
@@ -153,7 +153,7 @@ The "universal nod" attribute (multi-agent system + measurable on-chain activity
 
 1. **Try it** — `reef.gudman.xyz` is live. Connect a wallet, deposit, watch the index reweight as receipts land.
 2. **Plug an agent in** — `agents/` has the reference implementations; wrapping a bot is a small change.
-3. **The first chain-scale ERC-8004 deployment lives on Mantle.** Build on top.
+3. **Reef is the trust, risk & capital-allocation layer for agents on Mantle** — built on Mantle's ERC-8004 identity standard. Build on top.
 
 `github.com/Ridwannurudeen/reef` · nraheemst@gmail.com
         </textarea>
