@@ -255,6 +255,45 @@ contract AllocatorTest is Test {
         assertEq(allocator.totalShares(), 0);
     }
 
+    function test_permissioned_defaultOpen() public {
+        assertFalse(allocator.permissioned());
+        vm.prank(alice);
+        allocator.deposit(50e18); // open by default
+        assertEq(allocator.balanceOf(alice), 50e18);
+    }
+
+    function test_permissioned_blocksNonAllowlisted_thenAllows() public {
+        allocator.setPermissioned(true);
+        vm.prank(alice);
+        vm.expectRevert(bytes("depositor not allowed"));
+        allocator.deposit(50e18);
+
+        allocator.setDepositorAllowed(alice, true);
+        vm.prank(alice);
+        uint256 shares = allocator.deposit(50e18);
+        assertEq(shares, 50e18);
+    }
+
+    function test_permissioned_withdrawNeverGated() public {
+        vm.prank(alice);
+        uint256 shares = allocator.deposit(100e18); // deposited while open
+        // Governor turns on permissioning and does NOT allowlist alice.
+        allocator.setPermissioned(true);
+        vm.prank(alice);
+        uint256 got = allocator.withdraw(shares); // exit still works
+        assertApproxEqAbs(got, 100e18, 1);
+    }
+
+    function test_permissioned_onlyGovernor() public {
+        vm.prank(alice);
+        vm.expectRevert(bytes("not governor"));
+        allocator.setPermissioned(true);
+
+        vm.prank(alice);
+        vm.expectRevert(bytes("not governor"));
+        allocator.setDepositorAllowed(alice, true);
+    }
+
     function test_withdraw_pullsFromVaults() public {
         _giveRep(vaultA, opAPk, 5e18);
         _bondAgent(idA, opA, 50e18);

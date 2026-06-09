@@ -198,5 +198,12 @@
         "maxWeightBps": 10000
       }
     ]
+  },
+  "permissionedAllocator": {
+    "_comment": "Permissioned Allocator for compliance-sensitive RWA flows (chain 5003, 2026-06-09). Same trust-weighted mandate allocation as the open instance, but the depositor allowlist is ON: only governor-approved (e.g. KYC'd) addresses may deposit; withdrawals stay open. Real on-chain access control, not a claimed off-chain check. The deployer was allowlisted and made a live 50e18 deposit + rebalance; a non-allowlisted deposit reverts 'depositor not allowed' (proven via eth_call from 0x..dEaD). Mantlescan-verified.",
+    "address": "0xECe0489534C8C16D6A5282315479Fee6928bDB13",
+    "governor": "0xeCF9541C6Ff5e8774A6d8f64B57A4BE473De49eF",
+    "permissioned": true,
+    "activeMandate": 2
   }
 }

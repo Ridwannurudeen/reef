@@ -49,6 +49,14 @@ contract Allocator is ReentrancyGuard, Pausable {
     Mandate[] public mandates;
     uint256 public activeMandate;
 
+    // --- Permissioned LP allowlist (compliance-sensitive RWA flows) ---
+    // Default off: deposits are open. When the governor turns `permissioned` on, only
+    // allowlisted addresses may deposit (e.g. KYC'd / onboarded institutions). Withdrawals are
+    // never gated — a depositor can always exit. This is real on-chain access control, not a
+    // claimed off-chain check.
+    bool public permissioned;
+    mapping(address => bool) public depositorAllowed;
+
     // --- LP share accounting (non-transferable allocator position) ---
     mapping(address => uint256) public balanceOf;
     uint256 public totalShares;
@@ -65,6 +73,8 @@ contract Allocator is ReentrancyGuard, Pausable {
     event Deposit(address indexed lp, uint256 assets, uint256 shares);
     event Withdraw(address indexed lp, uint256 assets, uint256 shares);
     event Rebalanced(uint256 indexed mandateId, uint256 totalAssets, uint256 qualifying);
+    event PermissionedSet(bool enabled);
+    event DepositorAllowed(address indexed depositor, bool allowed);
 
     modifier onlyGovernor() {
         require(msg.sender == governor, "not governor");
@@ -121,6 +131,19 @@ contract Allocator is ReentrancyGuard, Pausable {
         governor = g;
     }
 
+    /// @notice Turn the depositor allowlist on/off. When on, only allowlisted addresses may
+    /// deposit; withdrawals stay open. Default off (permissionless).
+    function setPermissioned(bool enabled) external onlyGovernor {
+        permissioned = enabled;
+        emit PermissionedSet(enabled);
+    }
+
+    /// @notice Allow/deny an address to deposit while `permissioned` is on (e.g. KYC onboarding).
+    function setDepositorAllowed(address depositor, bool allowed) external onlyGovernor {
+        depositorAllowed[depositor] = allowed;
+        emit DepositorAllowed(depositor, allowed);
+    }
+
     function vaultCount() external view returns (uint256) {
         return vaults.length;
     }
@@ -132,6 +155,7 @@ contract Allocator is ReentrancyGuard, Pausable {
     // --- LP deposit / withdraw ---
 
     function deposit(uint256 assets) external nonReentrant whenNotPaused returns (uint256 shares) {
+        require(!permissioned || depositorAllowed[msg.sender], "depositor not allowed");
         require(assets > 0, "zero assets");
         // Virtual offset (+1) neutralizes the first-depositor donation inflation attack
         // while preserving 1:1 minting on the first real deposit.

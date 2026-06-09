@@ -535,6 +535,7 @@
           <div id="allocator-feed">
             <p class="t-empty">Loading allocator…</p>
           </div>
+          <div id="allocator-permissioned"></div>
         </div>
       </section>
 
@@ -1024,6 +1025,29 @@
             .join("");
         }
 
+        function renderPermissioned(dep, base) {
+          var host = document.getElementById("allocator-permissioned");
+          if (!host) return;
+          var p = dep && dep.permissionedAllocator;
+          if (!p || !p.address) {
+            host.innerHTML = "";
+            return;
+          }
+          host.innerHTML =
+            '<div class="t-feed-row" style="margin-top:var(--space-3)"><div class="t-feed-top">' +
+            '<span class="t-action t-action--up"><span class="t-action-dot"></span>Permissioned mode · compliance</span>' +
+            '<span class="t-signal">depositor allowlist ON — only approved addresses deposit; withdrawals stay open</span>' +
+            '<span class="t-when">non-allowlisted deposit reverts "depositor not allowed"</span></div>' +
+            '<p class="t-rationale"><span class="t-rationale-label">instance</span>' +
+            '<a class="t-swap" href="' +
+            esc(base + "/address/" + p.address) +
+            '" target="_blank" rel="noopener">' +
+            esc(p.address) +
+            " " +
+            EXT +
+            "</a></p></div>";
+        }
+
         function renderAllocator(data, base) {
           var host = document.getElementById("allocator-feed");
           if (!host) return;
@@ -1260,6 +1284,7 @@
           renderFeed(res[1], res[2], explorerBase(res[0]));
           renderRisk(res[3], explorerBase(res[0]));
           renderAllocator(res[4], explorerBase(res[0]));
+          renderPermissioned(res[0], explorerBase(res[0]));
           renderA2A(res[5], explorerBase(res[0]));
           renderAlloraBench(res[6]);
           renderStrategyBench(res[7]);
