@@ -1985,6 +1985,29 @@
         </div>
       </section>
 
+      <section id="allocator">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Trust-weighted allocation</div>
+            <h2>Allocator</h2>
+          </div>
+          <p class="section-copy">
+            Don't pick agents — pick a <em>mandate</em>. The on-chain Allocator deposits capital and
+            allocates it across the agents that <em>qualify</em>, weighted by each agent's on-chain
+            Trust Score and capped per-agent for concentration risk. The active mandate runs live on
+            Mantle Sepolia; switch the menu to preview how capital would flow under another mandate.
+          </p>
+        </div>
+        <div id="allocatorHead" class="feed-row muted" style="margin-bottom: var(--space-3)">loading allocator…</div>
+        <div style="margin-bottom: var(--space-3)">
+          <label class="meta" for="mandateSel">Mandate</label>
+          <select id="mandateSel" style="margin-left: 8px; background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 6px 10px; font-family: var(--mono)"></select>
+        </div>
+        <div class="feed" id="allocatorOut">
+          <div class="feed-row muted">loading allocator…</div>
+        </div>
+      </section>
+
       <section id="ai">
         <div class="section-head">
           <div>
@@ -2099,6 +2122,7 @@
       const AI_FEED_URL = "../api/executions.json";
       const STRATEGY_URL = "../api/agents.json";
       const ARENA_URL = "../api/arena.json";
+      const ALLOCATOR_URL = "../api/allocator.json";
       const HISTORY_URL = "../api/history.json";
 
       function addr(a) {
@@ -3132,6 +3156,108 @@
             .join("");
       }
 
+      let allocatorDoc = null;
+      // Mirror Allocator.sol: qualify by minTrust, weight by trust score (equal if all 0),
+      // 2-pass concentration cap (cap = maxWeightBps/100, percent of capital), redistribute
+      // the freed amount to uncapped qualifiers. Fed by REAL on-chain trust scores, so the
+      // active mandate reproduces exactly what is deployed on-chain.
+      function _allocCompute(agents, minTrust, capBps) {
+        const q = agents.filter((a) => (a.trustScorePct || 0) >= minTrust);
+        if (!q.length) return [];
+        const sum = q.reduce((s, a) => s + (a.trustScorePct || 0), 0);
+        const allZero = sum <= 0;
+        const w = (a) => (allZero ? 1 : a.trustScorePct || 0);
+        const totalW = q.reduce((s, a) => s + w(a), 0);
+        const cap = capBps / 100;
+        let freed = 0;
+        let uncappedW = 0;
+        const out = q.map((a) => {
+          let pct = totalW ? (100 * w(a)) / totalW : 0;
+          const capped = pct > cap;
+          if (capped) {
+            freed += pct - cap;
+            pct = cap;
+          } else {
+            uncappedW += w(a);
+          }
+          return { a, pct, capped };
+        });
+        if (freed > 0 && uncappedW > 0) {
+          out.forEach((r) => {
+            if (r.pct >= cap) return;
+            r.pct = Math.min(r.pct + (freed * w(r.a)) / uncappedW, cap);
+          });
+        }
+        return out.sort((x, y) => y.pct - x.pct);
+      }
+      function _fillMandateSelect(doc) {
+        const sel = $("mandateSel");
+        if (!sel || !doc.mandates || sel.dataset.filled === "1") return;
+        sel.innerHTML = doc.mandates
+          .map(
+            (m) =>
+              `<option value="${m.id}"${m.id === doc.activeMandate ? " selected" : ""}>${m.name} — min Trust ${m.minTrustScorePct}${m.id === doc.activeMandate ? " (active on-chain)" : ""}</option>`
+          )
+          .join("");
+        sel.dataset.filled = "1";
+      }
+      function renderAllocator(mandateId) {
+        const host = $("allocatorOut");
+        if (!host) return;
+        const doc = allocatorDoc;
+        if (!doc || !doc.agents || !doc.agents.length) {
+          host.innerHTML = `<div class="feed-row muted">allocator feed unavailable</div>`;
+          return;
+        }
+        const id = mandateId == null || mandateId === "" ? doc.activeMandate : Number(mandateId);
+        const m = (doc.mandates || []).find((x) => x.id === id) || doc.mandates[doc.activeMandate];
+        const rows = _allocCompute(doc.agents, m.minTrustScorePct, m.maxWeightBps);
+        const excluded = doc.agents
+          .filter((a) => (a.trustScorePct || 0) < m.minTrustScorePct)
+          .sort((x, y) => (y.trustScorePct || 0) - (x.trustScorePct || 0));
+        let html = rows.length
+          ? rows
+              .map(
+                (r) => `<div class="feed-row"><div class="feed-line">
+              <span class="badge">agent ${r.a.agentId} · Trust ${r.a.trustScorePct}${r.capped ? " · capped" : ""}</span>
+              <span class="feed-when">${r.pct.toFixed(1)}%</span></div>
+              <span class="wbar" style="display:block;margin-top:6px"><span class="wbar-fill" style="width:${r.pct.toFixed(1)}%"></span></span>
+            </div>`
+              )
+              .join("")
+          : `<div class="feed-row muted">no agents qualify for this mandate</div>`;
+        html += excluded
+          .map(
+            (a) => `<div class="feed-row muted"><div class="feed-line">
+              <span class="badge">agent ${a.agentId} · Trust ${a.trustScorePct}</span>
+              <span class="feed-when">excluded · below ${m.minTrustScorePct}</span></div></div>`
+          )
+          .join("");
+        host.innerHTML = html;
+
+        const head = $("allocatorHead");
+        if (head) {
+          const isActive = id === doc.activeMandate;
+          const total = Number(doc.totalAssetsE18 || "0") / 1e18;
+          head.classList.remove("muted");
+          head.innerHTML = `<div class="feed-line">
+            <span class="badge pos">${m.name} · min Trust ${m.minTrustScorePct} · cap ${(m.maxWeightBps / 100).toFixed(0)}%</span>
+            <span class="feed-when">${rows.length}/${doc.agents.length} qualify</span></div>
+            <span class="meta">${isActive ? `live on-chain · ${total.toLocaleString(undefined, { maximumFractionDigits: 2 })} deployed · ` : "preview · "}Allocator ${addressLink(doc.allocator)}</span>`;
+        }
+      }
+      async function refreshAllocator() {
+        try {
+          const res = await fetch(ALLOCATOR_URL, { cache: "no-store" });
+          if (res.ok) {
+            allocatorDoc = await res.json();
+            _fillMandateSelect(allocatorDoc);
+          }
+        } catch {}
+        const sel = $("mandateSel");
+        renderAllocator(sel ? sel.value : null);
+      }
+
       async function refreshArena() {
         let data;
         try {
@@ -3490,6 +3616,7 @@
         await refreshAiFeed();
         await refreshStrategies();
         await refreshArena();
+        await refreshAllocator();
         if (state.account) renderConn();
       }
 
@@ -3505,8 +3632,16 @@
             refreshAiFeed();
             refreshStrategies();
             refreshArena();
+            refreshAllocator();
           }
         }, 30000);
+        const ms = $("mandateSel");
+        if (ms && !ms._wired) {
+          ms._wired = true;
+          ms.addEventListener("change", function () {
+            renderAllocator(ms.value);
+          });
+        }
       }
 
       function stopPolling() {
