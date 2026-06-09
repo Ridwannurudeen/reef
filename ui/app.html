@@ -2029,6 +2029,26 @@
         </div>
       </section>
 
+      <section id="allora-bench">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Benchmark</div>
+            <h2>Allora accuracy</h2>
+          </div>
+          <p class="section-copy">
+            Reef benchmarks the AI it consumes. Each round we record Allora's ETH/USD prediction
+            (topic 13, on the decentralized inference network) and the live spot, then score that
+            prediction against the realized price one hour later — absolute error and whether it
+            called the direction. Hit-rate and error accumulate in public, so a judge can see how
+            good the signal actually is — not just that we use it.
+          </p>
+        </div>
+        <div id="alloraBenchHead" class="feed-row muted" style="margin-bottom: var(--space-3)">loading benchmark…</div>
+        <div class="feed" id="alloraBenchOut">
+          <div class="feed-row muted">loading benchmark…</div>
+        </div>
+      </section>
+
       <section id="ai">
         <div class="section-head">
           <div>
@@ -2145,6 +2165,7 @@
       const ARENA_URL = "../api/arena.json";
       const ALLOCATOR_URL = "../api/allocator.json";
       const A2A_URL = "../api/a2a.json";
+      const ALLORA_BENCH_URL = "../api/allora-bench.json";
       const HISTORY_URL = "../api/history.json";
 
       function addr(a) {
@@ -3180,6 +3201,7 @@
 
       let allocatorDoc = null;
       let a2aDoc = null;
+      let alloraBenchDoc = null;
       // Mirror Allocator.sol: qualify by minTrust, weight by trust score (equal if all 0),
       // 2-pass concentration cap (cap = maxWeightBps/100, percent of capital), redistribute
       // the freed amount to uncapped qualifiers. Fed by REAL on-chain trust scores, so the
@@ -3313,6 +3335,48 @@
           if (res.ok) a2aDoc = await res.json();
         } catch {}
         renderA2A();
+      }
+
+      function renderAlloraBench() {
+        const host = $("alloraBenchOut");
+        if (!host) return;
+        const doc = alloraBenchDoc;
+        if (!doc || !doc.current) {
+          host.innerHTML = `<div class="feed-row muted">benchmark feed unavailable</div>`;
+          return;
+        }
+        const recent = doc.recent || [];
+        host.innerHTML = recent.length
+          ? recent
+              .map(
+                (r) => `<div class="feed-row"><div class="feed-line">
+              <span class="badge ${r.dirCorrect ? "pos" : "neg"}">direction ${r.dirCorrect ? "✓" : "✗"}</span>
+              <span class="feed-when">${r.errBps.toFixed(1)} bps error</span></div>
+              <span class="meta">predicted $${r.predictedPrice.toLocaleString()} → realized $${r.realizedSpot.toLocaleString()}</span>
+            </div>`
+              )
+              .join("")
+          : `<div class="feed-row muted">accumulating — the first prediction is awaiting its evaluation window</div>`;
+        const head = $("alloraBenchHead");
+        if (head) {
+          const sb = doc.scoreboard || {};
+          const c = doc.current;
+          head.classList.remove("muted");
+          const stat = sb.samples
+            ? `${sb.samples} evaluated · ${sb.hitRatePct}% direction · ${sb.maeBps} bps MAE`
+            : "accumulating…";
+          head.innerHTML = `<div class="feed-line">
+            <span class="badge pos">Allora topic ${doc.topic} · ${doc.asset}/USD</span>
+            <span class="feed-when">${stat}</span></div>
+            <span class="meta">now: predicted $${c.predictedPrice.toLocaleString()} vs spot $${c.spot.toLocaleString()} · implied ${c.impliedBps >= 0 ? "+" : ""}${c.impliedBps} bps · ${Math.round(doc.horizonSec / 60)}m horizon</span>`;
+        }
+      }
+      async function refreshAlloraBench() {
+        try {
+          const res = await fetch(ALLORA_BENCH_URL, { cache: "no-store" });
+          if (res.ok) alloraBenchDoc = await res.json();
+        } catch {}
+        renderAlloraBench();
       }
 
       async function refreshArena() {
@@ -3675,6 +3739,7 @@
         await refreshArena();
         await refreshAllocator();
         await refreshA2A();
+        await refreshAlloraBench();
         if (state.account) renderConn();
       }
 
@@ -3692,6 +3757,7 @@
             refreshArena();
             refreshAllocator();
             refreshA2A();
+            refreshAlloraBench();
           }
         }, 30000);
         const ms = $("mandateSel");
