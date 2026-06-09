@@ -109,12 +109,15 @@
           fetchJson("../api/scores.json"),
           fetchJson("../api/executions.json"),
           fetchJson("../api/guard.json"),
+          fetchJson("../api/allocator.json"),
         ]).then(function (res) {
           var dep = res[0] || {};
           var scores = (res[1] && res[1].agents) || [];
           var exes = (res[2] && res[2].executions) || [];
           var guardDoc = res[3] || {};
           var guard = ((guardDoc.agents || []).filter(function (g) { return String(g.agentId) === String(id); })[0]) || null;
+          var allocAgent = (((res[4] && res[4].agents) || []).filter(function (a) { return String(a.agentId) === String(id); })[0]) || null;
+          var policy = (dep.reefGuard && dep.reefGuard.policy) || null;
           var base = explorer(dep);
           var sc = scores.filter(function (s) { return String(s.agentId) === String(id); })[0] || {};
           var vaults = (dep.seeded && dep.seeded.vaults) || [];
@@ -140,7 +143,9 @@
             cell("Bond posted", bond + (sc.bonded ? " ✓" : "")) +
             cell("Last receipt", sc.receiptAgeSec != null ? ago(Math.floor(Date.now() / 1000) - sc.receiptAgeSec) : "—") +
             cell("Vault", vault ? '<a class="r-link" href="' + base + "/address/" + vault + '" target="_blank" rel="noopener">' + vault.slice(0, 8) + "…↗</a>" : "—") +
-            cell("ReefGuard", guard ? (guard.allowed ? '<span style="color:var(--accent)">✓ cleared</span>' : '<span style="color:var(--red)">✗ ' + esc(guard.reason) + "</span>") : "—");
+            cell("ReefGuard", guard ? (guard.allowed ? '<span style="color:var(--accent)">✓ cleared</span>' : '<span style="color:var(--red)">✗ ' + esc(guard.reason) + "</span>") : "—") +
+            cell("Allocation", allocAgent ? (allocAgent.qualified ? ((allocAgent.targetWeightBps || 0) / 100).toFixed(1) + "%" : "excluded") : "—") +
+            cell("Risk limits", policy ? "≤" + (Number(policy.maxSizeBps) / 100) + "% size · bond ≥" + (Number(policy.minBondE18) / 1e18) + " · rep ≥" + (Number(policy.minReputationE18) / 1e18) : "—");
 
           var comp = sc.components || {};
           document.getElementById("p-components").innerHTML =
