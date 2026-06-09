@@ -495,6 +495,29 @@
         </div>
       </section>
 
+      <!-- ReefGuard policy gate -->
+      <section class="r-section" id="reefguard">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Policy gate</span>
+            <h2 class="r-h2">Can this agent touch this capital right now?</h2>
+            <p class="r-lead">
+              ReefGuard is the on-chain primitive any Mantle protocol can call <em>before</em>
+              letting an autonomous agent move capital. One pure-view call —
+              <code>canExecute(agentId, asset, sizeBps)</code> — checks registration, ERC-8004
+              reputation, posted bond, open disputes, an asset allowlist, and the action size,
+              and returns <code>(allowed, reason)</code>. A reference external protocol
+              (<code>MockProtocol</code>) is deployed wired to the live gate: it reverts with the
+              exact policy reason when an agent isn't cleared, and executed a real gated action
+              on-chain when one was. This is what makes Reef infrastructure, not a dashboard.
+            </p>
+          </div>
+          <div id="reefguard-feed">
+            <p class="t-empty">Loading policy gate…</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Allocator mandates -->
       <section class="r-section" id="allocator">
         <div class="r-container">
@@ -692,6 +715,60 @@
             '<h3 class="t-group-title">' + esc(title) + "</h3>" +
             (note ? '<span class="t-group-note">' + esc(note) + "</span>" : "") +
             "</div>" + body + "</div>";
+        }
+
+        function renderReefGuard(data, base) {
+          var host = document.getElementById("reefguard-feed");
+          if (!host) return;
+          var g = data && data.reefGuard;
+          if (!g || !g.address) {
+            host.innerHTML =
+              '<p class="t-empty">The on-chain policy gate and its example integrator appear here.</p>';
+            return;
+          }
+          var p = g.policy || {};
+          var minRep = p.minReputationE18 != null ? Number(p.minReputationE18) / 1e18 : null;
+          var minBond = p.minBondE18 != null ? Number(p.minBondE18) / 1e18 : null;
+          var maxPct = p.maxSizeBps != null ? Number(p.maxSizeBps) / 100 : null;
+          var policyStr = [
+            minRep != null ? "min reputation " + minRep : null,
+            minBond != null ? "min bond " + minBond : null,
+            maxPct != null ? "max size " + maxPct + "%" : null,
+          ]
+            .filter(Boolean)
+            .join(" · ");
+          var head =
+            '<div class="t-feed-row"><div class="t-feed-top">' +
+            '<span class="t-action t-action--up"><span class="t-action-dot"></span>ReefGuard · live policy</span>' +
+            '<span class="t-signal">' +
+            esc(policyStr) +
+            "</span>" +
+            '<span class="t-when">canExecute → (allowed, reason)</span></div>' +
+            '<p class="t-rationale"><span class="t-rationale-label">gate</span>' +
+            '<a class="t-swap" href="' +
+            esc(base + "/address/" + g.address) +
+            '" target="_blank" rel="noopener">' +
+            esc(g.address) +
+            " " +
+            EXT +
+            "</a></p></div>";
+          var rows = "";
+          if (g.mockProtocol) {
+            rows =
+              '<div class="t-feed-row"><div class="t-feed-top">' +
+              '<span class="t-action t-action--up"><span class="t-action-dot"></span>Example external integrator</span>' +
+              '<span class="t-signal">calls canExecute() before executing — reverts with the policy reason if not cleared</span>' +
+              '<span class="t-when">live gated action ✓</span></div>' +
+              '<p class="t-rationale"><span class="t-rationale-label">MockProtocol</span>' +
+              '<a class="t-swap" href="' +
+              esc(base + "/address/" + g.mockProtocol) +
+              '" target="_blank" rel="noopener">' +
+              esc(g.mockProtocol) +
+              " " +
+              EXT +
+              "</a></p></div>";
+          }
+          host.innerHTML = head + rows;
         }
 
         function renderContracts(data) {
@@ -1123,6 +1200,7 @@
           fetchJson("../api/allora-bench.json"),
         ]).then(function (res) {
           renderContracts(res[0]);
+          renderReefGuard(res[0], explorerBase(res[0]));
           renderFeed(res[1], res[2], explorerBase(res[0]));
           renderRisk(res[3], explorerBase(res[0]));
           renderAllocator(res[4], explorerBase(res[0]));
