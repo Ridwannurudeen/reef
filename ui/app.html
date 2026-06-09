@@ -1620,6 +1620,7 @@
           <a href="#arena">Arena</a>
           <a href="#proof">Proof</a>
           <a href="#ai">AI</a>
+          <a href="#a2a">Market</a>
           <a href="#activity">Activity</a>
           <a href="/transparency">Transparency</a>
         </nav>
@@ -2008,6 +2009,26 @@
         </div>
       </section>
 
+      <section id="a2a">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Agent-to-agent economy</div>
+            <h2>Signal market</h2>
+          </div>
+          <p class="section-copy">
+            Agents don't just allocate capital — they <em>trade</em> with each other. Providers list
+            priced signals under a category; consumers buy them and payment routes peer-to-peer. Every
+            sale and the lifetime revenue per provider is tracked <em>on-chain</em> (no log scanning),
+            so the marketplace volume is verifiable. Buying a signal never credits reputation — that
+            stays vault-only, so the A2A market can't be used to farm trust.
+          </p>
+        </div>
+        <div id="a2aHead" class="feed-row muted" style="margin-bottom: var(--space-3)">loading market…</div>
+        <div class="feed" id="a2aOut">
+          <div class="feed-row muted">loading market…</div>
+        </div>
+      </section>
+
       <section id="ai">
         <div class="section-head">
           <div>
@@ -2123,6 +2144,7 @@
       const STRATEGY_URL = "../api/agents.json";
       const ARENA_URL = "../api/arena.json";
       const ALLOCATOR_URL = "../api/allocator.json";
+      const A2A_URL = "../api/a2a.json";
       const HISTORY_URL = "../api/history.json";
 
       function addr(a) {
@@ -3157,6 +3179,7 @@
       }
 
       let allocatorDoc = null;
+      let a2aDoc = null;
       // Mirror Allocator.sol: qualify by minTrust, weight by trust score (equal if all 0),
       // 2-pass concentration cap (cap = maxWeightBps/100, percent of capital), redistribute
       // the freed amount to uncapped qualifiers. Fed by REAL on-chain trust scores, so the
@@ -3256,6 +3279,40 @@
         } catch {}
         const sel = $("mandateSel");
         renderAllocator(sel ? sel.value : null);
+      }
+
+      function renderA2A() {
+        const host = $("a2aOut");
+        if (!host) return;
+        const doc = a2aDoc;
+        if (!doc || !doc.listings || !doc.listings.length) {
+          host.innerHTML = `<div class="feed-row muted">marketplace feed unavailable</div>`;
+          return;
+        }
+        host.innerHTML = doc.listings
+          .map(
+            (l) => `<div class="feed-row"><div class="feed-line">
+              <span class="badge">${l.provider} · ${l.category}</span>
+              <span class="feed-when">${l.priceMnt.toFixed(4)} MNT</span></div>
+              <span class="meta">${l.sales} ${l.sales === 1 ? "sale" : "sales"} · ${l.revenueMnt.toFixed(4)} MNT earned</span>
+            </div>`
+          )
+          .join("");
+        const head = $("a2aHead");
+        if (head) {
+          head.classList.remove("muted");
+          head.innerHTML = `<div class="feed-line">
+            <span class="badge pos">${doc.activeListings} listings · ${doc.totalSales} sales</span>
+            <span class="feed-when">${doc.totalRevenueMnt.toFixed(4)} MNT volume</span></div>
+            <span class="meta">live on-chain · SignalMarket ${addressLink(doc.signalMarket)}</span>`;
+        }
+      }
+      async function refreshA2A() {
+        try {
+          const res = await fetch(A2A_URL, { cache: "no-store" });
+          if (res.ok) a2aDoc = await res.json();
+        } catch {}
+        renderA2A();
       }
 
       async function refreshArena() {
@@ -3617,6 +3674,7 @@
         await refreshStrategies();
         await refreshArena();
         await refreshAllocator();
+        await refreshA2A();
         if (state.account) renderConn();
       }
 
@@ -3633,6 +3691,7 @@
             refreshStrategies();
             refreshArena();
             refreshAllocator();
+            refreshA2A();
           }
         }, 30000);
         const ms = $("mandateSel");
