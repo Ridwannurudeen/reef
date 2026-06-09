@@ -4,9 +4,11 @@ pragma solidity ^0.8.20;
 import {IIdentityRegistry, IReputationRegistry, IValidationRegistry} from "./interfaces/IERC8004.sol";
 
 /// @title AgentIdentity
-/// @notice First chain-scale ERC-8004 deployment on Mantle. Combines the three
-/// registries (Identity, Reputation, Validation) defined in EIP-8004 into one
-/// contract for deploy simplicity; the interface methods match the spec.
+/// @notice ERC-8004 agent identity for Reef, on Mantle (Mantle deployed the official
+/// ERC-8004 registry to its mainnet in Feb 2026; this is Reef's own instance built on
+/// that standard). Combines the three registries (Identity, Reputation, Validation)
+/// defined in EIP-8004 into one contract for deploy simplicity; the interface methods
+/// match the spec.
 contract AgentIdentity is IIdentityRegistry, IReputationRegistry, IValidationRegistry {
     // --- Identity ---
 

@@ -3,13 +3,13 @@
 Python reference implementations of two Reef Sovereign agents:
 
 - **`allora_agent/`** — consumes [Allora](https://docs.allora.network) price-prediction
-  topics, asks GLM-5.1 for an action, publishes a signed receipt to its `AgentVault`.
+  topics, asks GLM (glm-4.7-flash) for an action, publishes a signed receipt to its `AgentVault`.
 - **`nansen_agent/`** — consumes a smart-money-inflow signal (mock in v1, real
   Nansen MCP to follow) and does the same.
 
 Both agents:
 1. Fetch an external signal.
-2. Ask Z.ai GLM-5.1 to return `{action, nav_delta_bps, reasoning}`.
+2. Ask Z.ai GLM (glm-4.7-flash) to return `{action, nav_delta_bps, reasoning}`.
 3. Build `abi.encode(uint256 seq, bytes32 evidenceHash, int256 navDelta, uint64 period)`.
 4. Call `AgentVault.publishReceipt(payload)` from the registered operator wallet.
 5. Print the tx hash + the updated `AgentIdentity.getSummary` reputation tuple.
@@ -48,7 +48,7 @@ cp .env.example .env                 # then fill in real values
 | `IDENTITY_ADDR` | AgentIdentity contract address (overrides the deployment JSON). |
 | `VAULT_ADDRESS` | The AgentVault this agent runs against. |
 | `ALLORA_API_KEY` | Allora consumer key (allora_agent only). |
-| `ZAI_API_KEY` | Z.ai key for GLM-5.1. Optional — without it, agents use the fallback rule. |
+| `ZAI_API_KEY` | Z.ai key for GLM (glm-4.7-flash). Optional — without it, agents use the fallback rule. |
 
 ### Optional env
 
@@ -57,7 +57,7 @@ cp .env.example .env                 # then fill in real values
 | `AGENT_POLL_INTERVAL_S` | `30` | Seconds between iterations. |
 | `ALLORA_TOPIC_ID` | `14` | Allora topic id (ETH/USD 5-min predictions, per Allora docs). |
 | `ALLORA_CHAIN_ID` | `1` | Allora consumer chain id slug. |
-| `ZAI_MODEL` | `glm-5.1` | Z.ai model id. |
+| `ZAI_MODEL` | `glm-4.7-flash` | Z.ai model id. |
 | `ZAI_BASE_URL` | `https://api.z.ai/v4` | Z.ai API root. Set to `https://api.z.ai/api/paas/v4` if your key uses the public docs path. |
 
 ## Bootstrapping a brand-new agent

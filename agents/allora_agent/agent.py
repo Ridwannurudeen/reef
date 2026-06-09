@@ -2,7 +2,7 @@
 
 Loop:
   1. Fetch the configured Allora topic prediction.
-  2. Ask GLM-5.1 (or fallback) for an action + nav_delta_bps.
+  2. Ask GLM (glm-4.7-flash) (or fallback) for an action + nav_delta_bps.
   3. abi.encode the receipt and call AgentVault.publishReceipt.
   4. Print tx hash + new reputation summary.
 """

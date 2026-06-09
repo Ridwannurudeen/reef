@@ -11,7 +11,7 @@ project, and (2) the **autonomous AI agents** that are the product itself.
   Solidity, the Python reference agents/keeper, the viem dashboard, and the docs, under
   continuous human direction (architecture, scope, and review decisions were the human's).
 - **What AI did *not* do unchecked:** every contract change was compiled and run against
-  the Foundry test suite (`forge test`, 132 tests incl. 2 live-mainnet fork tests) before
+  the Foundry test suite (`forge test`, 175 tests incl. live-mainnet fork tests) before
   merge; every on-chain deploy was verified by reading the chain back, and every contract
   is source-verified on Mantlescan. Claims in the docs were reconciled against the actual
   source and on-chain state (test counts, addresses, the receipt mechanism).
