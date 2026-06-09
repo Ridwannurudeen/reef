@@ -535,6 +535,26 @@
         </div>
       </section>
 
+      <!-- Allora accuracy benchmark -->
+      <section class="r-section" id="allora-bench">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Benchmark</span>
+            <h2 class="r-h2">We benchmark the AI we consume</h2>
+            <p class="r-lead">
+              Each round Reef records Allora's ETH/USD prediction (topic 13, on the decentralized
+              inference network) and the live spot, then scores that prediction against the realized
+              price one hour later — absolute error and whether it called the direction. The hit-rate
+              and mean error accumulate in public, so the quality of the signal is measured, not
+              asserted.
+            </p>
+          </div>
+          <div id="allora-bench-feed">
+            <p class="t-empty">Loading benchmark…</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Scope & honesty -->
       <section class="r-section" id="scope">
         <div class="r-container">
@@ -1030,6 +1050,69 @@
           host.innerHTML = head + rows;
         }
 
+        function renderAlloraBench(data) {
+          var host = document.getElementById("allora-bench-feed");
+          if (!host) return;
+          if (!data || !data.current) {
+            host.innerHTML =
+              '<p class="t-empty">Allora’s prediction accuracy, scored against the ' +
+              "realized price, appears here.</p>";
+            return;
+          }
+          var sb = data.scoreboard || {};
+          var c = data.current;
+          var horizonMin = Math.round((data.horizonSec || 3600) / 60);
+          var stat = sb.samples
+            ? sb.samples + " evaluated · " + sb.hitRatePct + "% direction · " + sb.maeBps + " bps MAE"
+            : "accumulating…";
+          var head =
+            '<div class="t-feed-row"><div class="t-feed-top">' +
+            '<span class="t-action t-action--up"><span class="t-action-dot"></span>Allora topic ' +
+            esc(String(data.topic)) +
+            " · " +
+            esc(String(data.asset)) +
+            "/USD</span>" +
+            '<span class="t-signal">' +
+            esc(stat) +
+            "</span>" +
+            '<span class="t-when">' +
+            horizonMin +
+            "m horizon</span></div>" +
+            '<p class="t-rationale"><span class="t-rationale-label">now</span>predicted $' +
+            esc(Number(c.predictedPrice).toLocaleString()) +
+            " vs spot $" +
+            esc(Number(c.spot).toLocaleString()) +
+            " · implied " +
+            (c.impliedBps >= 0 ? "+" : "") +
+            esc(String(c.impliedBps)) +
+            " bps</p></div>";
+          var recent = Array.isArray(data.recent) ? data.recent : [];
+          var rows = recent.length
+            ? recent
+                .map(function (r) {
+                  r = r || {};
+                  return (
+                    '<div class="t-feed-row"><div class="t-feed-top">' +
+                    '<span class="t-action t-action--' +
+                    (r.dirCorrect ? "up" : "down") +
+                    '"><span class="t-action-dot"></span>direction ' +
+                    (r.dirCorrect ? "✓" : "✗") +
+                    "</span>" +
+                    '<span class="t-signal">predicted $' +
+                    esc(Number(r.predictedPrice).toLocaleString()) +
+                    " → realized $" +
+                    esc(Number(r.realizedSpot).toLocaleString()) +
+                    "</span>" +
+                    '<span class="t-when">' +
+                    esc(Number(r.errBps).toFixed(1)) +
+                    " bps</span></div></div>"
+                  );
+                })
+                .join("")
+            : '<p class="t-empty">The first prediction is awaiting its evaluation window.</p>';
+          host.innerHTML = head + rows;
+        }
+
         Promise.all([
           fetchJson("../deployments/mantle-sepolia.json"),
           fetchJson("../api/decisions.json"),
@@ -1037,12 +1120,14 @@
           fetchJson("../api/risk.json"),
           fetchJson("../api/allocator.json"),
           fetchJson("../api/a2a.json"),
+          fetchJson("../api/allora-bench.json"),
         ]).then(function (res) {
           renderContracts(res[0]);
           renderFeed(res[1], res[2], explorerBase(res[0]));
           renderRisk(res[3], explorerBase(res[0]));
           renderAllocator(res[4], explorerBase(res[0]));
           renderA2A(res[5], explorerBase(res[0]));
+          renderAlloraBench(res[6]);
         });
       })();
     </script>
