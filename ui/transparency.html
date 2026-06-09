@@ -495,6 +495,26 @@
         </div>
       </section>
 
+      <!-- Allocator mandates -->
+      <section class="r-section" id="allocator">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Trust-weighted capital allocation</span>
+            <h2 class="r-h2">Pick a mandate — capital flows to the agents that qualify</h2>
+            <p class="r-lead">
+              The on-chain Allocator computes each agent's Trust Score from the same four
+              components as the rating (reputation, receipt freshness, drawdown, bond) and
+              allocates capital across the agents that clear the active mandate's bar — weighted
+              by trust and capped per-agent for concentration risk. Same score, on-chain, so the
+              allocation is verifiable, not asserted.
+            </p>
+          </div>
+          <div id="allocator-feed">
+            <p class="t-empty">Loading allocator…</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Scope & honesty -->
       <section class="r-section" id="scope">
         <div class="r-container">
@@ -868,15 +888,82 @@
             .join("");
         }
 
+        function renderAllocator(data, base) {
+          var host = document.getElementById("allocator-feed");
+          if (!host) return;
+          var agents = data && Array.isArray(data.agents) ? data.agents : [];
+          var mandates = (data && data.mandates) || [];
+          var m = mandates[data && data.activeMandate];
+          if (!agents.length || !m) {
+            host.innerHTML =
+              '<p class="t-empty">The active mandate and its trust-weighted allocation ' +
+              "across qualifying agents appears here.</p>";
+            return;
+          }
+          var total = Number((data && data.totalAssetsE18) || "0") / 1e18;
+          var qualifying = agents.filter(function (a) {
+            return a.qualified;
+          }).length;
+          var head =
+            '<div class="t-feed-row"><div class="t-feed-top">' +
+            '<span class="t-action t-action--up"><span class="t-action-dot"></span>' +
+            esc(m.name) +
+            "</span>" +
+            '<span class="t-signal">min Trust ' +
+            esc(String(m.minTrustScorePct)) +
+            " · cap " +
+            esc(expPct(m.maxWeightBps)) +
+            "</span>" +
+            '<span class="t-signal">' +
+            qualifying +
+            "/" +
+            agents.length +
+            " qualify</span>" +
+            '<span class="t-when">' +
+            esc(total.toLocaleString(undefined, { maximumFractionDigits: 2 })) +
+            " deployed</span></div>" +
+            '<p class="t-rationale"><span class="t-rationale-label">allocator</span>' +
+            '<a class="t-swap" href="' +
+            esc(base + "/address/" + data.allocator) +
+            '" target="_blank" rel="noopener">' +
+            esc(data.allocator) +
+            " " +
+            EXT +
+            "</a></p></div>";
+          var rows = agents
+            .map(function (a) {
+              a = a || {};
+              var ok = !!a.qualified;
+              return (
+                '<div class="t-feed-row"><div class="t-feed-top">' +
+                '<span class="t-action t-action--' +
+                (ok ? "up" : "flat") +
+                '"><span class="t-action-dot"></span>agent ' +
+                esc(String(a.agentId)) +
+                "</span>" +
+                '<span class="t-signal">Trust ' +
+                esc(String(a.trustScorePct)) +
+                "</span>" +
+                '<span class="t-when">' +
+                (ok ? esc(expPct(a.targetWeightBps)) : "excluded") +
+                "</span></div></div>"
+              );
+            })
+            .join("");
+          host.innerHTML = head + rows;
+        }
+
         Promise.all([
           fetchJson("../deployments/mantle-sepolia.json"),
           fetchJson("../api/decisions.json"),
           fetchJson("../api/executions.json"),
           fetchJson("../api/risk.json"),
+          fetchJson("../api/allocator.json"),
         ]).then(function (res) {
           renderContracts(res[0]);
           renderFeed(res[1], res[2], explorerBase(res[0]));
           renderRisk(res[3], explorerBase(res[0]));
+          renderAllocator(res[4], explorerBase(res[0]));
         });
       })();
     </script>
