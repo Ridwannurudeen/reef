@@ -1,0 +1,14 @@
+{
+  "name": "@reef/sdk",
+  "version": "0.1.0",
+  "description": "Zero-dependency client for the ReefGuard policy gate and Agent Passport API on Mantle.",
+  "type": "module",
+  "main": "reef.js",
+  "types": "reef.d.ts",
+  "exports": {
+    ".": "./reef.js"
+  },
+  "files": ["reef.js", "reef.d.ts", "README.md"],
+  "keywords": ["mantle", "erc-8004", "reef", "reefguard", "ai-agents", "rwa"],
+  "license": "MIT"
+}
