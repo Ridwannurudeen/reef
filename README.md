@@ -62,6 +62,16 @@ forge build
 forge test
 ```
 
+## Build on Reef
+
+Reef is infrastructure other Mantle protocols can call — gate any agent action behind the
+on-chain policy, or read an agent's trust:
+
+- **Solidity** — inherit `ReefGuarded` (`src/ReefGuarded.sol`) and add the `onlyCleared` modifier; the call reverts with ReefGuard's exact policy reason if the agent isn't cleared.
+- **JS / TS** — `@reef/sdk` (`sdk/`), zero-dependency: `canExecute()` + the Agent Passport API (`/api/agent/<id>.json`).
+
+See [INTEGRATION.md](INTEGRATION.md). Live reference: `MockProtocol` (Mantlescan-verified) gated a real agent action on-chain.
+
 ## Contact
 
 nraheemst@gmail.com
