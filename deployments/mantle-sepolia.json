@@ -150,7 +150,9 @@
       "minReputationE18": "500000000000000000",
       "minBondE18": "10000000000000000000",
       "maxSizeBps": 5000
-    }
+    },
+    "mockProtocol": "0x9ef3Feb3C404651C8d240c529969B99b743dE8D0",
+    "mockProtocolNote": "Reference EXTERNAL protocol (chain 5003, 2026-06-09) that gates an agent action behind ReefGuard.canExecute() before letting it touch capital - reverts with the policy reason if not cleared. Deployed wired to the live ReefGuard; a real gated action executed on-chain for agent 1 (emits ActionExecuted). Proves Reef is infrastructure other Mantle protocols call, not a dashboard. Mantlescan-verified."
   },
   "a2a": {
     "_comment": "Agent-to-agent (A2A) signal marketplace (chain 5003, 2026-06-09). Standalone AgentIdentity + SignalMarket: provider agents list priced signals under categories; consumer agents buy them and payment routes provider->wallet. Lifetime sales/revenue are tracked ON-CHAIN per provider (salesOf/revenueOf) + globally (totalSales/totalRevenueWei) and read in one call via getActiveListings() - no log scanning. Reputation is NOT credited by purchases (vault-only model, so A2A cannot farm ERC-8004 reputation). Seeded with 3 listings + 3 real purchases. Deployed from the arena key (also each agent's wallet). Isolated from the live leaderboard instance. Mantlescan-verified.",
