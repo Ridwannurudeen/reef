@@ -74,7 +74,9 @@ _ALLOCATOR_ABI = [
 
 def _pct(score_wad: int) -> float:
     # Trust Score is WAD (1e18 == 100/100); render as a 0-100 figure like the off-chain rating.
-    return round(score_wad / 1e16, 1)
+    # FLOOR to 1 decimal (not round) so a displayed score never crosses a mandate threshold the
+    # on-chain contract doesn't — keeps the dashboard's client-side qualification == on-chain.
+    return (int(score_wad) // 10**15) / 10
 
 
 def _mandate(alloc, i: int) -> dict:
