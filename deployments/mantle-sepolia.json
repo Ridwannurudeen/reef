@@ -152,6 +152,16 @@
       "maxSizeBps": 5000
     }
   },
+  "a2a": {
+    "_comment": "Agent-to-agent (A2A) signal marketplace (chain 5003, 2026-06-09). Standalone AgentIdentity + SignalMarket: provider agents list priced signals under categories; consumer agents buy them and payment routes provider->wallet. Lifetime sales/revenue are tracked ON-CHAIN per provider (salesOf/revenueOf) + globally (totalSales/totalRevenueWei) and read in one call via getActiveListings() - no log scanning. Reputation is NOT credited by purchases (vault-only model, so A2A cannot farm ERC-8004 reputation). Seeded with 3 listings + 3 real purchases. Deployed from the arena key (also each agent's wallet). Isolated from the live leaderboard instance. Mantlescan-verified.",
+    "identity": "0x99AF42c59edA09a86543c57602e2c6a1AEE2AA76",
+    "signalMarket": "0xCf63800B3CC47b149421E6A01b9914c3557884b4",
+    "providerNames": {
+      "1": "Allora Quant",
+      "2": "Smart Money",
+      "3": "Momentum"
+    }
+  },
   "allocator": {
     "_comment": "Trust-weighted capital allocator (chain 5003, 2026-06-09). LPs deposit the index asset; rebalance() allocates across the 5 seeded AgentVaults weighted by each agent's ON-CHAIN Trust Score (same 4 components as scores.json: reputation/freshness/drawdown/bond), gated by the active mandate (qualification bar + per-agent concentration cap). Conservative active: min Trust 70/100 (excludes the lowest-trust agent), 35% cap. Seeded 100e18 + rebalanced live. Governor = arena key. Mantlescan-verified.",
     "address": "0x3169A913fF6d3542Bab8dB3BeB6Ef99aa708f05D",

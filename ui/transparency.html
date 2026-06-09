@@ -515,6 +515,26 @@
         </div>
       </section>
 
+      <!-- A2A signal market -->
+      <section class="r-section" id="a2a">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Agent-to-agent economy</span>
+            <h2 class="r-h2">Agents buy and sell signals — and the volume is on-chain</h2>
+            <p class="r-lead">
+              The SignalMarket lets a provider agent list a priced signal under a category; a
+              consumer agent buys it and payment routes peer-to-peer. Lifetime sales and revenue per
+              provider are tracked on-chain — read in one getActiveListings call, no log scanning —
+              so the marketplace volume is verifiable, not asserted. Purchases never credit
+              reputation (vault-only model), so the A2A market can't be used to farm trust.
+            </p>
+          </div>
+          <div id="a2a-feed">
+            <p class="t-empty">Loading market…</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Scope & honesty -->
       <section class="r-section" id="scope">
         <div class="r-container">
@@ -953,17 +973,76 @@
           host.innerHTML = head + rows;
         }
 
+        function renderA2A(data, base) {
+          var host = document.getElementById("a2a-feed");
+          if (!host) return;
+          var listings = data && Array.isArray(data.listings) ? data.listings : [];
+          if (!listings.length) {
+            host.innerHTML =
+              '<p class="t-empty">The on-chain signal marketplace and its per-provider ' +
+              "sales volume appears here.</p>";
+            return;
+          }
+          var head =
+            '<div class="t-feed-row"><div class="t-feed-top">' +
+            '<span class="t-action t-action--up"><span class="t-action-dot"></span>' +
+            (data.activeListings || listings.length) +
+            " listings</span>" +
+            '<span class="t-signal">' +
+            (data.totalSales || 0) +
+            " sales</span>" +
+            '<span class="t-when">' +
+            esc(Number(data.totalRevenueMnt || 0).toFixed(4)) +
+            " MNT volume</span></div>" +
+            '<p class="t-rationale"><span class="t-rationale-label">SignalMarket</span>' +
+            '<a class="t-swap" href="' +
+            esc(base + "/address/" + data.signalMarket) +
+            '" target="_blank" rel="noopener">' +
+            esc(data.signalMarket) +
+            " " +
+            EXT +
+            "</a></p></div>";
+          var rows = listings
+            .map(function (l) {
+              l = l || {};
+              var sold = (l.sales || 0) > 0;
+              return (
+                '<div class="t-feed-row"><div class="t-feed-top">' +
+                '<span class="t-action t-action--' +
+                (sold ? "up" : "flat") +
+                '"><span class="t-action-dot"></span>' +
+                esc(l.provider) +
+                "</span>" +
+                '<span class="t-signal">' +
+                esc(l.category) +
+                " · " +
+                esc(Number(l.priceMnt || 0).toFixed(4)) +
+                " MNT</span>" +
+                '<span class="t-when">' +
+                (l.sales || 0) +
+                (l.sales === 1 ? " sale" : " sales") +
+                " · " +
+                esc(Number(l.revenueMnt || 0).toFixed(4)) +
+                " MNT</span></div></div>"
+              );
+            })
+            .join("");
+          host.innerHTML = head + rows;
+        }
+
         Promise.all([
           fetchJson("../deployments/mantle-sepolia.json"),
           fetchJson("../api/decisions.json"),
           fetchJson("../api/executions.json"),
           fetchJson("../api/risk.json"),
           fetchJson("../api/allocator.json"),
+          fetchJson("../api/a2a.json"),
         ]).then(function (res) {
           renderContracts(res[0]);
           renderFeed(res[1], res[2], explorerBase(res[0]));
           renderRisk(res[3], explorerBase(res[0]));
           renderAllocator(res[4], explorerBase(res[0]));
+          renderA2A(res[5], explorerBase(res[0]));
         });
       })();
     </script>
