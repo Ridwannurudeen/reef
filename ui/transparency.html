@@ -578,6 +578,25 @@
         </div>
       </section>
 
+      <!-- Strategy track record -->
+      <section class="r-section" id="strategy-bench">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Track record</span>
+            <h2 class="r-h2">Every strategy carries a verifiable track record</h2>
+            <p class="r-lead">
+              Each competing strategy accrues a public scoreboard: directional accuracy over many
+              rounds (was the call right?) plus capital performance on its on-chain vault — ROI
+              since inception and worst peak-to-trough drawdown. Decision quality and capital
+              outcome, side by side, accumulating — not a pitch-deck number.
+            </p>
+          </div>
+          <div id="strategy-bench-feed">
+            <p class="t-empty">Loading track record…</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Scope & honesty -->
       <section class="r-section" id="scope">
         <div class="r-container">
@@ -1127,6 +1146,42 @@
           host.innerHTML = head + rows;
         }
 
+        function renderStrategyBench(data) {
+          var host = document.getElementById("strategy-bench-feed");
+          if (!host) return;
+          var rows = (data && data.strategies) || [];
+          if (!rows.length) {
+            host.innerHTML = '<p class="t-empty">Per-strategy accuracy, ROI and drawdown appear here.</p>';
+            return;
+          }
+          host.innerHTML = rows
+            .map(function (s) {
+              s = s || {};
+              var acc = s.accuracyPct != null ? s.accuracyPct + "% accuracy (" + (s.rounds || 0) + " rounds)" : "—";
+              var roi = s.roiBps != null ? "ROI " + (s.roiBps >= 0 ? "+" : "") + (s.roiBps / 100).toFixed(2) + "%" : "ROI —";
+              var dd = s.maxDrawdownBps != null ? "maxDD " + (s.maxDrawdownBps / 100).toFixed(2) + "%" : "";
+              var up = (s.roiBps || 0) >= 0;
+              return (
+                '<div class="t-feed-row"><div class="t-feed-top">' +
+                '<span class="t-action t-action--' +
+                (up ? "up" : "down") +
+                '"><span class="t-action-dot"></span>' +
+                esc(s.name) +
+                "</span>" +
+                '<span class="t-signal">' +
+                esc(acc) +
+                "</span>" +
+                '<span class="t-when">' +
+                esc(roi) +
+                (dd ? " · " + esc(dd) : "") +
+                "</span></div>" +
+                (s.edge ? '<p class="t-rationale"><span class="t-rationale-label">edge</span>' + esc(s.edge) + "</p>" : "") +
+                "</div>"
+              );
+            })
+            .join("");
+        }
+
         function renderAlloraBench(data) {
           var host = document.getElementById("allora-bench-feed");
           if (!host) return;
@@ -1198,6 +1253,7 @@
           fetchJson("../api/allocator.json"),
           fetchJson("../api/a2a.json"),
           fetchJson("../api/allora-bench.json"),
+          fetchJson("../api/strategy-bench.json"),
         ]).then(function (res) {
           renderContracts(res[0]);
           renderReefGuard(res[0], explorerBase(res[0]));
@@ -1206,6 +1262,7 @@
           renderAllocator(res[4], explorerBase(res[0]));
           renderA2A(res[5], explorerBase(res[0]));
           renderAlloraBench(res[6]);
+          renderStrategyBench(res[7]);
         });
       })();
     </script>
