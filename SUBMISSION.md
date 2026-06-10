@@ -100,7 +100,7 @@ AgentIndex
 | Hackathon deck | `slides.html` (reveal.js) |
 | nginx + cert deploy config | `deploy/` |
 
-**Total: 175 tests, all passing** (`forge test`) — unit + fuzz/invariant suites + 2 live-mainnet fork integration tests. All deployed Sepolia contracts are verified on Mantlescan. Forge 1.7.1, solc 0.8.24, evm_version paris. Internal security review in `SECURITY.md`.
+**Total: 191 tests, all passing** (`forge test`) — unit + fuzz/invariant suites + 5 live-mainnet fork integration tests. All deployed Sepolia contracts are verified on Mantlescan. Forge 1.7.1, solc 0.8.24, evm_version paris. Internal security review in `SECURITY.md`.
 
 ## Hackathon Feature Alignment
 
