@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Reef · Agent Passport</title>
     <meta name="description" content="Reef agent passport: trust score, on-chain reputation, signed decision receipts, bond and challenge status — verifiable on Mantlescan." />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c74ff'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%230a0a14' font-family='sans-serif' font-weight='700'%3ER%3C/text%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c74ff'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%230a0b12' font-family='sans-serif' font-weight='700'%3ER%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="reef.css" />
     <style>
       .p-wrap { max-width: 920px; margin: 0 auto; padding: 0 var(--space-5); }
@@ -14,7 +19,7 @@
       .p-rating { font-family: var(--mono); font-size: 1.1rem; padding: 4px 12px; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent); border: 1px solid var(--line-strong); }
       .p-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); margin: var(--space-4) 0; }
       .p-cell { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-4); }
-      .p-cell .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+      .p-cell .k { font-size: 12.5px; color: var(--muted); }
       .p-cell .v { font-family: var(--mono); font-size: 1.2rem; margin-top: 6px; color: var(--text); }
       .p-bar { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-top: 6px; }
       .p-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-deep)); }
@@ -35,8 +40,8 @@
         <a class="r-brand" href="/"><span class="r-brand-mark">R</span> Reef</a>
         <nav class="r-nav-links">
           <a href="/app">App</a>
-          <a href="/transparency">Proof</a>
-          <a href="/" aria-current="page">Home</a>
+          <a href="/transparency">Transparency</a>
+          <a href="/">Home</a>
         </nav>
       </div>
     </header>
@@ -62,9 +67,9 @@
 
       <h2 class="r-h2" style="margin: var(--space-6) 0 var(--space-3)">Decision receipts</h2>
       <p class="r-lead" style="margin-bottom: var(--space-4)">
-        Every decision is recorded with its real inputs (market signal, Allora prediction, Nansen
-        flow), the model that made it, and — committed on-chain — a signed receipt whose evidence
-        hash binds the agent to exactly what it claimed. Open the vault to verify on Mantlescan.
+        Each decision records its real inputs (market signal, Allora prediction, Nansen flow), the
+        model that made it, and a signed on-chain receipt whose evidence hash binds the agent to
+        what it claimed. Open the vault to verify on Mantlescan.
       </p>
       <div id="p-receipts"><p class="empty">Loading decisions…</p></div>
 
@@ -72,6 +77,18 @@
         <a class="r-link" id="p-vault-link" target="_blank" rel="noopener">View vault on Mantlescan ↗</a>
       </p>
     </main>
+
+    <footer class="r-footer">
+      <div class="r-container">
+        <div class="r-footer-bottom" style="margin-top: 0; border-top: 0; padding-top: 0">
+          <a class="r-brand" href="/" aria-label="Reef home">
+            <span class="r-brand-mark" aria-hidden="true">R</span>
+            <span>Reef</span>
+          </a>
+          <span>Testnet · unaudited · not financial advice</span>
+        </div>
+      </div>
+    </footer>
 
     <script>
       (function () {
