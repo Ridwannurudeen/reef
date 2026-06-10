@@ -518,6 +518,29 @@
         </div>
       </section>
 
+      <!-- Canonical ERC-8004 registration -->
+      <section class="r-section" id="erc8004">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Canonical ERC-8004</span>
+            <h2 class="r-h2">Registered in Mantle's official agent registry</h2>
+            <p class="r-lead">
+              Mantle runs the official ERC-8004 registries — singleton contracts at the
+              canonical <code>0x8004…</code> addresses. Every Reef agent is registered there as
+              an ERC-721 agent whose <code>agentURI</code> resolves to its live Reef passport,
+              with a <code>reef.vault</code> metadata entry binding the canonical agent to its
+              vault on-chain. Reef also publishes each agent's Trust Score to the official
+              Reputation Registry as <code>trust-score</code> feedback — so the reputation Reef
+              computes is portable: any Mantle protocol can read it from the canonical registry,
+              without touching a single Reef contract.
+            </p>
+          </div>
+          <div id="erc8004-feed">
+            <p class="t-empty">Loading canonical registrations…</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Allocator mandates -->
       <section class="r-section" id="allocator">
         <div class="r-container">
@@ -1269,6 +1292,51 @@
           host.innerHTML = head + rows;
         }
 
+        function renderCanonical(dep, live, base) {
+          var host = document.getElementById("erc8004-feed");
+          if (!host) return;
+          var canon = dep && dep.erc8004Canonical;
+          var agents = (canon && canon.agents) || {};
+          var ids = Object.keys(agents).sort(function (a, b) { return Number(a) - Number(b); });
+          if (!canon || !ids.length) {
+            host.innerHTML = '<p class="t-empty">Canonical registrations appear here.</p>';
+            return;
+          }
+          var liveAgents = {};
+          (live && live.agents ? live.agents : []).forEach(function (a) {
+            liveAgents[String(a.agentId)] = a;
+          });
+          var head =
+            '<div class="t-feed-row"><div class="t-feed-top">' +
+            '<span class="t-action t-action--up"><span class="t-action-dot"></span>official registries</span>' +
+            '<span class="t-signal"><a class="t-swap" href="' +
+            esc(base + "/address/" + canon.identityRegistry) +
+            '" target="_blank" rel="noopener">Identity 0x8004A8… ' + EXT + "</a></span>" +
+            '<span class="t-signal"><a class="t-swap" href="' +
+            esc(base + "/address/" + canon.reputationRegistry) +
+            '" target="_blank" rel="noopener">Reputation 0x8004B6… ' + EXT + "</a></span>" +
+            '<span class="t-when">registrant ' + esc(String(canon.registrant).slice(0, 8)) + "…</span></div></div>";
+          var rows = ids
+            .map(function (rid) {
+              var rec = agents[rid] || {};
+              var lv = liveAgents[rid];
+              var fb = lv && lv.feedbackCount
+                ? esc(String(lv.trustScore)) + " published · " + lv.feedbackCount + " feedback"
+                : "feedback pending";
+              return (
+                '<div class="t-feed-row"><div class="t-feed-top">' +
+                '<span class="t-action t-action--up"><span class="t-action-dot"></span>agent ' + esc(rid) + "</span>" +
+                '<span class="t-signal">canonical #' + esc(String(rec.canonicalAgentId)) + "</span>" +
+                '<span class="t-signal">trust ' + fb + "</span>" +
+                '<span class="t-when"><a class="t-swap" href="' +
+                esc(base + "/tx/" + rec.registerTx) +
+                '" target="_blank" rel="noopener">registration tx ' + EXT + "</a></span></div></div>"
+              );
+            })
+            .join("");
+          host.innerHTML = head + rows;
+        }
+
         Promise.all([
           fetchJson("../deployments/mantle-sepolia.json"),
           Promise.resolve(null), // decisions.json retired — the live GLM feed is executions.json (merged in renderFeed)
@@ -1278,6 +1346,7 @@
           fetchJson("../api/a2a.json"),
           fetchJson("../api/allora-bench.json"),
           fetchJson("../api/strategy-bench.json"),
+          fetchJson("../api/canonical.json"),
         ]).then(function (res) {
           renderContracts(res[0]);
           renderReefGuard(res[0], explorerBase(res[0]));
@@ -1288,6 +1357,7 @@
           renderA2A(res[5], explorerBase(res[0]));
           renderAlloraBench(res[6]);
           renderStrategyBench(res[7]);
+          renderCanonical(res[0], res[8], explorerBase(res[0]));
         });
       })();
     </script>
