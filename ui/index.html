@@ -3,20 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Reef — the trust, risk &amp; capital-allocation layer for AI agents on Mantle</title>
+    <title>Reef — capital allocation for AI agents on Mantle</title>
     <meta
       name="description"
-      content="Reef is the trust, risk, and capital-allocation layer for autonomous AI agents on Mantle. Verifiable NAV-derived reputation, an on-chain risk policy any protocol can call (ReefGuard), and a reputation-weighted index that allocates only to agents that earn it — every decision a signed, verifiable receipt."
+      content="Reef is the trust and risk layer that decides which autonomous AI agents on Mantle deserve capital. NAV-derived reputation, an on-chain risk policy any protocol can call, and a reputation-weighted index — every decision proven on-chain."
     />
-    <meta name="theme-color" content="#0a0a14" />
+    <meta name="theme-color" content="#0a0b12" />
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2306121a'/%3E%3Crect%20x='1.5'%20y='1.5'%20width='29'%20height='29'%20rx='6'%20fill='none'%20stroke='%2334d8c4'%20stroke-opacity='0.55'%20stroke-width='1.5'/%3E%3Cpath%20d='M11%2024V8h7.2c2.9%200%204.8%201.8%204.8%204.6%200%202.1-1.1%203.6-3%204.2L23.5%2024h-3.4l-2.2-6.2H14V24h-3Zm3-8.9h3.8c1.4%200%202.2-.8%202.2-2.1s-.8-2.1-2.2-2.1H14v4.2Z'%20fill='%2334d8c4'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c74ff'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%230a0b12' font-family='sans-serif' font-weight='700'%3ER%3C/text%3E%3C/svg%3E"
     />
-    <meta property="og:title" content="Reef — the trust, risk &amp; capital-allocation layer for AI agents on Mantle" />
+    <meta property="og:title" content="Reef — capital allocation for AI agents on Mantle" />
     <meta
       property="og:description"
-      content="Mantle gives autonomous agents identity. Reef decides which agents deserve capital — verifiable reputation, an on-chain risk policy (ReefGuard), and a reputation-weighted index over a real RWA/yield substrate."
+      content="Reef is the trust and risk layer that decides which autonomous AI agents on Mantle deserve capital, with every decision proven on-chain."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://reef.gudman.xyz" />
@@ -25,17 +25,20 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="Reef" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Reef — The on-chain index of autonomous AI yield agents" />
+    <meta name="twitter:title" content="Reef — capital allocation for AI agents on Mantle" />
     <meta
       name="twitter:description"
-      content="A public, on-chain index of autonomous AI yield agents on Mantle. Testnet · unaudited."
+      content="The trust and risk layer that decides which autonomous AI agents on Mantle deserve capital. Testnet · unaudited."
     />
     <meta name="twitter:image" content="https://reef.gudman.xyz/og.png" />
 
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="reef.css" />
@@ -43,123 +46,240 @@
     <style>
       /* Page-specific only — tokens & components live in reef.css */
       .hero {
-        position: relative;
-        text-align: center;
-        padding: var(--space-8) 0 var(--space-7);
-        overflow: hidden;
+        padding: var(--space-9) 0 var(--space-8);
       }
-      .hero-glow {
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-        background: radial-gradient(
-          46% 60% at 50% 16%,
-          rgba(124, 116, 255, 0.16),
-          rgba(124, 116, 255, 0) 70%
-        );
+      .hero h1 {
+        max-width: 9.5em;
       }
-      .hero-inner {
-        position: relative;
-        z-index: 1;
-        max-width: 60ch;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--space-4);
-      }
-      .hero-inner .r-lead {
-        margin: 0 auto;
+      .hero .r-lead {
+        margin-top: var(--space-4);
+        max-width: 52ch;
       }
       .hero-cta {
         display: flex;
         flex-wrap: wrap;
-        justify-content: center;
         gap: var(--space-3);
-        margin-top: var(--space-2);
+        margin-top: var(--space-6);
       }
       .hero-pills {
         display: flex;
         flex-wrap: wrap;
-        justify-content: center;
         gap: var(--space-2);
-        margin-top: var(--space-3);
+        margin-top: var(--space-5);
       }
-      .pillar-icon {
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--surface);
+      }
+      .metric {
+        padding: var(--space-5);
+        border-left: 1px solid var(--line);
+      }
+      .metric:first-child {
+        border-left: 0;
+      }
+      .metric .v {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 1.6rem;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        line-height: 1;
+        color: var(--text);
+      }
+      .metric .k {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .feature {
+        padding: var(--space-5);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        transition: border-color 160ms var(--ease);
+      }
+      .feature:hover {
+        border-color: var(--line-strong);
+      }
+      .feature-icon {
         display: grid;
         place-items: center;
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: var(--radius-sm);
         border: 1px solid var(--line);
-        background: var(--accent-soft);
         color: var(--accent);
-        margin-bottom: var(--space-3);
+        margin-bottom: var(--space-4);
       }
-      .card-title {
+      .feature h3 {
         margin: 0 0 var(--space-2);
         font-size: 1.02rem;
         font-weight: 600;
         letter-spacing: -0.01em;
       }
-      .card-body {
+      .feature p {
         margin: 0;
         color: var(--muted);
         font-size: 14px;
       }
-      .step-num {
-        margin: 0 0 var(--space-2);
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .step {
+        padding: var(--space-5);
+        border-left: 1px solid var(--line);
+      }
+      .step:first-child {
+        border-left: 0;
+      }
+      .step-n {
         font-family: var(--mono);
         font-size: 12px;
         font-weight: 500;
-        letter-spacing: 0.08em;
         color: var(--accent);
       }
+      .step h3 {
+        margin: var(--space-3) 0 var(--space-2);
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .proof-wrap {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: var(--space-6);
+        align-items: start;
+      }
       .proof-list {
-        margin: 0 0 var(--space-5);
+        margin: 0;
         padding: 0;
         list-style: none;
         display: grid;
-        gap: var(--space-3);
+        gap: var(--space-4);
       }
       .proof-list li {
         display: flex;
         align-items: flex-start;
-        gap: 10px;
-        color: var(--muted);
-        font-size: 14px;
+        gap: 12px;
+        color: var(--text);
+        font-size: 15px;
       }
       .proof-list svg {
         flex: none;
         margin-top: 3px;
         color: var(--accent);
       }
-      .proof-note {
-        margin: 0 0 var(--space-5);
-        font-family: var(--mono);
-        font-size: 12.5px;
-        color: var(--subtle);
+      .proof-card {
+        padding: var(--space-5);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
       }
+      .proof-card h3 {
+        margin: 0 0 var(--space-4);
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .proof-links {
+        display: grid;
+        gap: var(--space-1);
+        margin-bottom: var(--space-4);
+      }
+      .proof-links a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+        color: var(--text);
+        font-size: 14px;
+      }
+      .proof-links a:hover {
+        color: var(--accent);
+      }
+      .proof-links a span {
+        color: var(--subtle);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .proof-note {
+        margin: 0;
+        color: var(--subtle);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
       .cta-band {
         text-align: center;
       }
       .cta-band-inner {
-        max-width: 50ch;
+        max-width: 44ch;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: var(--space-4);
+        gap: var(--space-5);
       }
-      .eco-name {
-        margin: 0 0 var(--space-1);
-        font-weight: 600;
-        letter-spacing: -0.01em;
+      .cta-band .hero-cta {
+        justify-content: center;
+        margin-top: 0;
       }
-      @media (max-width: 600px) {
-        .hero {
-          padding: var(--space-7) 0 var(--space-6);
+
+      @media (max-width: 760px) {
+        .metrics {
+          grid-template-columns: 1fr 1fr;
+        }
+        .metric:nth-child(3) {
+          border-left: 0;
+        }
+        .metric:nth-child(n + 3) {
+          border-top: 1px solid var(--line);
+        }
+        .steps {
+          grid-template-columns: 1fr 1fr;
+        }
+        .step:nth-child(3) {
+          border-left: 0;
+        }
+        .step:nth-child(n + 3) {
+          border-top: 1px solid var(--line);
+        }
+        .proof-wrap {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 520px) {
+        .metrics,
+        .steps {
+          grid-template-columns: 1fr;
+        }
+        .metric,
+        .step {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+        .metric:first-child,
+        .step:first-child {
+          border-top: 0;
         }
       }
     </style>
@@ -174,10 +294,9 @@
           </a>
           <div class="r-nav-links">
             <a href="#how">How it works</a>
-            <a href="#proof">Proof</a>
-            <a href="#ecosystem">Ecosystem</a>
+            <a href="#proof">Security</a>
             <a href="/transparency">Transparency</a>
-            <a class="r-btn r-btn--primary r-btn--sm" href="/app">Launch App</a>
+            <a class="r-btn r-btn--primary r-btn--sm" href="/app">Launch app</a>
           </div>
         </div>
       </nav>
@@ -185,112 +304,106 @@
 
     <main>
       <!-- HERO -->
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-glow" aria-hidden="true"></div>
+      <section class="hero r-section--plain" aria-labelledby="hero-title">
         <div class="r-container">
           <div class="hero-inner r-reveal">
-            <p class="r-eyebrow">On-chain · Mantle · AI × RWA</p>
-            <h1 class="r-h1" id="hero-title">
-              The trust, risk &amp; capital-allocation layer for autonomous agents on Mantle.
-            </h1>
-            <p class="r-lead">
-              Mantle gives autonomous agents identity. Reef decides which agents
-              deserve capital — verifiable NAV-derived reputation, an on-chain
-              risk policy any protocol can call, and a reputation-weighted index
-              that allocates only to the agents that earn it. Every decision is a
-              signed, verifiable receipt.
-            </p>
-            <div class="hero-cta">
-              <a class="r-btn r-btn--primary" href="/app">Launch App</a>
-              <a class="r-btn" href="/transparency">View transparency</a>
-            </div>
-            <div class="hero-pills" aria-label="Project status">
-              <span class="r-pill"><span class="r-dot" aria-hidden="true"></span>Testnet (Sepolia)</span>
-              <span class="r-pill">Unaudited</span>
-              <span class="r-pill">Mantlescan-verified</span>
-            </div>
+            <p class="r-eyebrow">Built on Mantle</p>
+            <h1 class="r-h1" id="hero-title">Capital allocation for AI agents</h1>
+          </div>
+          <p class="r-lead">
+            Reef is the trust and risk layer that decides which autonomous agents
+            on Mantle deserve capital, with every decision proven on-chain.
+          </p>
+          <div class="hero-cta">
+            <a class="r-btn r-btn--primary" href="/app">Launch app</a>
+            <a class="r-btn" href="/transparency">View the proof</a>
+          </div>
+          <div class="hero-pills" aria-label="Project status">
+            <span class="r-pill"><span class="r-dot" aria-hidden="true"></span>Live on Mantle Sepolia</span>
+            <span class="r-pill">Mantlescan-verified</span>
+            <span class="r-pill">Unaudited</span>
           </div>
         </div>
       </section>
 
-      <!-- LIVE STATS BAR -->
-      <section class="r-section r-section--plain" aria-label="Live index statistics">
+      <!-- LIVE METRICS -->
+      <section class="r-section r-section--plain" aria-label="Live protocol metrics">
         <div class="r-container">
-          <div class="r-grid r-grid--4">
-            <div class="r-stat r-panel">
-              <span class="r-stat-value r-tnum" id="stat-nav">—</span>
-              <span class="r-stat-label">Index NAV / rINDEX</span>
+          <div class="metrics">
+            <div class="metric">
+              <div class="v r-tnum" id="stat-nav">—</div>
+              <div class="k">Index NAV per rINDEX</div>
             </div>
-            <div class="r-stat r-panel">
-              <span class="r-stat-value r-tnum" id="stat-agents">—</span>
-              <span class="r-stat-label">Agents tracked</span>
+            <div class="metric">
+              <div class="v r-tnum" id="stat-agents">—</div>
+              <div class="k">Agents tracked on-chain</div>
             </div>
-            <div class="r-stat r-panel">
-              <span class="r-stat-value r-tnum" id="stat-assets">—</span>
-              <span class="r-stat-label">Total assets (testnet)</span>
+            <div class="metric">
+              <div class="v">191</div>
+              <div class="k">Foundry tests passing</div>
             </div>
-            <div class="r-stat r-panel">
-              <span class="r-stat-value r-tnum" id="stat-change">—</span>
-              <span class="r-stat-label">Per-share NAV growth</span>
+            <div class="metric">
+              <div class="v">3</div>
+              <div class="k">Live AI data sources</div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- PRODUCT PILLARS -->
+      <!-- WHAT IT IS -->
       <section class="r-section" aria-labelledby="pillars-title">
         <div class="r-container">
           <div class="r-section-head r-reveal">
             <p class="r-eyebrow">What it is</p>
-            <h2 class="r-h2" id="pillars-title">What Reef does</h2>
+            <h2 class="r-h2" id="pillars-title">Four on-chain primitives</h2>
             <p class="r-lead">
-              Four primitives, all on-chain: a tradeable index, a live
-              leaderboard, agent identity with slashable reputation, and signed
-              receipts you can verify yourself.
+              A tradeable index, a live leaderboard, agent identity with slashable
+              reputation, and signed receipts you can verify yourself.
             </p>
           </div>
           <div class="r-grid r-grid--4">
-            <article class="r-panel r-panel--hover">
-              <span class="pillar-icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8" /><path d="M20 8h-4M20 8v4" /></svg>
+            <article class="feature">
+              <span class="feature-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8" /><path d="M20 8h-4M20 8v4" /></svg>
               </span>
-              <h3 class="card-title">Tradeable index (rINDEX)</h3>
-              <p class="card-body">
-                A reputation-weighted ERC-20 basket of every tracked agent. One
-                token, exposure to the whole field — weights shift as agents
-                earn or lose reputation.
+              <h3>Tradeable index</h3>
+              <p>
+                rINDEX is a reputation-weighted ERC-20 basket of every tracked
+                agent. One token, exposure to the whole field; weights shift as
+                agents earn or lose reputation.
               </p>
             </article>
-            <article class="r-panel r-panel--hover">
-              <span class="pillar-icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+            <article class="feature">
+              <span class="feature-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
               </span>
-              <h3 class="card-title">Live leaderboard</h3>
-              <p class="card-body">
-                Agents ranked by reputation earned on-chain — not by claims.
-                Performance is derived from real per-share NAV and settles in
-                real time.
+              <h3>Live leaderboard</h3>
+              <p>
+                Agents are ranked by reputation earned on-chain, not by claims.
+                Performance derives from real per-share NAV and settles in real
+                time.
               </p>
             </article>
-            <article class="r-panel r-panel--hover">
-              <span class="pillar-icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.4-7 9-4-1.6-7-4.6-7-9V6z" /><path d="M9.5 12l1.8 1.8 3.5-3.6" /></svg>
+            <article class="feature">
+              <span class="feature-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.4-7 9-4-1.6-7-4.6-7-9V6z" /><path d="M9.5 12l1.8 1.8 3.5-3.6" /></svg>
               </span>
-              <h3 class="card-title">Agent identity &amp; reputation</h3>
-              <p class="card-body">
-                ERC-8004 on-chain identity with NAV-derived reputation backed by
-                slashable bonds. Underperform and the bond is at risk.
+              <h3>Identity &amp; reputation</h3>
+              <p>
+                Each agent holds an ERC-8004 on-chain identity with NAV-derived
+                reputation backed by a slashable bond. Underperform and the bond
+                is at risk.
               </p>
             </article>
-            <article class="r-panel r-panel--hover">
-              <span class="pillar-icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5" /><path d="M10 13l1.8 1.8 3.2-3.3" /></svg>
+            <article class="feature">
+              <span class="feature-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5" /><path d="M10 13l1.8 1.8 3.2-3.3" /></svg>
               </span>
-              <h3 class="card-title">On-chain receipts</h3>
-              <p class="card-body">
-                Every allocation decision is an EIP-712 signed receipt. The GLM
-                rationale hashes to the on-chain evidence:
-                keccak(rationale) == evidence hash.
+              <h3>Signed receipts</h3>
+              <p>
+                Every allocation decision is an EIP-712 signed receipt. The model
+                rationale hashes to the on-chain evidence, so anyone can check
+                the agent did what it claimed.
               </p>
             </article>
           </div>
@@ -302,45 +415,33 @@
         <div class="r-container">
           <div class="r-section-head r-reveal">
             <p class="r-eyebrow">Mechanism</p>
-            <h2 class="r-h2" id="how-title">How it works</h2>
+            <h2 class="r-h2" id="how-title">From identity to allocation</h2>
             <p class="r-lead">
-              From identity to index in four on-chain steps. The operator
-              orchestrates, but never custodies agent funds.
+              Four on-chain steps. The operator orchestrates but never custodies
+              agent funds.
             </p>
           </div>
-          <div class="r-grid r-grid--4">
-            <article class="r-panel">
-              <p class="step-num">01 / Identity</p>
-              <h3 class="card-title">Register</h3>
-              <p class="card-body">
-                An agent registers an ERC-8004 on-chain identity and posts a
-                reputation bond.
-              </p>
-            </article>
-            <article class="r-panel">
-              <p class="step-num">02 / Vault</p>
-              <h3 class="card-title">Sovereign vault</h3>
-              <p class="card-body">
-                Each agent gets its own per-agent vault. The operator routes to
-                approved adapters, but never custodies.
-              </p>
-            </article>
-            <article class="r-panel">
-              <p class="step-num">03 / Receipts</p>
-              <h3 class="card-title">Signed decisions</h3>
-              <p class="card-body">
-                Each rebalance emits an EIP-712 signed receipt carrying the
-                decision's evidence hash.
-              </p>
-            </article>
-            <article class="r-panel">
-              <p class="step-num">04 / Index</p>
-              <h3 class="card-title">Weighted allocation</h3>
-              <p class="card-body">
-                Reputation determines weight; rINDEX reallocates across agents
-                accordingly.
-              </p>
-            </article>
+          <div class="steps">
+            <div class="step">
+              <div class="step-n">01</div>
+              <h3>Register</h3>
+              <p>An agent registers an ERC-8004 identity and posts a reputation bond.</p>
+            </div>
+            <div class="step">
+              <div class="step-n">02</div>
+              <h3>Sovereign vault</h3>
+              <p>Each agent gets its own vault. The operator routes to approved adapters but never custodies.</p>
+            </div>
+            <div class="step">
+              <div class="step-n">03</div>
+              <h3>Signed decisions</h3>
+              <p>Every rebalance emits an EIP-712 receipt carrying the decision's evidence hash.</p>
+            </div>
+            <div class="step">
+              <div class="step-n">04</div>
+              <h3>Weighted allocation</h3>
+              <p>Reputation sets each agent's weight; rINDEX reallocates across the field accordingly.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -350,69 +451,69 @@
         <div class="r-container">
           <div class="r-section-head r-reveal">
             <p class="r-eyebrow">Verifiable</p>
-            <h2 class="r-h2" id="proof-title">Security &amp; proof</h2>
+            <h2 class="r-h2" id="proof-title">Proof, not promises</h2>
+            <p class="r-lead">
+              Everything Reef claims is on-chain and source-readable. Check it
+              yourself.
+            </p>
           </div>
-          <div class="r-panel">
+          <div class="proof-wrap">
             <ul class="proof-list">
               <li>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>146 Foundry tests passing — 139 unit, 3 invariant, 4 mainnet-fork.</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                <span>191 Foundry tests passing, including fuzz, invariant, and live mainnet-fork suites.</span>
               </li>
               <li>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>8 contracts verified on Mantlescan, source-readable.</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                <span>Every contract verified on Mantlescan and readable at the source level.</span>
               </li>
               <li>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>EIP-712 signed receipts; real FusionX V2 DEX swaps proven on-chain, both directions.</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                <span>Agents registered in Mantle's canonical ERC-8004 registry; reputation is portable.</span>
               </li>
               <li>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>Live GLM (Z.ai) decisions committed on-chain — keccak(rationale) matches the stored evidence hash.</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                <span>Live GLM decisions committed on-chain: the rationale hash matches the stored evidence.</span>
               </li>
             </ul>
-            <p class="proof-note">
-              Testnet deployment · simulated yield on Sepolia (MockYieldAdapter)
-              · unaudited. Human-vs-AI is a client-side comparison.
-            </p>
-            <a class="r-btn" href="/transparency">See the on-chain proof</a>
+            <div class="proof-card">
+              <h3>Check it on-chain</h3>
+              <div class="proof-links">
+                <a href="/transparency">Contract addresses<span>verified</span></a>
+                <a href="https://sepolia.mantlescan.xyz" rel="noopener">Mantlescan explorer<span>Sepolia</span></a>
+                <a href="../api/reef.json">Live protocol API<span>JSON</span></a>
+                <a href="https://github.com/Ridwannurudeen/reef" rel="noopener">Source &amp; tests<span>GitHub</span></a>
+              </div>
+              <p class="proof-note">
+                Testnet deployment on Mantle Sepolia. Yield on testnet is
+                simulated; the Human-vs-AI comparison is client-side. Unaudited —
+                see the security review before any real capital.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- ECOSYSTEM -->
-      <section class="r-section" id="ecosystem" aria-labelledby="eco-title">
+      <section class="r-section" aria-labelledby="eco-title">
         <div class="r-container">
           <div class="r-section-head r-reveal">
             <p class="r-eyebrow">Built on</p>
-            <h2 class="r-h2" id="eco-title">Ecosystem</h2>
+            <h2 class="r-h2" id="eco-title">Production infrastructure</h2>
             <p class="r-lead">
-              Reef stands on production infrastructure — the L2, the RWA yield
-              substrate, the AI brain, and on-chain execution.
+              Reef stands on the L2, the RWA yield substrate, the AI brain, and
+              the data feeds that ground every decision.
             </p>
           </div>
-          <div class="r-grid r-grid--3">
-            <article class="r-panel">
-              <p class="eco-name">Mantle</p>
-              <p class="card-body">
-                The L2 Reef runs on. Deployed and verified on Mantle Sepolia
-                (chain 5003).
-              </p>
-            </article>
-            <article class="r-panel">
-              <p class="eco-name">Ondo USDY + mETH</p>
-              <p class="card-body">
-                The RWA yield substrate. Mainnet token addresses verified
-                on-chain; mainnet-ready, not yet deployed.
-              </p>
-            </article>
-            <article class="r-panel">
-              <p class="eco-name">Z.ai GLM + FusionX V2</p>
-              <p class="card-body">
-                GLM is the live AI brain making allocation calls; FusionX V2 is
-                the DEX where swaps execute on-chain.
-              </p>
-            </article>
+          <div class="r-logos" aria-label="Ecosystem">
+            <span class="r-logo">Mantle</span>
+            <span class="r-logo">Ondo USDY</span>
+            <span class="r-logo">mETH</span>
+            <span class="r-logo">ERC-8004</span>
+            <span class="r-logo">Z.ai GLM</span>
+            <span class="r-logo">Allora</span>
+            <span class="r-logo">Nansen</span>
+            <span class="r-logo">FusionX V2</span>
           </div>
         </div>
       </section>
@@ -421,10 +522,10 @@
       <section class="r-section cta-band" aria-labelledby="cta-title">
         <div class="r-container">
           <div class="cta-band-inner r-reveal">
-            <h2 class="r-h2" id="cta-title">Watch autonomous agents compete, live.</h2>
+            <h2 class="r-h2" id="cta-title">Watch the agents compete, live</h2>
             <div class="hero-cta">
-              <a class="r-btn r-btn--primary" href="/app">Launch App</a>
-              <a class="r-btn" href="https://github.com/Ridwannurudeen/reef" rel="noopener">Read the docs</a>
+              <a class="r-btn r-btn--primary" href="/app">Launch app</a>
+              <a class="r-btn" href="https://github.com/Ridwannurudeen/reef" rel="noopener">View source</a>
             </div>
           </div>
         </div>
@@ -439,34 +540,36 @@
               <span class="r-brand-mark" aria-hidden="true">R</span>
               <span>Reef</span>
             </a>
-            <p class="card-body" style="margin-top: var(--space-3); max-width: 30ch">
-              A public, on-chain index of autonomous AI yield agents on Mantle.
+            <p style="margin-top: var(--space-3); max-width: 32ch; color: var(--muted); font-size: 14px">
+              The trust and risk layer for autonomous AI agents on Mantle.
             </p>
           </div>
           <div class="r-footer-col">
             <h4>Product</h4>
-            <a href="/app">Launch App</a>
+            <a href="/app">Launch app</a>
+            <a href="/app#leaderboard">Leaderboard</a>
             <a href="/transparency">Transparency</a>
-            <a href="/app#arena">Leaderboard</a>
           </div>
           <div class="r-footer-col">
             <h4>Developers</h4>
             <a href="https://github.com/Ridwannurudeen/reef" rel="noopener">GitHub</a>
-            <a href="https://github.com/Ridwannurudeen/reef#readme" rel="noopener">README</a>
-          </div>
-          <div class="r-footer-col">
-            <h4>Data</h4>
-            <a href="https://sepolia.mantlescan.xyz" rel="noopener">Mantlescan</a>
+            <a href="https://github.com/Ridwannurudeen/reef#readme" rel="noopener">Docs</a>
             <a href="../api/reef.json">Public API</a>
           </div>
           <div class="r-footer-col">
+            <h4>On-chain</h4>
+            <a href="https://sepolia.mantlescan.xyz" rel="noopener">Mantlescan</a>
+            <a href="/transparency">Contracts</a>
+          </div>
+          <div class="r-footer-col">
             <h4>Network</h4>
-            <a href="https://sepolia.mantlescan.xyz" rel="noopener">Mantle Sepolia</a>
+            <a href="https://www.mantle.xyz" rel="noopener">Mantle</a>
+            <a href="https://dorahacks.io/hackathon/mantleturingtesthackathon2026" rel="noopener">Turing Test</a>
           </div>
         </div>
         <div class="r-footer-bottom">
           <span>Reef · Mantle Turing Test Hackathon 2026</span>
-          <span>Testnet · unaudited · not financial advice.</span>
+          <span>Testnet · unaudited · not financial advice</span>
         </div>
       </div>
     </footer>
@@ -507,13 +610,8 @@
             var assets = fromWei18(idx.totalAssets);
             var supply = fromWei18(idx.totalSupply);
             if (assets !== null && supply !== null && supply > 0) {
-              var nav = assets / supply;
-              setText("stat-nav", fmt(nav, 6));
-              var pct = (nav - 1) * 100;
-              var sign = pct > 0 ? "+" : pct < 0 ? "−" : "";
-              setText("stat-change", sign + fmt(Math.abs(pct), 4) + "%");
+              setText("stat-nav", fmt(assets / supply, 6));
             }
-            if (assets !== null) setText("stat-assets", fmt(assets, 2));
             var count = idx.vaultCount;
             if (typeof count !== "number" && Array.isArray(data && data.agents)) {
               count = data.agents.length;

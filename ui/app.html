@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
-    <meta name="theme-color" content="#0a0a14" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2306121a'/%3E%3Crect%20x='1.5'%20y='1.5'%20width='29'%20height='29'%20rx='6'%20fill='none'%20stroke='%2334d8c4'%20stroke-opacity='0.55'%20stroke-width='1.5'/%3E%3Cpath%20d='M11%2024V8h7.2c2.9%200%204.8%201.8%204.8%204.6%200%202.1-1.1%203.6-3%204.2L23.5%2024h-3.4l-2.2-6.2H14V24h-3Zm3-8.9h3.8c1.4%200%202.2-.8%202.2-2.1s-.8-2.1-2.2-2.1H14v4.2Z'%20fill='%2334d8c4'/%3E%3C/svg%3E" />
-    <meta property="og:title" content="Reef — AI Yield Arena for Mantle RWA" />
+    <meta name="theme-color" content="#0a0b12" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c74ff'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%230a0b12' font-family='sans-serif' font-weight='700'%3ER%3C/text%3E%3C/svg%3E" />
+    <meta property="og:title" content="Reef — capital allocation for AI agents on Mantle" />
     <meta property="og:description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://reef.gudman.xyz" />
@@ -15,16 +15,14 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="Reef" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Reef — AI Yield Arena for Mantle RWA" />
+    <meta name="twitter:title" content="Reef — capital allocation for AI agents on Mantle" />
     <meta name="twitter:description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
     <meta name="twitter:image" content="https://reef.gudman.xyz/og.png" />
-    <title>Reef — AI Yield Arena for Mantle RWA</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <title>Reef — capital allocation for AI agents on Mantle</title>
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="reef.css" />
     <style>
       * {
@@ -58,30 +56,12 @@
           transparent 86%
         );
       }
-      body::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 0;
-        background:
-          radial-gradient(
-            ellipse 72% 46% at 50% -18%,
-            rgba(124, 116, 255, 0.13),
-            transparent 72%
-          ),
-          radial-gradient(
-            ellipse 54% 38% at 98% 10%,
-            rgba(167, 139, 250, 0.07),
-            transparent 70%
-          );
-      }
       a {
         color: var(--accent);
         text-decoration: none;
       }
       a:hover {
-        color: #b3a9ff;
+        color: var(--accent-2);
       }
       button,
       input {
@@ -112,14 +92,12 @@
       button.primary {
         background: var(--accent);
         border-color: var(--accent);
-        color: #0a0a14;
-        font-weight: 700;
+        color: #0a0b12;
+        font-weight: 600;
       }
       button.primary:hover:not(:disabled) {
-        background: #58efbd;
-        box-shadow:
-          0 0 0 1px rgba(124, 116, 255, 0.38),
-          0 12px 28px rgba(124, 116, 255, 0.13);
+        background: var(--accent-deep);
+        border-color: var(--accent-deep);
       }
       button.ghost {
         background: transparent;
@@ -130,7 +108,7 @@
         padding: 9px 11px;
         border-radius: 6px;
         border: 1px solid var(--line);
-        background: #0a0e11;
+        background: var(--bg);
         color: var(--text);
         font-family: var(--mono);
         font-size: 13px;
@@ -149,10 +127,9 @@
         display: block;
         margin-bottom: 7px;
         color: var(--muted);
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
       }
       .page {
         position: relative;
@@ -164,8 +141,8 @@
         position: sticky;
         top: 0;
         z-index: 20;
-        border-bottom: 1px solid rgba(66, 62, 96, 0.56);
-        background: rgba(10, 10, 20, 0.86);
+        border-bottom: 1px solid var(--line);
+        background: rgba(10, 11, 18, 0.86);
         backdrop-filter: blur(14px);
       }
       .topbar-inner {
@@ -190,26 +167,21 @@
         height: 30px;
         display: grid;
         place-items: center;
-        border: 1px solid rgba(124, 116, 255, 0.38);
-        border-radius: 6px;
-        background: linear-gradient(
-          145deg,
-          rgba(124, 116, 255, 0.18),
-          rgba(242, 193, 78, 0.08)
-        );
-        color: var(--accent);
-        font-family: var(--mono);
+        border-radius: var(--radius-sm);
+        background: var(--accent);
+        color: #0a0b12;
+        font-family: var(--sans);
+        font-weight: 700;
         font-size: 15px;
       }
       .nav {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 18px;
         color: var(--muted);
-        font-family: var(--mono);
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+        font-family: var(--sans);
+        font-size: 14px;
+        font-weight: 500;
       }
       .conn {
         display: flex;
@@ -234,9 +206,10 @@
       }
       .eyebrow {
         color: var(--accent);
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.13em;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
       }
       h1,
@@ -248,18 +221,18 @@
       h1 {
         max-width: 760px;
         margin-top: 14px;
-        font-size: 64px;
-        line-height: 0.98;
-        letter-spacing: -0.035em;
-        font-weight: 850;
+        font-size: 60px;
+        line-height: 1.02;
+        letter-spacing: -0.028em;
+        font-weight: 600;
       }
       h1 span {
-        color: var(--gold);
+        color: var(--accent-2);
       }
       .lead {
         max-width: 650px;
         margin-top: 22px;
-        color: #cfcde0;
+        color: var(--muted);
         font-size: 17px;
         line-height: 1.65;
       }
@@ -274,23 +247,20 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 6px 13px;
-        border-radius: 999px;
-        border: 1px solid var(--line-strong);
-        background: var(--accent-soft);
-        color: var(--accent);
-        font-family: var(--mono);
-        font-size: 11px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        box-shadow: 0 0 24px rgba(124, 116, 255, 0.12);
+        padding: 5px 12px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--muted);
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
       }
       .mantle-dot {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
         border-radius: 999px;
         background: var(--accent);
-        box-shadow: 0 0 8px var(--accent);
       }
       .hero-proof {
         display: grid;
@@ -306,8 +276,8 @@
       .feed,
       .config-shell {
         border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(17, 23, 27, 0.78);
+        border-radius: var(--radius);
+        background: var(--surface);
       }
       .proof-tile {
         padding: 13px;
@@ -318,10 +288,9 @@
       .table-title,
       .feed-row .meta {
         color: var(--muted);
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
       }
       .proof-value {
         margin-top: 8px;
@@ -331,15 +300,10 @@
         font-variant-numeric: tabular-nums;
       }
       .terminal {
-        border: 1px solid rgba(66, 62, 96, 0.88);
-        border-radius: 10px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius-lg);
         overflow: hidden;
-        background: linear-gradient(
-          180deg,
-          rgba(21, 29, 34, 0.96),
-          rgba(10, 10, 20, 0.98)
-        );
-        box-shadow: 0 24px 80px var(--shadow);
+        background: var(--surface-2);
       }
       .terminal-head {
         min-height: 44px;
@@ -350,23 +314,21 @@
         gap: 12px;
         border-bottom: 1px solid var(--line);
         color: var(--muted);
-        font-family: var(--mono);
-        font-size: 11px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
       }
       .live-pill {
         display: inline-flex;
         align-items: center;
         gap: 7px;
-        color: var(--accent);
+        color: var(--accent-2);
       }
       .live-dot {
         width: 7px;
         height: 7px;
         border-radius: 999px;
-        background: var(--accent);
-        box-shadow: 0 0 0 5px rgba(124, 116, 255, 0.12);
+        background: var(--success);
       }
       .terminal-body {
         padding: 22px;
@@ -377,7 +339,7 @@
         gap: 18px;
         align-items: start;
         padding-bottom: 20px;
-        border-bottom: 1px solid rgba(66, 62, 96, 0.66);
+        border-bottom: 1px solid var(--line);
       }
       .signature-value {
         margin-top: 8px;
@@ -407,44 +369,6 @@
         font-family: var(--mono);
         font-size: 22px;
         font-variant-numeric: tabular-nums;
-      }
-      .ticker {
-        margin-top: 16px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        overflow: hidden;
-        background: rgba(10, 10, 20, 0.72);
-        mask-image: linear-gradient(
-          90deg,
-          transparent,
-          #000 8%,
-          #000 92%,
-          transparent
-        );
-      }
-      .ticker-track {
-        display: flex;
-        width: max-content;
-        animation: marquee 24s linear infinite;
-      }
-      .ticker span {
-        padding: 11px 18px;
-        color: var(--muted);
-        font-family: var(--mono);
-        font-size: 11px;
-        white-space: nowrap;
-      }
-      .ticker strong {
-        color: var(--text);
-        font-weight: 600;
-      }
-      @keyframes marquee {
-        from {
-          transform: translateX(0);
-        }
-        to {
-          transform: translateX(-50%);
-        }
       }
       section {
         padding: 34px 0;
@@ -490,30 +414,29 @@
         align-items: center;
         gap: 6px;
         min-height: 24px;
-        padding: 0 8px;
-        border-radius: 5px;
+        padding: 0 9px;
+        border-radius: var(--radius-pill);
         border: 1px solid var(--line);
-        background: rgba(27, 36, 42, 0.86);
-        color: var(--text);
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
+        background: var(--surface-2);
+        color: var(--muted);
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
       }
       .badge.good {
-        border-color: rgba(124, 116, 255, 0.42);
-        color: var(--accent);
+        border-color: var(--accent-line);
+        color: var(--accent-2);
         background: var(--accent-soft);
       }
       .badge.warn {
-        border-color: rgba(242, 193, 78, 0.45);
+        border-color: rgba(232, 177, 74, 0.45);
         color: var(--gold);
         background: var(--gold-soft);
       }
       .badge.bad {
-        border-color: rgba(255, 101, 117, 0.48);
+        border-color: rgba(240, 104, 104, 0.45);
         color: var(--red);
-        background: rgba(255, 101, 117, 0.1);
+        background: rgba(240, 104, 104, 0.1);
       }
       .notice {
         margin-bottom: 14px;
@@ -521,7 +444,7 @@
         border-radius: 6px;
         border: 1px solid var(--line);
         border-left: 3px solid var(--blue);
-        background: rgba(10, 10, 20, 0.8);
+        background: var(--surface-2);
         color: var(--muted);
         font-size: 13px;
       }
@@ -536,16 +459,14 @@
       th,
       td {
         padding: 12px 10px;
-        border-bottom: 1px solid rgba(66, 62, 96, 0.46);
+        border-bottom: 1px solid var(--line);
         text-align: left;
         vertical-align: middle;
       }
       th {
-        color: var(--muted);
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        color: var(--subtle);
+        font-family: var(--sans);
+        font-size: 12px;
         font-weight: 500;
       }
       tr:hover td {
@@ -563,21 +484,18 @@
         width: 19px;
         height: 19px;
         border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface-3);
         font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
         font-size: 11px;
-        font-weight: 700;
-        color: #0a0a14;
+        font-weight: 500;
+        color: var(--muted);
       }
       .rank-1 {
-        background: linear-gradient(135deg, #f7d680, #f2c14e);
-        box-shadow: 0 0 10px rgba(242, 193, 78, 0.45);
-      }
-      .rank-2 {
-        background: linear-gradient(135deg, #e7eef0, #aab6bb);
-      }
-      .rank-3 {
-        background: linear-gradient(135deg, #e2a06a, #b9763f);
-        color: #1a0f06;
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+        color: var(--accent-2);
       }
       .leader-row td {
         background: rgba(124, 116, 255, 0.045);
@@ -603,7 +521,7 @@
         display: block;
         height: 100%;
         border-radius: 999px;
-        background: linear-gradient(90deg, var(--accent), var(--gold));
+        background: var(--accent);
       }
       .pos {
         color: var(--accent);
@@ -625,9 +543,9 @@
       }
       .tool {
         border: 1px solid var(--line);
-        border-radius: 8px;
+        border-radius: var(--radius);
         padding: 14px;
-        background: rgba(10, 10, 20, 0.52);
+        background: var(--bg-soft);
       }
       .row {
         display: flex;
@@ -639,7 +557,7 @@
       .toggle {
         display: inline-flex;
         border: 1px solid var(--line);
-        border-radius: 7px;
+        border-radius: var(--radius-sm);
         overflow: hidden;
       }
       .toggle button {
@@ -648,12 +566,13 @@
         border-radius: 0;
         background: transparent;
         color: var(--muted);
-        font-family: var(--mono);
-        font-size: 11px;
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 500;
       }
       .toggle button.on {
         background: var(--accent-soft);
-        color: var(--accent);
+        color: var(--accent-2);
       }
       .hva-grid {
         display: grid;
@@ -663,12 +582,12 @@
       }
       .hva-card {
         border: 1px solid var(--line);
-        border-radius: 8px;
+        border-radius: var(--radius);
         padding: 14px;
-        background: rgba(10, 10, 20, 0.5);
+        background: var(--bg-soft);
       }
       .hva-card.win {
-        border-color: rgba(124, 116, 255, 0.54);
+        border-color: var(--accent-line);
       }
       .hva-card.dim {
         opacity: 0.62;
@@ -685,7 +604,7 @@
       }
       .feed-row {
         padding: 13px 14px;
-        border-bottom: 1px solid rgba(66, 62, 96, 0.46);
+        border-bottom: 1px solid var(--line);
         font-size: 13px;
       }
       .feed-row:last-child {
@@ -792,10 +711,10 @@
       }
       .proof-card {
         border: 1px solid var(--line);
-        border-radius: 8px;
+        border-radius: var(--radius);
         padding: 13px;
         min-height: 92px;
-        background: rgba(17, 23, 27, 0.62);
+        background: var(--surface);
       }
       .proof-card a,
       .proof-card span {
@@ -811,10 +730,9 @@
       summary {
         cursor: pointer;
         color: var(--muted);
-        font-family: var(--mono);
-        font-size: 11px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 500;
       }
       .config-grid {
         display: grid;
@@ -835,8 +753,8 @@
       .toast {
         border: 1px solid var(--line);
         border-left: 3px solid var(--accent);
-        border-radius: 7px;
-        background: rgba(17, 23, 27, 0.96);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
         padding: 10px 12px;
         color: var(--text);
         font-size: 12px;
@@ -940,7 +858,7 @@
           border-radius: 8px;
           margin-bottom: 10px;
           overflow: hidden;
-          background: rgba(10, 10, 20, 0.46);
+          background: var(--bg-soft);
         }
         td {
           display: flex;
@@ -993,46 +911,14 @@
           overflow-x: hidden;
         }
       }
-      @keyframes sparkPulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.4;
-        }
-      }
-      .spark-dot {
-        filter: drop-shadow(0 0 4px rgba(124, 116, 255, 0.85));
-        animation: sparkPulse 1.8s ease-in-out infinite;
-      }
-      @keyframes livePulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(124, 116, 255, 0.45);
-        }
-        70% {
-          box-shadow: 0 0 0 7px rgba(124, 116, 255, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(124, 116, 255, 0);
-        }
-      }
-      .live-dot {
-        animation: livePulse 2s ease-out infinite;
-      }
-      .signature-value {
-        text-shadow: 0 0 26px rgba(124, 116, 255, 0.18);
-      }
       /* ── Latest AI decision card ── */
       .ai-featured {
         margin-bottom: 18px;
         padding: 18px 20px;
         border: 1px solid var(--line);
         border-left: 3px solid var(--line-strong);
-        border-radius: 14px;
-        background:
-          radial-gradient(120% 140% at 0% 0%, var(--accent-soft), transparent 60%),
-          var(--surface-2);
+        border-radius: var(--radius-lg);
+        background: var(--surface-2);
       }
       .ai-featured.is-up {
         border-left-color: var(--accent);
@@ -1055,11 +941,10 @@
         display: inline-flex;
         align-items: center;
         gap: 7px;
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--subtle);
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
       }
       .aif-eyebrow .live-dot {
         width: 7px;
@@ -1098,7 +983,7 @@
       .aif-reason {
         margin: 0;
         padding: 11px 13px;
-        border-radius: 10px;
+        border-radius: var(--radius);
         background: var(--surface);
         border: 1px solid var(--line);
         color: var(--text);
@@ -1108,10 +993,9 @@
       .aif-reason .aif-reason-label {
         display: block;
         margin-bottom: 4px;
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
         color: var(--subtle);
       }
       .aif-meta {
@@ -1173,9 +1057,9 @@
         z-index: 90;
         max-width: 264px;
         padding: 9px 11px;
-        border-radius: 7px;
+        border-radius: var(--radius-sm);
         border: 1px solid var(--line-strong);
-        background: #0a1a24;
+        background: var(--surface-2);
         color: var(--text);
         font-family: var(--sans);
         font-size: 12.5px;
@@ -1201,7 +1085,7 @@
         align-items: center;
         justify-content: center;
         padding: 20px;
-        background: rgba(4, 9, 6, 0.72);
+        background: rgba(10, 11, 18, 0.72);
         backdrop-filter: blur(4px);
         opacity: 0;
         transition: opacity 140ms ease;
@@ -1251,7 +1135,7 @@
         justify-content: center;
         width: 30px;
         height: 30px;
-        border-radius: 7px;
+        border-radius: var(--radius-sm);
         border: 1px solid var(--line);
         background: var(--surface-2);
         color: var(--muted);
@@ -1274,10 +1158,9 @@
         padding: 13px 18px;
       }
       .agent-stat-label {
-        font-family: var(--mono);
-        font-size: 9.5px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
         color: var(--subtle);
       }
       .agent-stat-value {
@@ -1328,15 +1211,14 @@
         align-items: center;
         gap: 8px;
         min-height: 34px;
-        padding: 0 11px;
-        border-radius: 999px;
+        padding: 0 12px;
+        border-radius: var(--radius-pill);
         border: 1px solid var(--line);
         background: var(--surface-2);
         color: var(--muted);
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 500;
       }
       .beginner-toggle:hover:not(:disabled) {
         border-color: var(--line-strong);
@@ -1351,13 +1233,12 @@
           box-shadow 140ms ease;
       }
       .beginner-toggle[aria-checked="true"] {
-        border-color: var(--line-strong);
+        border-color: var(--accent-line);
         background: var(--accent-soft);
-        color: var(--accent);
+        color: var(--accent-2);
       }
       .beginner-toggle[aria-checked="true"] .beginner-toggle-dot {
         background: var(--accent);
-        box-shadow: 0 0 8px var(--accent);
       }
       /* ── No-wallet banner ── */
       .nowallet {
@@ -1369,7 +1250,7 @@
         border-radius: 8px;
         border: 1px solid var(--line);
         border-left: 3px solid var(--accent);
-        background: rgba(10, 10, 20, 0.8);
+        background: var(--surface-2);
       }
       .nowallet[hidden] {
         display: none;
@@ -1380,7 +1261,7 @@
       }
       .nowallet-text {
         flex: 1;
-        color: #cfcde0;
+        color: var(--muted);
         font-size: 13.5px;
       }
       .nowallet-x {
@@ -1413,21 +1294,19 @@
       }
       body.beginner {
         font-size: 15px;
-        --muted: #b6cdc0;
-        --subtle: #8aa093;
+        --muted: #b8bacb;
+        --subtle: #9a9cb0;
       }
       body.beginner .lead {
-        color: #d4e0db;
+        color: var(--text);
       }
       /* ── Living reef visualization ── */
       .reef-viz-shell {
         margin-bottom: 14px;
         border: 1px solid var(--line);
-        border-radius: 10px;
+        border-radius: var(--radius-lg);
         padding: 16px 16px 6px;
-        background:
-          radial-gradient(ellipse 60% 70% at 50% 12%, rgba(124, 116, 255, 0.07), transparent 70%),
-          linear-gradient(180deg, rgba(13, 23, 18, 0.9), rgba(10, 10, 20, 0.96));
+        background: var(--surface);
         overflow: hidden;
       }
       .reef-viz-head {
@@ -1439,16 +1318,14 @@
       }
       .reef-viz-title {
         color: var(--text);
-        font-family: var(--mono);
-        font-size: 11px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 600;
       }
       .reef-viz-legend {
         color: var(--subtle);
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.04em;
+        font-family: var(--sans);
+        font-size: 12px;
       }
       .reef-viz {
         width: 100%;
@@ -1497,38 +1374,6 @@
       }
       .reef-flow {
         stroke-dasharray: 5 9;
-        animation: reefFlow 2.6s linear infinite;
-      }
-      .reef-leader .reef-node-glow {
-        animation: reefPulse 2.8s ease-in-out infinite;
-      }
-      .reef-drift {
-        animation: reefDrift 7s ease-in-out infinite;
-      }
-      @keyframes reefFlow {
-        to {
-          stroke-dashoffset: -56;
-        }
-      }
-      @keyframes reefPulse {
-        0%,
-        100% {
-          opacity: 0.55;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 1;
-          transform: scale(1.18);
-        }
-      }
-      @keyframes reefDrift {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-7px);
-        }
       }
       .reef-node-glow {
         transform-box: fill-box;
@@ -1566,7 +1411,7 @@
       .skel {
         position: relative;
         display: inline-block;
-        border-radius: 5px;
+        border-radius: var(--radius-sm);
         background: var(--surface-3);
         background-image: linear-gradient(
           90deg,
@@ -1661,11 +1506,10 @@
       <section class="hero">
         <div>
           <div class="mantle-badge"><span class="mantle-dot"></span>Powered by Mantle</div>
-          <h1>AI Yield Arena for <span>Mantle RWA</span></h1>
+          <h1>Capital allocation for <span>AI agents</span></h1>
           <p class="lead">
             Deposit once. Autonomous agents compete, rebalance, and explain
-            every yield decision — live on Mantle's low-cost, fast-settling RWA
-            capital layer.
+            every yield decision — each one proven on-chain, live on Mantle.
           </p>
           <div class="hero-actions">
             <a href="#arena"
@@ -1753,21 +1597,6 @@
         </aside>
       </section>
 
-      <div class="ticker" aria-hidden="true">
-        <div class="ticker-track">
-          <span><strong>AgentIdentity</strong> registers portable agents</span>
-          <span><strong>AgentVault</strong> keeps capital vault-custodied</span>
-          <span><strong>Receipts</strong> write NAV-derived reputation</span>
-          <span><strong>rINDEX</strong> reallocates by agent track record</span>
-          <span><strong>Seasons</strong> score Human vs AI cohorts</span>
-          <span><strong>AgentIdentity</strong> registers portable agents</span>
-          <span><strong>AgentVault</strong> keeps capital vault-custodied</span>
-          <span><strong>Receipts</strong> write NAV-derived reputation</span>
-          <span><strong>rINDEX</strong> reallocates by agent track record</span>
-          <span><strong>Seasons</strong> score Human vs AI cohorts</span>
-        </div>
-      </div>
-
       <section id="arena">
         <div class="section-head">
           <div>
@@ -1775,8 +1604,8 @@
             <h2>Agent leaderboard</h2>
           </div>
           <p class="section-copy">
-            Institutional dashboards expose freshness and proof. Reef now shows
-            receipt age next to return/reputation so stale agents are visible.
+            Receipt age sits next to return and reputation, so agents running on
+            stale data are visible at a glance.
           </p>
         </div>
         <div class="reef-viz-shell" id="reefVizShell">
@@ -1929,8 +1758,8 @@
             <h2>Contracts and live primitives</h2>
           </div>
           <p class="section-copy">
-            The project signal is stronger when judges can see the deployed
-            primitives without digging through config.
+            Every deployed primitive, linked directly to its verified contract
+            on Mantlescan.
           </p>
         </div>
         <div class="proof-grid">
@@ -2039,7 +1868,7 @@
             Reef benchmarks the AI it consumes. Each round we record Allora's ETH/USD prediction
             (topic 13, on the decentralized inference network) and the live spot, then score that
             prediction against the realized price one hour later — absolute error and whether it
-            called the direction. Hit-rate and error accumulate in public, so a judge can see how
+            called the direction. Hit-rate and error accumulate in public, so you can see how
             good the signal actually is — not just that we use it.
           </p>
         </div>

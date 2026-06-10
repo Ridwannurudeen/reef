@@ -8,10 +8,10 @@
       name="description"
       content="Every Reef contract is deployed and verified on Mantlescan. Agents publish EIP-712 signed receipts; the live GLM AI publishes a rationale whose hash matches the on-chain evidence. Testnet, unaudited, verifiable."
     />
-    <meta name="theme-color" content="#0a0a14" />
+    <meta name="theme-color" content="#0a0b12" />
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2306121a'/%3E%3Crect%20x='1.5'%20y='1.5'%20width='29'%20height='29'%20rx='6'%20fill='none'%20stroke='%2334d8c4'%20stroke-opacity='0.55'%20stroke-width='1.5'/%3E%3Cpath%20d='M11%2024V8h7.2c2.9%200%204.8%201.8%204.8%204.6%200%202.1-1.1%203.6-3%204.2L23.5%2024h-3.4l-2.2-6.2H14V24h-3Zm3-8.9h3.8c1.4%200%202.2-.8%202.2-2.1s-.8-2.1-2.2-2.1H14v4.2Z'%20fill='%2334d8c4'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c74ff'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%230a0b12' font-family='sans-serif' font-weight='700'%3ER%3C/text%3E%3C/svg%3E"
     />
     <meta property="og:title" content="Reef — On-chain proof &amp; transparency" />
     <meta
@@ -30,10 +30,13 @@
     />
     <meta name="twitter:image" content="https://reef.gudman.xyz/og.png" />
 
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="reef.css" />
@@ -55,9 +58,8 @@
         letter-spacing: -0.01em;
       }
       .t-group-note {
-        font-family: var(--mono);
-        font-size: 11px;
-        letter-spacing: 0.04em;
+        font-family: var(--sans);
+        font-size: 12px;
         color: var(--subtle);
       }
       .t-row {
@@ -78,10 +80,8 @@
       .t-row-sub {
         display: block;
         margin-top: 2px;
-        font-family: var(--mono);
-        font-size: 10.5px;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 12px;
         color: var(--subtle);
       }
       .t-addr {
@@ -96,8 +96,8 @@
         align-items: center;
         gap: 6px;
         white-space: nowrap;
-        font-family: var(--mono);
-        font-size: 12px;
+        font-family: var(--sans);
+        font-size: 13px;
         color: var(--accent);
       }
       .t-row-muted {
@@ -128,10 +128,9 @@
         padding: 0 10px;
         border-radius: var(--radius-pill);
         border: 1px solid var(--line);
-        font-family: var(--mono);
-        font-size: 11px;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
         color: var(--muted);
       }
       .t-action--up {
@@ -176,10 +175,8 @@
       .t-rationale-label {
         display: block;
         margin-bottom: 5px;
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
+        font-family: var(--sans);
+        font-size: 12px;
         color: var(--subtle);
       }
       .t-swap {
@@ -319,11 +316,10 @@
             </div>
             <h1 class="r-h1">Everything Reef does is verifiable</h1>
             <p class="r-lead">
-              Every contract is deployed and verified on Mantlescan, every agent
-              decision is published as an EIP-712 signed receipt, and the live
-              GLM model publishes the verbatim rationale behind each move — its
-              keccak256 hash matches the evidence hash recorded on-chain. This is
-              the live, honest footprint. No claims you can't check yourself.
+              Every contract is deployed and verified on Mantlescan. Every agent
+              decision is published as an EIP-712 signed receipt, and the GLM
+              model's verbatim rationale hashes to the evidence hash recorded
+              on-chain.
             </p>
           </div>
 
@@ -357,7 +353,7 @@
             <p class="r-lead">
               The source of truth is
               <span class="r-mono">deployments/mantle-sepolia.json</span>. Each
-              address links to its verified source on Mantlescan. Anything not
+              address links to its verified source on Mantlescan; anything not
               yet deployed is labelled plainly.
             </p>
           </div>
@@ -371,13 +367,12 @@
       <section class="r-section" id="decisions">
         <div class="r-container">
           <div class="r-section-head">
-            <span class="r-eyebrow">Live AI decisions</span>
             <h2 class="r-h2">What the agents decided, and why</h2>
             <p class="r-lead">
               The most recent decisions from the running GLM model. Each shows
-              the action, the verbatim rationale (this exact text hashes to the
-              on-chain receipt's evidence hash), the market signal, and — when a
-              trade executed — a link to the real swap transaction.
+              the action, the verbatim rationale, the market signal, and a link
+              to the swap when a trade executed; that rationale text hashes to
+              the receipt's on-chain evidence hash.
             </p>
           </div>
           <div class="r-panel">
@@ -392,8 +387,7 @@
       <section class="r-section" id="verify">
         <div class="r-container">
           <div class="r-section-head">
-            <span class="r-eyebrow">Verify it yourself</span>
-            <h2 class="r-h2">Don't trust us — check the chain</h2>
+            <h2 class="r-h2">Check the chain yourself</h2>
           </div>
           <div class="r-panel">
             <ol class="t-steps">
@@ -401,8 +395,7 @@
                 <p>
                   <strong>Open any contract link above.</strong> Mantlescan
                   shows the verified Solidity source, the ABI, and the deployment
-                  transaction — verified via Etherscan V2, no unverified
-                  bytecode.
+                  transaction.
                 </p>
               </li>
               <li>
@@ -411,8 +404,7 @@
                   rationale text shown in the decision feed and compute
                   <code>keccak256(text)</code>. It equals the
                   <span class="r-mono">evidenceHash</span> field in the agent's
-                  EIP-712 signed receipt on-chain. The AI can't claim one thing
-                  and record another.
+                  EIP-712 signed receipt on-chain.
                 </p>
               </li>
               <li>
@@ -436,10 +428,9 @@
             <h2 class="r-h2">A vault whose NAV is a live DEX position</h2>
             <p class="r-lead">
               The seeded leaderboard vaults accrue via a testnet yield mock. This
-              standalone vault is different: it deposits its reserve into a real
+              standalone vault deposits its reserve into a real
               FusionX&nbsp;V2 position, so its <span class="r-mono">nav()</span> is the
-              live on-chain mark-to-market of that position — not a simulated number.
-              Every contract below is Mantlescan-verified.
+              live on-chain mark-to-market of that position.
             </p>
           </div>
           <div class="r-panel">
@@ -454,21 +445,21 @@
                 href="https://sepolia.mantlescan.xyz/address/0xdb557e41d0611ff30d11bb690374ebbc7b6f8b6a"
                 target="_blank"
                 rel="noopener"
-                >AgentVault ↗</a
+                >AgentVault</a
               >
               &nbsp;·&nbsp;
               <a
                 href="https://sepolia.mantlescan.xyz/address/0x94d150a7bf4b9078f7e220bd7b1c05e90abcae3a"
                 target="_blank"
                 rel="noopener"
-                >FusionXAdapter ↗</a
+                >FusionXAdapter</a
               >
               &nbsp;·&nbsp;
               <a
                 href="https://sepolia.mantlescan.xyz/address/0x1233Cb8fD3015402A768d41F0E1ebe3a91aE8009"
                 target="_blank"
                 rel="noopener"
-                >FusionX pool ↗</a
+                >FusionX pool</a
               >
             </p>
           </div>
@@ -482,11 +473,10 @@
             <span class="r-eyebrow">Automated risk management</span>
             <h2 class="r-h2">The agent cuts exposure when the market turns</h2>
             <p class="r-lead">
-              A transparent, auditable policy maps the live ETH signal (24h momentum) to a
-              target exposure, and the agent executes a real on-chain
-              <span class="r-mono">recall</span> (de-risk) or <span class="r-mono">deploy</span>
-              (re-risk) on the DEX-NAV vault to hit it — risk management you can verify, not a
-              black box. Bands: 20 / 40 / 60 / 80% exposure at -6 / -3 / +3% momentum.
+              A policy maps the live ETH 24h momentum to a target exposure, and the
+              agent executes a real on-chain <span class="r-mono">recall</span> (de-risk)
+              or <span class="r-mono">deploy</span> (re-risk) on the DEX-NAV vault to hit it.
+              Bands: 20 / 40 / 60 / 80% exposure at -6 / -3 / +3% momentum.
             </p>
           </div>
           <div id="risk-feed">
@@ -502,14 +492,11 @@
             <span class="r-eyebrow">Policy gate</span>
             <h2 class="r-h2">Can this agent touch this capital right now?</h2>
             <p class="r-lead">
-              ReefGuard is the on-chain primitive any Mantle protocol can call <em>before</em>
-              letting an autonomous agent move capital. One pure-view call —
-              <code>canExecute(agentId, asset, sizeBps)</code> — checks registration, ERC-8004
-              reputation, posted bond, open disputes, an asset allowlist, and the action size,
-              and returns <code>(allowed, reason)</code>. A reference external protocol
-              (<code>MockProtocol</code>) is deployed wired to the live gate: it reverts with the
-              exact policy reason when an agent isn't cleared, and executed a real gated action
-              on-chain when one was. This is what makes Reef infrastructure, not a dashboard.
+              ReefGuard is the on-chain primitive any Mantle protocol can call before
+              letting an agent move capital. One pure-view
+              <code>canExecute(agentId, asset, sizeBps)</code> checks registration,
+              reputation, bond, open disputes, the asset allowlist, and action size,
+              then returns <code>(allowed, reason)</code>.
             </p>
           </div>
           <div id="reefguard-feed">
@@ -527,12 +514,9 @@
             <p class="r-lead">
               Mantle runs the official ERC-8004 registries — singleton contracts at the
               canonical <code>0x8004…</code> addresses. Every Reef agent is registered there as
-              an ERC-721 agent whose <code>agentURI</code> resolves to its live Reef passport,
-              with a <code>reef.vault</code> metadata entry binding the canonical agent to its
-              vault on-chain. Reef also publishes each agent's Trust Score to the official
-              Reputation Registry as <code>trust-score</code> feedback — so the reputation Reef
-              computes is portable: any Mantle protocol can read it from the canonical registry,
-              without touching a single Reef contract.
+              an ERC-721 whose <code>agentURI</code> resolves to its Reef passport, and each
+              agent's Trust Score is published to the Reputation Registry as
+              <code>trust-score</code> feedback any Mantle protocol can read.
             </p>
           </div>
           <div id="erc8004-feed">
@@ -545,14 +529,12 @@
       <section class="r-section" id="allocator">
         <div class="r-container">
           <div class="r-section-head">
-            <span class="r-eyebrow">Trust-weighted capital allocation</span>
-            <h2 class="r-h2">Pick a mandate — capital flows to the agents that qualify</h2>
+            <h2 class="r-h2">Pick a mandate, capital flows to the agents that qualify</h2>
             <p class="r-lead">
-              The on-chain Allocator computes each agent's Trust Score from the same four
-              components as the rating (reputation, receipt freshness, drawdown, bond) and
-              allocates capital across the agents that clear the active mandate's bar — weighted
-              by trust and capped per-agent for concentration risk. Same score, on-chain, so the
-              allocation is verifiable, not asserted.
+              The on-chain Allocator computes each agent's Trust Score from reputation, receipt
+              freshness, drawdown, and bond, then allocates capital across the agents that clear
+              the active mandate's bar. Allocations are weighted by trust and capped per-agent
+              for concentration risk.
             </p>
           </div>
           <div id="allocator-feed">
@@ -567,13 +549,12 @@
         <div class="r-container">
           <div class="r-section-head">
             <span class="r-eyebrow">Agent-to-agent economy</span>
-            <h2 class="r-h2">Agents buy and sell signals — and the volume is on-chain</h2>
+            <h2 class="r-h2">Agents buy and sell signals, and the volume is on-chain</h2>
             <p class="r-lead">
-              The SignalMarket lets a provider agent list a priced signal under a category; a
-              consumer agent buys it and payment routes peer-to-peer. Lifetime sales and revenue per
-              provider are tracked on-chain — read in one getActiveListings call, no log scanning —
-              so the marketplace volume is verifiable, not asserted. Purchases never credit
-              reputation (vault-only model), so the A2A market can't be used to farm trust.
+              The SignalMarket lets a provider agent list a priced signal; a consumer agent buys
+              it and payment routes peer-to-peer. Lifetime sales and revenue per provider read
+              on-chain in one getActiveListings call, and purchases never credit reputation, so
+              the market can't be used to farm trust.
             </p>
           </div>
           <div id="a2a-feed">
@@ -586,14 +567,11 @@
       <section class="r-section" id="allora-bench">
         <div class="r-container">
           <div class="r-section-head">
-            <span class="r-eyebrow">Benchmark</span>
             <h2 class="r-h2">We benchmark the AI we consume</h2>
             <p class="r-lead">
-              Each round Reef records Allora's ETH/USD prediction (topic 13, on the decentralized
-              inference network) and the live spot, then scores that prediction against the realized
-              price one hour later — absolute error and whether it called the direction. The hit-rate
-              and mean error accumulate in public, so the quality of the signal is measured, not
-              asserted.
+              Each round Reef records Allora's ETH/USD prediction (topic 13) and the live spot,
+              then scores it against the realized price one hour later for absolute error and
+              direction. Hit-rate and mean error accumulate in public.
             </p>
           </div>
           <div id="allora-bench-feed">
@@ -606,13 +584,12 @@
       <section class="r-section" id="strategy-bench">
         <div class="r-container">
           <div class="r-section-head">
-            <span class="r-eyebrow">Track record</span>
             <h2 class="r-h2">Every strategy carries a verifiable track record</h2>
             <p class="r-lead">
               Each competing strategy accrues a public scoreboard: directional accuracy over many
-              rounds (was the call right?) plus capital performance on its on-chain vault — ROI
-              since inception and worst peak-to-trough drawdown. Decision quality and capital
-              outcome, side by side, accumulating — not a pitch-deck number.
+              rounds, plus capital performance on its on-chain vault. That covers ROI since
+              inception and worst peak-to-trough drawdown, decision quality and capital outcome
+              side by side.
             </p>
           </div>
           <div id="strategy-bench-feed">
@@ -636,7 +613,7 @@
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5 14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 6.2v3.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
-                <span><strong>Yield is simulated.</strong> Sepolia uses a <span class="r-mono">MockYieldAdapter</span> that accrues NAV linearly on-chain. The per-share growth is real on the testnet, but it is simulated yield — not returns from a live strategy.</span>
+                <span><strong>Yield is simulated.</strong> Sepolia uses a <span class="r-mono">MockYieldAdapter</span> that accrues NAV linearly on-chain. The per-share growth is real on testnet, but the yield is simulated, not returns from a live strategy.</span>
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5 14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 6.2v3.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
