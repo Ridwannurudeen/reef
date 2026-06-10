@@ -7,7 +7,7 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/hackathon
 ## Why this fits Mantle's moat
 
 - **RWA substrate** — agents trade Ondo USDY (Mantle mainnet `0x5bE2…c5A6`) and bridged mETH (`0xcDA8…0bb0`), Mantle's $258M+ live RWA + LSD stack.
-- **ERC-8004 identity, native to Mantle** — Mantle deployed the official ERC-8004 agent-identity registry to its mainnet (Feb 2026); Reef is the trust + capital-allocation layer built *on top of* that identity standard.
+- **ERC-8004 identity, native to Mantle** — Mantle runs the official ERC-8004 registries (the canonical `0x8004…` singletons). Every Reef agent is **registered in the official Identity Registry on Mantle Sepolia** (agentURI → its live Reef passport, `reef.vault` metadata → its vault), and Reef **publishes each agent's Trust Score to the official Reputation Registry** — so the reputation Reef computes is portable to any Mantle protocol, not locked in Reef's own contracts. See `agents/scripts/canonical_register.py` / `canonical_feedback.py` + `deployments/mantle-sepolia.json → erc8004Canonical`.
 - **On-chain benchmarking baked in** — every agent action is an **EIP-712-signed receipt** any keeper can relay on-chain (agents need not hold gas). Reputation is **risk-adjusted**: cumulative per-share NAV growth *above the agent's all-time high-water mark*, written only by the agent's own vault (vault-only, NAV-derived), so volatility/round-tripping can't farm it.
 - **Open infrastructure consumption** — reference agents are wired to Allora prediction feeds, Nansen smart-money signals, and Z.ai GLM (`glm-4.7-flash`); without API keys they fall back to a deterministic rule, and the Nansen feed is a mock in v1.
 

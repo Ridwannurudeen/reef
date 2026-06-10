@@ -90,7 +90,9 @@
     "USDC": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
     "FBTC": "0xC96dE26018A54D51c097160568752c4E3BD6C364",
     "USDe": "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34",
-    "MI4": "0x671642ac281c760e34251d51bc9eef27026f3b7a"
+    "MI4": "0x671642ac281c760e34251d51bc9eef27026f3b7a",
+    "erc8004IdentityRegistry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+    "erc8004ReputationRegistry": "0x8004BAa17C55a88189AE136b182e5fdA19dE9b63"
   },
   "external": {
     "alloraApiBase": "https://api.allora.network/v2",
@@ -198,6 +200,45 @@
         "maxWeightBps": 10000
       }
     ]
+  },
+  "erc8004Canonical": {
+    "_comment": "Mantle's OFFICIAL canonical ERC-8004 registries on Sepolia (the erc-8004 team's cross-testnet singletons, vanity 0x8004... CREATE2 addresses; the Sepolia proxies point at the SAME implementations as the source-verified Mantle-mainnet registries - impl 0x7274e874... identity / 0x16e0fa7f... reputation, checked on-chain 2026-06-10). Each seeded Reef agent is registered here as an ERC-721 agent whose agentURI resolves to its live Reef Agent Passport, with a reef.vault metadata entry binding the canonical NFT to its AgentVault. Registered + recorded by agents/scripts/canonical_register.py from the arena key.",
+    "identityRegistry": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+    "reputationRegistry": "0x8004B663056A597Dffe9eCcC1965A193B7388713",
+    "registrant": "0xeCF9541C6Ff5e8774A6d8f64B57A4BE473De49eF",
+    "agentUriBase": "https://reef.gudman.xyz/api/agent/",
+    "agents": {
+      "1": {
+        "canonicalAgentId": 131,
+        "agentURI": "https://reef.gudman.xyz/api/agent/1.json",
+        "registerTx": "0x5fb8f93d7626a37c385633a2411d489663b5c4a6b3300d7a37e651f0ccd23599",
+        "metadataTx": "0x8ad4d9034206506143c6e1e9912c8f92e955b5fc307a060bd6751687ee1332b5"
+      },
+      "2": {
+        "canonicalAgentId": 132,
+        "agentURI": "https://reef.gudman.xyz/api/agent/2.json",
+        "registerTx": "0xd34f473928974611d63394322b67d35d03b30055283c594159cc727cd11bc8a7",
+        "metadataTx": "0xe88aea18057121b3c6d054e00283542b47d30189768474fe845761fad6807b3e"
+      },
+      "3": {
+        "canonicalAgentId": 133,
+        "agentURI": "https://reef.gudman.xyz/api/agent/3.json",
+        "registerTx": "0x03f4de2f3f783c0e4457e8a45e1d9972cab275c1fdf6e400f386968bb6ed39c9",
+        "metadataTx": "0xe0ec2bae0609483ea516c7b4c648732903ea9595ea5e9cb384457a9d3ebb46df"
+      },
+      "4": {
+        "canonicalAgentId": 134,
+        "agentURI": "https://reef.gudman.xyz/api/agent/4.json",
+        "registerTx": "0x59d742d4e853367dc2df03c4d5304551930f1b74a151d2a88f50a58cef28e287",
+        "metadataTx": "0xce654091bfca5edc5afdcdf6dfdc35dfa6144b31cf987a180d653d13ab778528"
+      },
+      "5": {
+        "canonicalAgentId": 135,
+        "agentURI": "https://reef.gudman.xyz/api/agent/5.json",
+        "registerTx": "0xf7ebd60ebe05cf6aacd7c5504b5c45cb69fc0945b84f818c1a684c47049495af",
+        "metadataTx": "0xc27f937a223b2d25c35d71c279da886cea24d964f7c14f3d494234b8e69942e5"
+      }
+    }
   },
   "permissionedAllocator": {
     "_comment": "Permissioned Allocator for compliance-sensitive RWA flows (chain 5003, 2026-06-09). Same trust-weighted mandate allocation as the open instance, but the depositor allowlist is ON: only governor-approved (e.g. KYC'd) addresses may deposit; withdrawals stay open. Real on-chain access control, not a claimed off-chain check. The deployer was allowlisted and made a live 50e18 deposit + rebalance; a non-allowlisted deposit reverts 'depositor not allowed' (proven via eth_call from 0x..dEaD). Mantlescan-verified.",

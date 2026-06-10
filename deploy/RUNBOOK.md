@@ -68,6 +68,8 @@ JSONs under `out/` + `deployments/mantle-sepolia.json` + `.env`; the host has `p
 */10 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.api_snapshot >> /var/log/reef-api.log 2>&1 && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.history >> /var/log/reef-api.log 2>&1
 # automated risk management hourly: signal -> target exposure -> on-chain de-risk/re-risk on the DEX-NAV vault -> /api/risk.json
 17 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api MANTLE_SEPOLIA_RPC="https://rpc.sepolia.mantle.xyz,https://mantle-sepolia.drpc.org" /usr/bin/python3 -m agents.scripts.risk_manager >> /var/log/reef-risk.log 2>&1
+# portable reputation: publish Trust Scores to Mantle's canonical ERC-8004 Reputation Registry (diff-gated — txs only when a score changes) + /api/canonical.json
+54 */6 * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.canonical_feedback >> /var/log/reef-canonical.log 2>&1
 ```
 
 `risk_manager` reads the `dexNavDemo` vault from `deployments/mantle-sepolia.json`, maps the

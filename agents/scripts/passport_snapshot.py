@@ -19,7 +19,7 @@ import sys
 import time
 from pathlib import Path
 
-from agents.shared.config import REPO_ROOT
+from agents.shared.config import DEPLOYMENTS_DIR, REPO_ROOT
 
 
 def _load(d: Path, name: str):
@@ -45,6 +45,11 @@ def main() -> int:
     alloc_doc = _load(out_dir, "allocator.json") or {}
     alloc = {str(a["agentId"]): a for a in alloc_doc.get("agents", [])}
     exes = (_load(out_dir, "executions.json") or {}).get("executions", [])
+    network = os.getenv("REEF_NETWORK", "mantle-sepolia")
+    canon = (_load(DEPLOYMENTS_DIR, f"{network}.json") or {}).get(
+        "erc8004Canonical"
+    ) or {}
+    canon_agents = canon.get("agents") or {}
 
     agent_dir = out_dir / "agent"
     agent_dir.mkdir(parents=True, exist_ok=True)
@@ -78,6 +83,16 @@ def main() -> int:
                 else None
             ),
             "activeMandate": alloc_doc.get("activeMandate"),
+            "erc8004": (
+                {
+                    "canonicalAgentId": canon_agents[aid].get("canonicalAgentId"),
+                    "identityRegistry": canon.get("identityRegistry"),
+                    "reputationRegistry": canon.get("reputationRegistry"),
+                    "agentURI": canon_agents[aid].get("agentURI"),
+                }
+                if aid in canon_agents
+                else None
+            ),
             "latestDecision": (
                 {
                     "action": latest.get("action"),

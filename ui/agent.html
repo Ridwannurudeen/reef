@@ -134,6 +134,8 @@
             vl.href = base + "/address/" + vault;
           }
 
+          var canon = (dep.erc8004Canonical && dep.erc8004Canonical.agents && dep.erc8004Canonical.agents[String(id)]) || null;
+          var canonReg = dep.erc8004Canonical && dep.erc8004Canonical.identityRegistry;
           var rep = sc.reputationE18 ? (Number(sc.reputationE18) / 1e18).toFixed(4) : "—";
           var nav = sc.navE18 ? (Number(sc.navE18) / 1e18).toFixed(5) : "—";
           var bond = sc.bondE18 ? (Number(sc.bondE18) / 1e18).toFixed(0) : "0";
@@ -145,7 +147,8 @@
             cell("Vault", vault ? '<a class="r-link" href="' + base + "/address/" + vault + '" target="_blank" rel="noopener">' + vault.slice(0, 8) + "…↗</a>" : "—") +
             cell("ReefGuard", guard ? (guard.allowed ? '<span style="color:var(--accent)">✓ cleared</span>' : '<span style="color:var(--red)">✗ ' + esc(guard.reason) + "</span>") : "—") +
             cell("Allocation", allocAgent ? (allocAgent.qualified ? ((allocAgent.targetWeightBps || 0) / 100).toFixed(1) + "%" : "excluded") : "—") +
-            cell("Risk limits", policy ? "≤" + (Number(policy.maxSizeBps) / 100) + "% size · bond ≥" + (Number(policy.minBondE18) / 1e18) + " · rep ≥" + (Number(policy.minReputationE18) / 1e18) : "—");
+            cell("Risk limits", policy ? "≤" + (Number(policy.maxSizeBps) / 100) + "% size · bond ≥" + (Number(policy.minBondE18) / 1e18) + " · rep ≥" + (Number(policy.minReputationE18) / 1e18) : "—") +
+            cell("Canonical ERC-8004", canon && canonReg ? '<a class="r-link" href="' + base + "/nft/" + canonReg + "/" + canon.canonicalAgentId + '" target="_blank" rel="noopener">agent #' + canon.canonicalAgentId + " ↗</a>" : "—");
 
           var comp = sc.components || {};
           document.getElementById("p-components").innerHTML =
