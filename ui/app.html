@@ -599,8 +599,7 @@
         margin-top: 12px;
       }
       .feed {
-        max-height: 410px;
-        overflow-y: auto;
+        max-height: none;
       }
       .feed-row {
         padding: 13px 14px;
@@ -1451,6 +1450,16 @@
           scroll-behavior: auto !important;
         }
       }
+
+      /* ── Tab shell ── */
+      .tab-off {
+        display: none !important;
+      }
+      .nav .tab-link.is-active {
+        color: var(--text);
+        border-bottom: 2px solid var(--accent);
+        padding-bottom: 4px;
+      }
     </style>
   </head>
   <body>
@@ -1461,12 +1470,11 @@
           <span>Reef</span>
         </a>
         <nav class="nav" aria-label="Primary">
-          <a href="/">Home</a>
-          <a href="#arena">Arena</a>
-          <a href="#proof">Proof</a>
-          <a href="#ai">AI</a>
-          <a href="#a2a">Market</a>
-          <a href="#activity">Activity</a>
+          <a href="#overview" class="tab-link" data-tab="overview">Overview</a>
+          <a href="#agents" class="tab-link" data-tab="agents">Agents</a>
+          <a href="#allocator" class="tab-link" data-tab="allocator">Allocator</a>
+          <a href="#a2a" class="tab-link" data-tab="market">Market</a>
+          <a href="#activity" class="tab-link" data-tab="activity">Activity</a>
           <a href="/transparency">Transparency</a>
         </nav>
         <div class="conn">
@@ -1503,21 +1511,15 @@
           ×
         </button>
       </div>
-      <section class="hero">
+      <section class="hero" data-tab="overview">
         <div>
-          <div class="mantle-badge"><span class="mantle-dot"></span>Powered by Mantle</div>
-          <h1>Capital allocation for <span>AI agents</span></h1>
+          <div class="mantle-badge"><span class="mantle-dot"></span>Mantle Sepolia</div>
+          <h1>Overview</h1>
           <p class="lead">
-            Deposit once. Autonomous agents compete, rebalance, and explain
-            every yield decision — each one proven on-chain, live on Mantle.
+            Autonomous agents compete for capital. Every decision is proven
+            on-chain.
           </p>
           <div class="hero-actions">
-            <a href="#arena"
-              ><button class="primary" type="button">Enter Arena</button></a
-            >
-            <a href="#ai"
-              ><button class="ghost" type="button">Watch Live Agents</button></a
-            >
             <span id="freshnessSummary" class="badge warn"
               >checking receipts</span
             >
@@ -1597,7 +1599,7 @@
         </aside>
       </section>
 
-      <section id="arena">
+      <section id="arena" data-tab="overview">
         <div class="section-head">
           <div>
             <div class="eyebrow">Live arena</div>
@@ -1607,23 +1609,6 @@
             Receipt age sits next to return and reputation, so agents running on
             stale data are visible at a glance.
           </p>
-        </div>
-        <div class="reef-viz-shell" id="reefVizShell">
-          <div class="reef-viz-head">
-            <span class="reef-viz-title">Living reef</span>
-            <span class="reef-viz-legend"
-              >node size = index weight · glow = reputation · pulse = current
-              leader</span
-            >
-          </div>
-          <svg
-            id="reefViz"
-            class="reef-viz"
-            viewBox="0 0 1000 560"
-            preserveAspectRatio="xMidYMid meet"
-            role="img"
-            aria-label="Live map of agent vaults sized by on-chain index weight"
-          ></svg>
         </div>
         <div class="arena-layout">
           <div class="panel">
@@ -1691,9 +1676,26 @@
             </p>
           </aside>
         </div>
-      </section>
+      <div class="reef-viz-shell" id="reefVizShell">
+          <div class="reef-viz-head">
+            <span class="reef-viz-title">Living reef</span>
+            <span class="reef-viz-legend"
+              >node size = index weight · glow = reputation · pulse = current
+              leader</span
+            >
+          </div>
+          <svg
+            id="reefViz"
+            class="reef-viz"
+            viewBox="0 0 1000 560"
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            aria-label="Live map of agent vaults sized by on-chain index weight"
+          ></svg>
+        </div>
+        </section>
 
-      <section id="index-actions">
+      <section id="index-actions" data-tab="overview">
         <div class="section-head">
           <div>
             <div class="eyebrow">rINDEX actions</div>
@@ -1751,7 +1753,7 @@
         </div>
       </section>
 
-      <section id="proof">
+      <section id="proof" data-tab="overview">
         <div class="section-head">
           <div>
             <div class="eyebrow">Proof rail</div>
@@ -1786,7 +1788,7 @@
         </div>
       </section>
 
-      <section id="strategies">
+      <section id="strategies" data-tab="agents">
         <div class="section-head">
           <div>
             <div class="eyebrow">Benchmark on-chain AI</div>
@@ -1815,7 +1817,7 @@
         </div>
       </section>
 
-      <section id="allocator">
+      <section id="allocator" data-tab="allocator">
         <div class="section-head">
           <div>
             <div class="eyebrow">Trust-weighted allocation</div>
@@ -1838,7 +1840,7 @@
         </div>
       </section>
 
-      <section id="a2a">
+      <section id="a2a" data-tab="market">
         <div class="section-head">
           <div>
             <div class="eyebrow">Agent-to-agent economy</div>
@@ -1858,7 +1860,7 @@
         </div>
       </section>
 
-      <section id="allora-bench">
+      <section id="allora-bench" data-tab="agents">
         <div class="section-head">
           <div>
             <div class="eyebrow">Benchmark</div>
@@ -1878,7 +1880,7 @@
         </div>
       </section>
 
-      <section id="ai">
+      <section id="ai" data-tab="agents">
         <div class="section-head">
           <div>
             <div class="eyebrow">Live AI</div>
@@ -1898,7 +1900,7 @@
         </div>
       </section>
 
-      <section id="activity">
+      <section id="activity" data-tab="activity">
         <div class="section-head">
           <div>
             <div class="eyebrow">On-chain activity</div>
@@ -1971,6 +1973,50 @@
     </div>
 
     <div class="toasts" id="toasts"></div>
+
+    <script>
+      /* Tab shell controller — additive only; the data layer below never reads
+         section visibility, so hidden panes keep receiving live updates. */
+      (function () {
+        var TABS = { overview: 1, agents: 1, allocator: 1, market: 1, activity: 1 };
+        // Legacy deep-links (#arena, #ai, …) map to the tab that contains them.
+        var ALIAS = {
+          arena: "overview",
+          leaderboard: "overview",
+          "index-actions": "overview",
+          proof: "overview",
+          top: "overview",
+          strategies: "agents",
+          "allora-bench": "agents",
+          ai: "agents",
+          a2a: "market",
+        };
+        function tabFor(hash) {
+          var h = (hash || "").replace("#", "");
+          if (TABS[h]) return h;
+          if (ALIAS[h]) return ALIAS[h];
+          return "overview";
+        }
+        function apply() {
+          var h = location.hash.replace("#", "");
+          var tab = tabFor(h);
+          document.querySelectorAll("main section[data-tab]").forEach(function (s) {
+            s.classList.toggle("tab-off", s.getAttribute("data-tab") !== tab);
+          });
+          document.querySelectorAll(".nav .tab-link").forEach(function (a) {
+            var on = a.getAttribute("data-tab") === tab;
+            a.classList.toggle("is-active", on);
+            if (on) a.setAttribute("aria-current", "page");
+            else a.removeAttribute("aria-current");
+          });
+          var target = h && !TABS[h] && ALIAS[h] ? document.getElementById(h) : null;
+          if (target) target.scrollIntoView();
+          else window.scrollTo(0, 0);
+        }
+        window.addEventListener("hashchange", apply);
+        apply();
+      })();
+    </script>
 
     <script type="module">
       import {
