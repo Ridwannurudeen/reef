@@ -33,5 +33,17 @@
     "l1Meth": "0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa",
     "l1Staking": "0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f",
     "rateFn": "mETHToETH(uint256)"
+  },
+  "methDeployment": {
+    "comment": "A2 - real mainnet mETH vault. DEPLOY-READY, NOT DEPLOYED (needs a funded Mantle-mainnet key holding a small mETH position). script/DeployMainnetMeth.s.sol deploys identity + index + vault(mETH) + MethRate (L2 rate store, keeper=deployer) + MethRateAdapter; agents/scripts/meth_rate_push.py keeps the L2 rate synced from the live L1 mETHToETH so vault NAV reflects real accrued yield. UNAUDITED - demo scale only. Addresses fill in after deploy.",
+    "status": "not-deployed",
+    "mETH": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
+    "deployScript": "script/DeployMainnetMeth.s.sol:DeployMainnetMeth",
+    "rateKeeper": "agents/scripts/meth_rate_push.py",
+    "AgentIdentity": "0x0000000000000000000000000000000000000000",
+    "AgentIndex": "0x0000000000000000000000000000000000000000",
+    "AgentVault": "0x0000000000000000000000000000000000000000",
+    "MethRate": "0x0000000000000000000000000000000000000000",
+    "MethRateAdapter": "0x0000000000000000000000000000000000000000"
   }
 }
