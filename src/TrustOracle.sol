@@ -55,6 +55,11 @@ contract TrustOracle {
     address public bond; // ReputationBond; if unset, the bond component scores 0
     address public guard; // ReefGuard; if unset, report() returns guardCleared=false / "guard not set"
     address public governor;
+    /// @notice Reputation-component basis. 0 (default) = cohort-relative (`rep / cohort-max`), so a
+    /// score is a ranking within the registered set. A non-zero value switches to an ABSOLUTE scale:
+    /// `min(rep / reputationTarget, 1)` — full marks require `reputationTarget` of cumulative
+    /// NAV-derived reputation (WAD units), so "best of a weak field" no longer reads as top trust.
+    uint256 public reputationTarget;
 
     // --- Agent registry (cohort): the reputation component is normalized against the cohort max. ---
     address[] public vaults;
@@ -63,6 +68,7 @@ contract TrustOracle {
 
     event VaultRegistered(uint256 indexed agentId, address indexed vault);
     event VaultRemoved(uint256 indexed agentId, address indexed vault);
+    event ReputationTargetSet(uint256 target);
     event BondSet(address bond);
     event GuardSet(address guard);
     event GovernorTransferred(address indexed governor);
@@ -123,6 +129,12 @@ contract TrustOracle {
     function setGuard(address guard_) external onlyGovernor {
         guard = guard_;
         emit GuardSet(guard_);
+    }
+
+    /// @notice Set the reputation basis: 0 = cohort-relative; non-zero = absolute full-marks target.
+    function setReputationTarget(uint256 target) external onlyGovernor {
+        reputationTarget = target;
+        emit ReputationTargetSet(target);
     }
 
     function transferGovernor(address governor_) external onlyGovernor {
@@ -214,7 +226,9 @@ contract TrustOracle {
 
         (int256 cum,) = identity.getSummary(aid);
         uint256 rep = cum > 0 ? uint256(cum) : 0;
-        repC = (rep * WAD) / maxRep;
+        repC = reputationTarget == 0
+            ? (rep * WAD) / maxRep  // cohort-relative (default)
+            : (rep >= reputationTarget ? WAD : (rep * WAD) / reputationTarget); // absolute
 
         uint256 last = v.lastReceiptAt();
         if (last != 0) {

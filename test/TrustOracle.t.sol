@@ -151,6 +151,26 @@ contract TrustOracleTest is Test {
         assertEq(bondC, WAD); // bond at 50e18 target
     }
 
+    function test_setReputationTarget_absoluteScale() public {
+        _giveRep(vaultA, opAPk, 8e18); // agent A reputation = 8e18 (the cohort max)
+        (uint256 repCrel,,,) = oracle.componentsOf(idA);
+        assertEq(repCrel, WAD); // default: cohort-relative -> best of field = full marks
+
+        // Absolute target 16e18: A's 8e18 reputation is only half of full marks now.
+        oracle.setReputationTarget(16e18);
+        (uint256 repCabs,,,) = oracle.componentsOf(idA);
+        assertEq(repCabs, 5e17);
+
+        // Target at/below the agent's reputation -> full marks (saturates).
+        oracle.setReputationTarget(8e18);
+        (uint256 repCsat,,,) = oracle.componentsOf(idA);
+        assertEq(repCsat, WAD);
+
+        vm.prank(alice);
+        vm.expectRevert(bytes("not governor"));
+        oracle.setReputationTarget(1e18);
+    }
+
     function test_scoreOf_unknownAgent_reverts() public {
         vm.expectRevert(bytes("unknown agent"));
         oracle.scoreOf(999);
