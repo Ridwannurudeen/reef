@@ -247,10 +247,12 @@ contract AgentVaultTest is Test {
     // --- Receipts ---
 
     function test_publishReceipt_creditsRealNavDelta_notClaim() public {
-        // Establish a real +0.5 per-share NAV gain: deposit principal, then simulate yield.
+        // Establish a real +0.5 per-share NAV gain via the strategy (donation-proof reputableNav).
         vm.prank(alice);
         vault.deposit(1e18); // nav = 1e18
-        token.mint(address(vault), 5e17); // donate yield -> nav = 1.5e18
+        vm.prank(operator);
+        vault.deployToStrategy(address(strategy), 1e18);
+        token.mint(address(strategy), 5e17); // strategy yield -> reputableNav = 1.5e18
 
         bytes32 evidence = keccak256("ev1");
         // The claimed delta in the signed receipt is a lie (1e24); it is ignored on-chain.
@@ -269,29 +271,46 @@ contract AgentVaultTest is Test {
     function test_reputation_highWaterMark_ignoresDrawdownRecovery() public {
         vm.prank(alice);
         vault.deposit(1e18); // nav 1.0
-        token.mint(address(vault), 1e18); // nav 2.0
+        vm.prank(operator);
+        vault.deployToStrategy(address(strategy), 1e18);
+        token.mint(address(strategy), 1e18); // strategy yield -> reputableNav 2.0
         vault.publishReceipt(0, keccak256("h0"), int256(0), uint64(60), _sign(operatorPk, 0, keccak256("h0"), 0, 60));
         (int256 c0,) = identity.getSummary(agentId);
         assertEq(c0, 1e18); // credited the +1.0 gain (new HWM = 2.0)
 
-        // Drawdown: vault loses 1.0 (nav back to 1.0); a receipt credits nothing.
-        vm.prank(address(vault));
+        // Drawdown: the strategy loses 1.0 (reputableNav back to 1.0); a receipt credits nothing.
+        vm.prank(address(strategy));
         token.transfer(address(0xdEaD), 1e18);
         vault.publishReceipt(1, keccak256("h1"), int256(0), uint64(60), _sign(operatorPk, 1, keccak256("h1"), 0, 60));
         (int256 c1,) = identity.getSummary(agentId);
         assertEq(c1, 1e18); // unchanged — in drawdown
 
-        // Recovery back to the prior peak (nav 2.0): still no credit (not a NEW high).
-        token.mint(address(vault), 1e18);
+        // Recovery back to the prior peak (reputableNav 2.0): still no credit (not a NEW high).
+        token.mint(address(strategy), 1e18);
         vault.publishReceipt(2, keccak256("h2"), int256(0), uint64(60), _sign(operatorPk, 2, keccak256("h2"), 0, 60));
         (int256 c2,) = identity.getSummary(agentId);
         assertEq(c2, 1e18); // no double-count of recovered ground
 
-        // New high (nav 2.5): credit only the 0.5 above the high-water mark.
-        token.mint(address(vault), 5e17);
+        // New high (reputableNav 2.5): credit only the 0.5 above the high-water mark.
+        token.mint(address(strategy), 5e17);
         vault.publishReceipt(3, keccak256("h3"), int256(0), uint64(60), _sign(operatorPk, 3, keccak256("h3"), 0, 60));
         (int256 c3,) = identity.getSummary(agentId);
         assertEq(c3, 1e18 + 5e17);
+    }
+
+    function test_publishReceipt_donationDoesNotCreditReputation() public {
+        // SECURITY #15 regression: a bare token donation lifts the public nav() but NOT
+        // reputableNav(), so a receipt credits zero reputation. Reputation is donation-proof.
+        vm.prank(alice);
+        vault.deposit(1e18); // reputableNav 1.0
+        token.mint(address(vault), 5e17); // donation: nav() -> 1.5, reputableNav stays 1.0
+
+        assertEq(vault.nav(), 15e17); // share-pricing nav reflects the donation
+        assertEq(vault.reputableNav(), 1e18); // reputation basis does NOT
+
+        vault.publishReceipt(0, keccak256("d0"), int256(0), uint64(60), _sign(operatorPk, 0, keccak256("d0"), 0, 60));
+        (int256 cum,) = identity.getSummary(agentId);
+        assertEq(cum, 0); // donation minted no reputation
     }
 
     function test_publishReceipt_badSeq_reverts() public {

@@ -12,6 +12,7 @@ interface IBondView {
 interface IVaultView {
     function agentId() external view returns (uint256);
     function nav() external view returns (uint256);
+    function reputableNav() external view returns (uint256);
     function highWaterNav() external view returns (uint256);
     function lastReceiptAt() external view returns (uint64);
     function identity() external view returns (address);
@@ -221,7 +222,7 @@ contract TrustOracle {
             freshC = age >= FRESH_WINDOW ? 0 : ((FRESH_WINDOW - age) * WAD) / FRESH_WINDOW;
         }
 
-        uint256 nav = v.nav();
+        uint256 nav = v.reputableNav(); // donation-proof basis (matches the high-water mark)
         uint256 hwm = v.highWaterNav();
         if (hwm == 0) {
             ddC = WAD;

@@ -7,6 +7,7 @@ import {AgentIndex} from "../src/AgentIndex.sol";
 import {AgentVault} from "../src/AgentVault.sol";
 import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {MockERC20} from "../test/mocks/MockERC20.sol";
+import {MockStrategyAdapter} from "../test/mocks/MockStrategyAdapter.sol";
 
 /// @notice Seed a deployed Reef index with demo AgentVaults so the leaderboard and
 /// AgentIndex.rebalance() produce a non-trivial, reputation-weighted allocation.
@@ -57,7 +58,15 @@ contract Seed is Script {
         asset.mint(vm.addr(pk), 1e18);
         asset.approve(address(vault), 1e18);
         vault.deposit(1e18);
-        asset.mint(address(vault), uint256(delta));
+
+        // Donation-proof reputation: deploy the principal into a strategy and realize `delta` of
+        // yield ON THE STRATEGY (mint to the adapter, not the vault), so reputableNav() rises by
+        // exactly delta per share. A bare vault donation no longer credits reputation (#15).
+        MockStrategyAdapter adapter = new MockStrategyAdapter(address(asset), address(vault));
+        registry.approveAdapter(address(adapter));
+        vault.approveStrategy(address(adapter));
+        vault.deployToStrategy(address(adapter), 1e18);
+        asset.mint(address(adapter), uint256(delta));
 
         bytes32 evidence = keccak256(abi.encode("seed", i));
         vault.publishReceipt(0, evidence, delta, uint64(86_400), _sign(pk, vault, agentId, evidence, delta));
@@ -81,7 +90,8 @@ contract Seed is Script {
         asset.mint(deployer, deposit);
         asset.approve(address(index), deposit);
 
-        // Per-vault adapter allowlist (demo vaults hold the asset idle, no strategy set).
+        // Per-vault adapter allowlist (each demo vault deploys into a mock strategy that realizes
+        // its seeded yield, so reputation comes from reputableNav growth, not a vault donation).
         AdapterRegistry registry = new AdapterRegistry();
 
         for (uint256 i = 0; i < navDeltas.length; i++) {
