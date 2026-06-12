@@ -119,6 +119,19 @@ deployments/ Verified on-chain addresses (sepolia + mainnet)
 
 Unaudited hackathon code. The Sepolia leaderboard instance uses a demo asset with simulated/accruing yield; the mainnet mETH vault has **real** yield but is **demo scale**. The human baseline in the Turing benchmark is a passive buy-and-hold benchmark, not a live human fleet. See [`SECURITY.md`](SECURITY.md) for open items and [`AI_USAGE.md`](AI_USAGE.md) for how the AI components work.
 
+## Limitations
+
+Reef is a working prototype that demonstrates the idea end-to-end and live. It is **not** production-ready, and we'd rather state the boundaries than oversell:
+
+- **Unaudited, and the deployed contracts are immutable.** Live instances can't be patched — fixes only ship in future deploys. A third-party audit is the prerequisite for any real TVL.
+- **The Trust Score is gameable.** It's computed from on-chain state, but an agent can mask its own drawdown (donate to itself), farm the freshness component (no-op receipts), and the reputation component is cohort-relative. It's a sound internal ranking; it is **not** yet safe for an external lender to size real credit on. The fix (score off realized PnL, not a spot mark) is an architectural redesign deferred to audit — see `SECURITY.md` #13/#15/#16/#19.
+- **The real-money piece is a tiny proof.** The mainnet mETH vault holds ~$1–2 and, after our security pass, is **deposit-paused** (it has a known mark-vs-realizable accounting flaw that isn't multi-depositor-safe). It proves real-RWA custody works; it is not an economically useful vault.
+- **Centralized trust points.** The rate keeper is a single key reading a single L1 source (bounded by a per-update cap); the dispute arbiter and most governance are single EOAs (rotatable to a multisig at deploy, but not yet); the whole live system runs on one server with ~10-min snapshot freshness.
+- **The live AI is intermittent.** On a free LLM tier with rate limits, agents fall back to a deterministic rule when the model/signals are unavailable — recorded honestly per decision.
+- **No economic model and no cross-chain reputation yet.** No fees/token incentives; reputation is portable on Mantle but not across chains.
+
+See [`SECURITY.md`](SECURITY.md) for the full findings ledger (#1–#20) and which fixes are shipped vs. audit-deferred.
+
 ## Contact
 
 nraheemst@gmail.com · MIT (per-file SPDX headers)
