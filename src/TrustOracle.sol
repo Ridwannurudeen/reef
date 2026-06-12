@@ -14,6 +14,7 @@ interface IVaultView {
     function nav() external view returns (uint256);
     function highWaterNav() external view returns (uint256);
     function lastReceiptAt() external view returns (uint64);
+    function identity() external view returns (address);
 }
 
 interface IGuardView {
@@ -60,6 +61,7 @@ contract TrustOracle {
     mapping(address => bool) public isRegistered;
 
     event VaultRegistered(uint256 indexed agentId, address indexed vault);
+    event VaultRemoved(uint256 indexed agentId, address indexed vault);
     event BondSet(address bond);
     event GuardSet(address guard);
     event GovernorTransferred(address indexed governor);
@@ -79,16 +81,37 @@ contract TrustOracle {
 
     // --- Governance ---
 
-    /// @notice Register an agent's vault into the scored cohort. `agentId` must match the vault's.
+    /// @notice Register an agent's vault into the scored cohort. The vault must be bound to THIS
+    /// oracle's AgentIdentity (so a vault can't bind an arbitrary agent's reputation to its own NAV),
+    /// and its agentId must be free.
     function registerVault(address vault) external onlyGovernor {
         require(vault != address(0), "zero addr");
         require(!isRegistered[vault], "registered");
+        require(IVaultView(vault).identity() == address(identity), "wrong identity");
         uint256 aid = IVaultView(vault).agentId();
         require(vaultOf[aid] == address(0), "agent registered");
         isRegistered[vault] = true;
         vaultOf[aid] = vault;
         vaults.push(vault);
         emit VaultRegistered(aid, vault);
+    }
+
+    /// @notice Drop a vault from the cohort by agentId (does NOT call the vault, so a broken/reverting
+    /// vault can still be removed — preventing it from bricking the cohort-wide `_maxRep`/`allScores`).
+    function removeVault(uint256 agentId) external onlyGovernor {
+        address vault = vaultOf[agentId];
+        require(vault != address(0), "unknown agent");
+        isRegistered[vault] = false;
+        vaultOf[agentId] = address(0);
+        uint256 n = vaults.length;
+        for (uint256 i = 0; i < n; i++) {
+            if (vaults[i] == vault) {
+                vaults[i] = vaults[n - 1];
+                vaults.pop();
+                break;
+            }
+        }
+        emit VaultRemoved(agentId, vault);
     }
 
     function setBond(address bond_) external onlyGovernor {

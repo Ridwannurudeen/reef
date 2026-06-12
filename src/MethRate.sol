@@ -12,6 +12,7 @@ pragma solidity ^0.8.20;
 contract MethRate {
     uint256 internal constant WAD = 1e18;
     uint256 internal constant MAX_RATE = 2e18; // mETH/ETH won't plausibly exceed 2.0 for years
+    uint256 internal constant MAX_STEP_BPS = 500; // a single push may move the rate <=5% of the current value
 
     address public keeper;
     uint256 public rate; // WAD: ETH per 1 mETH
@@ -33,10 +34,16 @@ contract MethRate {
         updatedAt = uint64(block.timestamp);
     }
 
-    /// @notice Push the latest mETH->ETH rate (read from L1 by the keeper). Bounded for sanity:
-    /// mETH only appreciates vs ETH, so the rate is always in [1.0, 2.0) in practice.
+    /// @notice Push the latest mETH->ETH rate (read from L1 by the keeper). Bounded for sanity
+    /// (mETH stays in [1.0, 2.0) vs ETH) AND rate-limited: a single push may move the stored rate by
+    /// at most MAX_STEP_BPS of its current value. Real mETH moves a few bps per ~8h update, so the
+    /// cap never blocks an honest push but caps the blast radius of a compromised keeper key or a
+    /// poisoned L1 RPC (it cannot jump the rate in one transaction).
     function setRate(uint256 rate_) external onlyKeeper {
         require(rate_ >= WAD && rate_ < MAX_RATE, "rate range");
+        uint256 cur = rate;
+        uint256 diff = rate_ > cur ? rate_ - cur : cur - rate_;
+        require(diff * 10_000 <= cur * MAX_STEP_BPS, "rate step");
         rate = rate_;
         updatedAt = uint64(block.timestamp);
         emit RatePushed(rate_, updatedAt);

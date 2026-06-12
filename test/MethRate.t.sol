@@ -45,6 +45,8 @@ contract MethRateTest is Test {
         rateStore.setRate(9e17);
         vm.expectRevert(bytes("rate range"));
         rateStore.setRate(2e18);
+        vm.expectRevert(bytes("rate step")); // > 5% from 1.09 in one push
+        rateStore.setRate(120e16);
         rateStore.setRate(112e16);
         vm.stopPrank();
         assertEq(rateStore.rate(), 112e16);
@@ -97,10 +99,10 @@ contract MethRateTest is Test {
         uint256 navBefore = vault.nav();
         assertEq(navBefore, (1072e17 * WAD) / 100e18);
 
-        // Keeper pushes a higher L1 rate -> NAV rises with no balance change.
+        // Keeper pushes a higher L1 rate -> NAV rises with no balance change (within the step cap).
         vm.prank(keeper);
-        rateStore.setRate(115e16); // 1.15
+        rateStore.setRate(114e16); // 1.14 (+4.6% from 1.09, under the 5% cap)
         assertGt(vault.nav(), navBefore);
-        assertEq(vault.nav(), ((20e18 + (80e18 * 115e16) / WAD) * WAD) / 100e18);
+        assertEq(vault.nav(), ((20e18 + (80e18 * 114e16) / WAD) * WAD) / 100e18);
     }
 }
