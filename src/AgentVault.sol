@@ -53,6 +53,12 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     /// still uses raw balances — the virtual-offset (#2) already neutralizes donation there.
     uint256 public managedIdle;
 
+    /// @dev Cost basis of capital currently in the strategy (what was deployed, NOT its live mark).
+    /// `reputableNav()` values the strategy portion at this cost, so an inflated/flash-loaned spot
+    /// `totalUnderlying()` mark cannot raise reputation — only a real recall that returns MORE than
+    /// cost (realized PnL, which lands in `managedIdle`) does (SECURITY #13).
+    uint256 public deployedCostBasis;
+
     // --- EIP-712 receipt signing ---
     // Receipts are typed-data signed by the agent's operator and may be submitted by
     // anyone (a keeper/relayer), so agents need not hold gas. The per-vault domain
@@ -124,6 +130,8 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
             // realization slippage and remaining holders are left whole.
             uint256 recalled = IStrategyAdapter(currentStrategy).recall(assets - idle);
             managedIdle += recalled; // realized assets pulled back from the strategy
+            _reduceCostBasis(recalled);
+            if (IStrategyAdapter(currentStrategy).totalUnderlying() == 0) deployedCostBasis = 0;
             assets = idle + recalled;
         }
 
@@ -157,7 +165,8 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         require(amount <= asset.balanceOf(address(this)), "amount > idle");
         currentStrategy = adapter;
         asset.safeTransfer(adapter, amount);
-        managedIdle -= amount; // idle moved into the strategy (still accounted, now as `outstanding`)
+        managedIdle -= amount; // idle moved into the strategy
+        deployedCostBasis += amount; // tracked at COST, not the strategy's live mark
         IStrategyAdapter(adapter).deploy(amount);
         emit StrategyDeployed(adapter, amount);
     }
@@ -166,9 +175,13 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         require(adapter == currentStrategy, "not current");
         uint256 recalled = IStrategyAdapter(adapter).recall(amount);
         managedIdle += recalled; // realized assets pulled back into accounted idle
+        _reduceCostBasis(recalled);
         emit StrategyRecalled(adapter, amount);
-        // When the strategy is fully drained, clear the slot so a new one can be set.
-        if (IStrategyAdapter(adapter).totalUnderlying() == 0) currentStrategy = address(0);
+        // When the strategy is fully drained, clear the slot + write off any residual cost.
+        if (IStrategyAdapter(adapter).totalUnderlying() == 0) {
+            deployedCostBasis = 0;
+            currentStrategy = address(0);
+        }
     }
 
     // --- Receipts ---
@@ -271,8 +284,17 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     /// reputation (SECURITY #15). The drawdown component of the Trust Score reads this too.
     function reputableNav() public view returns (uint256) {
         if (totalShares == 0) return 1e18;
-        uint256 outstanding = currentStrategy == address(0) ? 0 : IStrategyAdapter(currentStrategy).totalUnderlying();
-        return ((managedIdle + outstanding) * 1e18) / totalShares;
+        // Strategy capital is valued at COST (deployedCostBasis), never its live mark — so a
+        // flash-loaned/inflated spot `totalUnderlying()` cannot raise reputation. Only a recall that
+        // realizes MORE than cost (the surplus lands in managedIdle) lifts reputableNav (#13).
+        return ((managedIdle + deployedCostBasis) * 1e18) / totalShares;
+    }
+
+    /// @dev Reduce the strategy cost basis on a recall by the realized amount (capped at the basis;
+    /// surplus over cost stays in managedIdle as realized yield).
+    function _reduceCostBasis(uint256 recalled) private {
+        uint256 reduce = recalled < deployedCostBasis ? recalled : deployedCostBasis;
+        deployedCostBasis -= reduce;
     }
 
     function snapshot() external view override returns (VaultView memory) {

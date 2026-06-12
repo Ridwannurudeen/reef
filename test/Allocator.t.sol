@@ -369,7 +369,9 @@ contract AllocatorTest is Test {
         v.approveStrategy(address(adapter));
         vm.prank(op);
         v.deployToStrategy(address(adapter), 1e18);
-        token.mint(address(adapter), repAmount); // strategy yield
+        token.mint(address(adapter), repAmount); // strategy yield (unrealized mark)
+        vm.prank(op);
+        v.recallFromStrategy(address(adapter), 1e18 + repAmount); // realize it (cost-basis model)
         uint256 seq = v.nextReceiptSeq();
         bytes32 evidence = keccak256(abi.encode("rep", address(v), seq));
         bytes32 structHash = keccak256(abi.encode(RECEIPT_TYPEHASH, v.agentId(), seq, evidence, int256(0), uint64(60)));
