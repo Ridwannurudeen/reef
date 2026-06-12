@@ -8,6 +8,7 @@ import {Allocator} from "../src/Allocator.sol";
 import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {ReputationBond} from "../src/ReputationBond.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
+import {MockStrategyAdapter} from "./mocks/MockStrategyAdapter.sol";
 
 contract AllocatorTest is Test {
     AgentIdentity identity;
@@ -355,10 +356,20 @@ contract AllocatorTest is Test {
     }
 
     function _giveRep(AgentVault v, uint256 opPk, uint256 repAmount) internal {
+        // Donation-proof reputation: deposit principal, deploy into a strategy, then simulate
+        // `repAmount` of REAL strategy yield (mint to the adapter, not the vault) so reputableNav()
+        // rises by exactly repAmount per share. A bare vault donation no longer credits reputation.
+        address op = vm.addr(opPk);
         token.mint(address(this), 1e18);
         token.approve(address(v), 1e18);
         v.deposit(1e18);
-        token.mint(address(v), repAmount);
+        MockStrategyAdapter adapter = new MockStrategyAdapter(address(token), address(v));
+        registry.approveAdapter(address(adapter));
+        vm.prank(op);
+        v.approveStrategy(address(adapter));
+        vm.prank(op);
+        v.deployToStrategy(address(adapter), 1e18);
+        token.mint(address(adapter), repAmount); // strategy yield
         uint256 seq = v.nextReceiptSeq();
         bytes32 evidence = keccak256(abi.encode("rep", address(v), seq));
         bytes32 structHash = keccak256(abi.encode(RECEIPT_TYPEHASH, v.agentId(), seq, evidence, int256(0), uint64(60)));

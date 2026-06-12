@@ -46,6 +46,13 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     /// is risk-adjusted (rewards sustained new highs) and capital-normalized (per-share).
     uint256 public highWaterNav;
 
+    /// @dev Internally-accounted idle asset balance — only what entered via deposit/recall and
+    /// left via deploy/withdraw, so a bare token donation (a raw `transfer` into the vault) is NOT
+    /// counted. `reputableNav()` uses this instead of raw `balanceOf`, so reputation/trust can't be
+    /// inflated by a donation (SECURITY #15). Share pricing (`nav`/`totalAssets`) intentionally
+    /// still uses raw balances — the virtual-offset (#2) already neutralizes donation there.
+    uint256 public managedIdle;
+
     // --- EIP-712 receipt signing ---
     // Receipts are typed-data signed by the agent's operator and may be submitted by
     // anyone (a keeper/relayer), so agents need not hold gas. The per-vault domain
@@ -90,6 +97,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         shares = (assets * (totalShares + 1)) / (totalAssets() + 1);
         require(shares > 0, "zero shares");
         asset.safeTransferFrom(msg.sender, address(this), assets);
+        managedIdle += assets; // accounted idle in (donations are excluded — they never call deposit)
         balanceOf[msg.sender] += shares;
         totalShares += shares;
         emit Deposited(msg.sender, assets, shares);
@@ -115,9 +123,13 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
             // were already burned at the pre-recall ratio, so the withdrawer bears their own
             // realization slippage and remaining holders are left whole.
             uint256 recalled = IStrategyAdapter(currentStrategy).recall(assets - idle);
+            managedIdle += recalled; // realized assets pulled back from the strategy
             assets = idle + recalled;
         }
 
+        // Accounted idle out (floored: if donations let `assets` exceed managed idle, treat the
+        // donation as spent first — reputation can only be under-credited, never inflated).
+        managedIdle = assets > managedIdle ? 0 : managedIdle - assets;
         asset.safeTransfer(msg.sender, assets);
         emit Withdrawn(msg.sender, assets, shares);
     }
@@ -145,13 +157,15 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         require(amount <= asset.balanceOf(address(this)), "amount > idle");
         currentStrategy = adapter;
         asset.safeTransfer(adapter, amount);
+        managedIdle -= amount; // idle moved into the strategy (still accounted, now as `outstanding`)
         IStrategyAdapter(adapter).deploy(amount);
         emit StrategyDeployed(adapter, amount);
     }
 
     function recallFromStrategy(address adapter, uint256 amount) external override onlyOperator nonReentrant {
         require(adapter == currentStrategy, "not current");
-        IStrategyAdapter(adapter).recall(amount);
+        uint256 recalled = IStrategyAdapter(adapter).recall(amount);
+        managedIdle += recalled; // realized assets pulled back into accounted idle
         emit StrategyRecalled(adapter, amount);
         // When the strategy is fully drained, clear the slot so a new one can be set.
         if (IStrategyAdapter(adapter).totalUnderlying() == 0) currentStrategy = address(0);
@@ -181,10 +195,11 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         lastReceiptEvidenceHash = evidenceHash;
         lastReceiptAt = uint64(block.timestamp);
 
-        // Risk-adjusted: credit only per-share NAV growth above the all-time high-water
-        // mark. Recovering from a drawdown earns nothing until a new high is set, so
-        // volatility/round-tripping cannot farm reputation.
-        uint256 currentNav = nav();
+        // Risk-adjusted + donation-proof: credit only per-share growth of the DONATION-PROOF
+        // `reputableNav()` above the all-time high-water mark. Recovering from a drawdown earns
+        // nothing until a new high is set, and a bare token donation (which lifts `nav()` but not
+        // `reputableNav()`) cannot mint reputation (SECURITY #15).
+        uint256 currentNav = reputableNav();
         int256 credit = 0;
         if (currentNav > highWaterNav) {
             credit = int256(currentNav - highWaterNav);
@@ -248,6 +263,16 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     function nav() public view override returns (uint256) {
         if (totalShares == 0) return 1e18;
         return (totalAssets() * 1e18) / totalShares;
+    }
+
+    /// @notice Donation-proof per-share value used for reputation + trust scoring. Counts only the
+    /// internally-accounted idle (`managedIdle`, which excludes bare token donations) plus the
+    /// strategy mark — so a raw transfer into the vault cannot ratchet `highWaterNav` / mint
+    /// reputation (SECURITY #15). The drawdown component of the Trust Score reads this too.
+    function reputableNav() public view returns (uint256) {
+        if (totalShares == 0) return 1e18;
+        uint256 outstanding = currentStrategy == address(0) ? 0 : IStrategyAdapter(currentStrategy).totalUnderlying();
+        return ((managedIdle + outstanding) * 1e18) / totalShares;
     }
 
     function snapshot() external view override returns (VaultView memory) {

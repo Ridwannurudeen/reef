@@ -292,7 +292,7 @@ contract Allocator is ReentrancyGuard, Pausable {
             freshC = age >= FRESH_WINDOW ? 0 : ((FRESH_WINDOW - age) * WAD) / FRESH_WINDOW;
         }
 
-        uint256 nav = v.nav();
+        uint256 nav = v.reputableNav(); // donation-proof basis for drawdown (matches highWaterNav)
         uint256 hwm = v.highWaterNav();
         uint256 ddC;
         if (hwm == 0) {
