@@ -1788,6 +1788,25 @@
         </div>
       </section>
 
+      <section id="turing" data-tab="agents">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">The Financial Turing Test</div>
+            <h2>Can the AI beat a human?</h2>
+          </div>
+          <p class="section-copy">
+            Every strategy, Allora's prediction, and a Human baseline that just buys and holds ETH
+            take a directional position each round; we mark each to the realised ETH move and score
+            them on the same basis. Ranked by risk-adjusted return (Sharpe) — the hackathon's
+            question made measurable: which autonomous agents actually beat passively holding?
+          </p>
+        </div>
+        <div id="turingHead" class="feed-row muted" style="margin-bottom: var(--space-3)">loading benchmark…</div>
+        <div class="feed" id="turingOut">
+          <div class="feed-row muted">loading competitors…</div>
+        </div>
+      </section>
+
       <section id="strategies" data-tab="agents">
         <div class="section-head">
           <div>
@@ -2041,6 +2060,7 @@
       const ALLOCATOR_URL = "../api/allocator.json";
       const A2A_URL = "../api/a2a.json";
       const ALLORA_BENCH_URL = "../api/allora-bench.json";
+      const TURING_URL = "../api/turing-bench.json";
       const HISTORY_URL = "../api/history.json";
 
       function addr(a) {
@@ -3254,6 +3274,46 @@
         renderAlloraBench();
       }
 
+      async function refreshTuring() {
+        let data;
+        try {
+          const res = await fetch(TURING_URL, { cache: "no-store" });
+          if (!res.ok) return;
+          data = await res.json();
+        } catch {
+          return;
+        }
+        const comp = (data && data.competitors) || [];
+        const head = $("turingHead");
+        if (head) {
+          const inp = (data && data.inputs) || {};
+          const spot = inp.spot != null ? `ETH $${Number(inp.spot).toLocaleString()}` : "ETH —";
+          head.innerHTML = `<span class="badge">${comp.length} competitors</span> <span class="feed-when">${spot} · round ${inp.round || 0} · ranked by risk-adjusted return</span>`;
+        }
+        if (!comp.length) {
+          $("turingOut").innerHTML = `<div class="feed-row muted">benchmark initialising…</div>`;
+          return;
+        }
+        $("turingOut").innerHTML = comp
+          .map((c, i) => {
+            const human = c.kind === "human";
+            const roi = c.paperRoiBps == null ? "—" : `${c.paperRoiBps > 0 ? "+" : ""}${(c.paperRoiBps / 100).toFixed(2)}%`;
+            const sharpe = c.sharpe == null ? "—" : c.sharpe.toFixed(2);
+            const dd = c.maxDrawdownBps == null ? "—" : `${(c.maxDrawdownBps / 100).toFixed(2)}%`;
+            const hit = c.hitRatePct == null ? "—" : `${c.hitRatePct}%`;
+            const cls = c.paperRoiBps > 0 ? "pos" : c.paperRoiBps < 0 ? "neg" : "";
+            const tag = human ? ' <span class="muted" style="font-weight:400">· human baseline</span>' : "";
+            return `<div class="feed-row">
+              <div class="feed-line">
+                <span class="badge">#${i + 1} ${c.name}${tag}</span>
+                <span class="feed-when">Sharpe ${sharpe} · <span class="${cls}">ROI ${roi}</span></span>
+              </div>
+              <span class="meta">${c.stance} · hit ${hit} (${c.rounds} rds) · maxDD ${dd} · ${c.edge}</span>
+            </div>`;
+          })
+          .join("");
+      }
+
       async function refreshArena() {
         let data;
         try {
@@ -3615,6 +3675,7 @@
         await refreshAllocator();
         await refreshA2A();
         await refreshAlloraBench();
+        await refreshTuring();
         if (state.account) renderConn();
       }
 
@@ -3633,6 +3694,7 @@
             refreshAllocator();
             refreshA2A();
             refreshAlloraBench();
+            refreshTuring();
           }
         }, 30000);
         const ms = $("mandateSel");

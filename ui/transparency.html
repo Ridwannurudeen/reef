@@ -486,6 +486,27 @@
       </section>
 
       <!-- ReefGuard policy gate -->
+      <!-- Trust Oracle -->
+      <section class="r-section" id="trustoracle">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Trust Oracle</span>
+            <h2 class="r-h2">The one number capital reads, on-chain</h2>
+            <p class="r-lead">
+              TrustOracle is the standalone public read surface for an agent's trustworthiness.
+              <code>scoreOf(agentId)</code> returns a 0–100 Trust Score computed in-source from data
+              already on-chain — reputation (40%), receipt freshness (20%), drawdown (20%) and bond
+              (20%) — and <code>report(...)</code> folds in ReefGuard's live verdict. Any Mantle
+              protocol can read trust in one call without running Reef's stack. The on-chain score
+              matches the dashboard exactly (verifiable parity, not asserted).
+            </p>
+          </div>
+          <div id="trustoracle-feed">
+            <p class="t-empty">Loading Trust Oracle…</p>
+          </div>
+        </div>
+      </section>
+
       <section class="r-section" id="reefguard">
         <div class="r-container">
           <div class="r-section-head">
@@ -581,6 +602,25 @@
       </section>
 
       <!-- Strategy track record -->
+      <!-- Financial Turing Test -->
+      <section class="r-section" id="turing">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">The Financial Turing Test</span>
+            <h2 class="r-h2">Does the AI actually beat a human?</h2>
+            <p class="r-lead">
+              Every strategy, Allora's prediction, and a Human baseline that just buys and holds ETH
+              take a directional position each round, marked to the realised move on one basis. Ranked
+              by risk-adjusted return (Sharpe), next to ROI, max drawdown and hit-rate — the
+              hackathon's question made measurable.
+            </p>
+          </div>
+          <div id="turing-feed">
+            <p class="t-empty">Loading benchmark…</p>
+          </div>
+        </div>
+      </section>
+
       <section class="r-section" id="strategy-bench">
         <div class="r-container">
           <div class="r-section-head">
@@ -1048,6 +1088,59 @@
             "</a></p></div>";
         }
 
+        function renderTrustOracle(data, base) {
+          var host = document.getElementById("trustoracle-feed");
+          if (!host) return;
+          var agents = data && Array.isArray(data.agents) ? data.agents : [];
+          if (!agents.length) {
+            host.innerHTML =
+              '<p class="t-empty">The on-chain Trust Score for every agent appears here.</p>';
+            return;
+          }
+          var maxDelta = Number((data && data.maxDeltaPct) || 0);
+          var head =
+            '<div class="t-feed-row"><div class="t-feed-top">' +
+            '<span class="t-action t-action--up"><span class="t-action-dot"></span>' +
+            "scoreOf() on-chain</span>" +
+            '<span class="t-signal">matches dashboard ±' +
+            esc(maxDelta.toFixed(2)) +
+            "</span>" +
+            '<span class="t-when">' +
+            agents.length +
+            " agents</span></div>" +
+            '<p class="t-rationale"><span class="t-rationale-label">TrustOracle</span>' +
+            '<a class="t-swap" href="' +
+            esc(base + "/address/" + data.oracle) +
+            '" target="_blank" rel="noopener">' +
+            esc(data.oracle) +
+            " " +
+            EXT +
+            "</a></p></div>";
+          var rows = agents
+            .map(function (a) {
+              a = a || {};
+              var off =
+                a.scoreOffChain != null
+                  ? " · dashboard " + esc(String(a.scoreOffChain))
+                  : "";
+              return (
+                '<div class="t-feed-row"><div class="t-feed-top">' +
+                '<span class="t-action t-action--up"><span class="t-action-dot"></span>agent ' +
+                esc(String(a.agentId)) +
+                "</span>" +
+                '<span class="t-signal">' +
+                esc(String(a.rating)) +
+                off +
+                "</span>" +
+                '<span class="t-when">' +
+                esc(String(a.scoreOnChain)) +
+                " / 100</span></div></div>"
+              );
+            })
+            .join("");
+          host.innerHTML = head + rows;
+        }
+
         function renderAllocator(data, base) {
           var host = document.getElementById("allocator-feed");
           if (!host) return;
@@ -1168,6 +1261,49 @@
             })
             .join("");
           host.innerHTML = head + rows;
+        }
+
+        function renderTuring(data) {
+          var host = document.getElementById("turing-feed");
+          if (!host) return;
+          var rows = (data && data.competitors) || [];
+          if (!rows.length) {
+            host.innerHTML = '<p class="t-empty">AI strategies vs the human buy-and-hold baseline appear here.</p>';
+            return;
+          }
+          host.innerHTML = rows
+            .map(function (c, i) {
+              c = c || {};
+              var human = c.kind === "human";
+              var sharpe = c.sharpe != null ? "Sharpe " + c.sharpe.toFixed(2) : "Sharpe —";
+              var roi = c.paperRoiBps != null ? (c.paperRoiBps >= 0 ? "+" : "") + (c.paperRoiBps / 100).toFixed(2) + "%" : "—";
+              var dd = c.maxDrawdownBps != null ? "maxDD " + (c.maxDrawdownBps / 100).toFixed(2) + "%" : "";
+              var hit = c.hitRatePct != null ? c.hitRatePct + "% hit (" + (c.rounds || 0) + " rds)" : "—";
+              var up = (c.paperRoiBps || 0) >= 0;
+              return (
+                '<div class="t-feed-row"><div class="t-feed-top">' +
+                '<span class="t-action t-action--' +
+                (up ? "up" : "down") +
+                '"><span class="t-action-dot"></span>#' +
+                (i + 1) +
+                " " +
+                esc(c.name) +
+                (human ? " · human" : "") +
+                "</span>" +
+                '<span class="t-signal">' +
+                esc(sharpe) +
+                " · ROI " +
+                esc(roi) +
+                "</span>" +
+                '<span class="t-when">' +
+                esc(hit) +
+                (dd ? " · " + esc(dd) : "") +
+                "</span></div>" +
+                (c.edge ? '<p class="t-rationale"><span class="t-rationale-label">' + esc(c.stance || "") + "</span>" + esc(c.edge) + "</p>" : "") +
+                "</div>"
+              );
+            })
+            .join("");
         }
 
         function renderStrategyBench(data) {
@@ -1324,8 +1460,12 @@
           fetchJson("../api/allora-bench.json"),
           fetchJson("../api/strategy-bench.json"),
           fetchJson("../api/canonical.json"),
+          fetchJson("../api/trust-oracle.json"),
+          fetchJson("../api/turing-bench.json"),
         ]).then(function (res) {
           renderContracts(res[0]);
+          renderTrustOracle(res[9], explorerBase(res[0]));
+          renderTuring(res[10]);
           renderReefGuard(res[0], explorerBase(res[0]));
           renderFeed(res[1], res[2], explorerBase(res[0]));
           renderRisk(res[3], explorerBase(res[0]));

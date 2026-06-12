@@ -3,6 +3,13 @@ export interface CanExecuteResult {
   reason: string;
 }
 
+export interface TrustReport {
+  score: number;
+  rating: string;
+  guardCleared: boolean;
+  guardReason: string;
+}
+
 export interface AgentPassport {
   agentId: number;
   trustScore: number | null;
@@ -31,6 +38,7 @@ export interface AgentPassport {
 export interface ReefClientOptions {
   rpcUrl?: string;
   guardAddress?: string;
+  oracleAddress?: string;
   apiBase?: string;
 }
 
@@ -40,6 +48,14 @@ export function encodeCanExecute(
   sizeBps: bigint | number | string,
 ): string;
 export function decodeCanExecute(hex: string): CanExecuteResult;
+export function encodeScoreOf(agentId: bigint | number | string): string;
+export function encodeReport(
+  agentId: bigint | number | string,
+  asset: string,
+  sizeBps: bigint | number | string,
+): string;
+export function decodeReport(hex: string): TrustReport;
+export function wadToScore(wad: bigint | string): number;
 
 export class ReefClient {
   constructor(opts?: ReefClientOptions);
@@ -48,6 +64,12 @@ export class ReefClient {
     asset: string,
     sizeBps: bigint | number | string,
   ): Promise<CanExecuteResult>;
+  trustScoreOf(agentId: bigint | number | string): Promise<number>;
+  report(
+    agentId: bigint | number | string,
+    asset: string,
+    sizeBps: bigint | number | string,
+  ): Promise<TrustReport>;
   passport(agentId: number | string): Promise<AgentPassport>;
   score(agentId: number | string): Promise<number | null>;
   latestReceipt(
