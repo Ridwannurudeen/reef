@@ -80,6 +80,38 @@ contract TrustOracleTest is Test {
         oracle.registerVault(address(vaultA));
     }
 
+    function test_registerVault_rejectsWrongIdentity() public {
+        // A vault bound to a DIFFERENT AgentIdentity cannot be registered.
+        AgentIdentity other = new AgentIdentity();
+        address opY = makeAddr("opY");
+        vm.prank(opY);
+        uint256 idY = other.register();
+        AgentVault wrong = new AgentVault(address(token), idY, address(other), address(registry));
+        vm.expectRevert(bytes("wrong identity"));
+        oracle.registerVault(address(wrong));
+    }
+
+    function test_removeVault_dropsFromCohort_andAllowsReRegister() public {
+        assertEq(oracle.vaultCount(), 3);
+        oracle.removeVault(idB);
+        assertEq(oracle.vaultCount(), 2);
+        assertEq(oracle.vaultOf(idB), address(0));
+        assertFalse(oracle.isRegistered(address(vaultB)));
+        vm.expectRevert(bytes("unknown agent"));
+        oracle.scoreOf(idB);
+        // remaining agents still score fine (cohort not bricked)
+        assertGt(oracle.scoreOf(idA), 0);
+        // the freed agentId can be re-registered
+        oracle.registerVault(address(vaultB));
+        assertEq(oracle.vaultCount(), 3);
+
+        vm.prank(alice);
+        vm.expectRevert(bytes("not governor"));
+        oracle.removeVault(idA);
+        vm.expectRevert(bytes("unknown agent"));
+        oracle.removeVault(999);
+    }
+
     function test_setBond_setGuard_transferGovernor_onlyGovernor() public {
         vm.startPrank(alice);
         vm.expectRevert(bytes("not governor"));
