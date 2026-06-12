@@ -39,6 +39,9 @@ contract Allocator is ReentrancyGuard, Pausable {
     AgentIdentity public immutable identity;
     address public bond; // ReputationBond; if unset, the bond component scores 0
     address public governor;
+    /// @notice Reputation basis: 0 (default) = cohort-relative; non-zero = absolute full-marks
+    /// target (`min(rep / reputationTarget, 1)`), so a weak field can't all read as top trust.
+    uint256 public reputationTarget;
 
     struct Mandate {
         string name;
@@ -124,6 +127,11 @@ contract Allocator is ReentrancyGuard, Pausable {
     function setBond(address bond_) external onlyGovernor {
         bond = bond_;
         emit BondSet(bond_);
+    }
+
+    /// @notice Set the reputation basis: 0 = cohort-relative; non-zero = absolute full-marks target.
+    function setReputationTarget(uint256 target) external onlyGovernor {
+        reputationTarget = target;
     }
 
     function setGovernor(address g) external onlyGovernor {
@@ -283,7 +291,9 @@ contract Allocator is ReentrancyGuard, Pausable {
 
         (int256 cum,) = identity.getSummary(aid);
         uint256 rep = cum > 0 ? uint256(cum) : 0;
-        uint256 repC = (rep * WAD) / maxRep;
+        uint256 repC = reputationTarget == 0
+            ? (rep * WAD) / maxRep  // cohort-relative (default)
+            : (rep >= reputationTarget ? WAD : (rep * WAD) / reputationTarget); // absolute
 
         uint256 last = v.lastReceiptAt();
         uint256 freshC;
