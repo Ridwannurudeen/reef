@@ -1,7 +1,7 @@
 {
   "name": "@reef/sdk",
-  "version": "0.1.0",
-  "description": "Zero-dependency client for the ReefGuard policy gate and Agent Passport API on Mantle.",
+  "version": "0.2.0",
+  "description": "Zero-dependency client for the Reef TrustOracle, ReefGuard policy gate, and Agent Passport API on Mantle.",
   "type": "module",
   "main": "reef.js",
   "types": "reef.d.ts",
@@ -9,6 +9,29 @@
     ".": "./reef.js"
   },
   "files": ["reef.js", "reef.d.ts", "README.md"],
-  "keywords": ["mantle", "erc-8004", "reef", "reefguard", "ai-agents", "rwa"],
+  "keywords": [
+    "mantle",
+    "erc-8004",
+    "reef",
+    "reefguard",
+    "trust-oracle",
+    "ai-agents",
+    "rwa"
+  ],
+  "homepage": "https://reef.gudman.xyz",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ridwannurudeen/reef.git",
+    "directory": "sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/Ridwannurudeen/reef/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT"
 }

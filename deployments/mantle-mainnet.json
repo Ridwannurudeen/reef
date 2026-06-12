@@ -26,5 +26,12 @@
     "name": "FusionX V2",
     "router": "0xDd0840118bF9CCCc6d67b2944ddDfbdb995955FD",
     "factory": "0xE5020961fA51ffd3662CDf307dEf18F9a87Cce7c"
+  },
+  "methRate": {
+    "comment": "mETH is non-rebasing: validator yield accrues in the mETH->ETH exchange rate, which lives on L1 ETHEREUM (chain 1), not Mantle L2 - the bridged L2 token has no rate function. MethRateAdapter reads this to mark held mETH to ETH so vault NAV reflects REAL staking yield. RPC-verified 2026-06-12: mETHToETH(1e18) = 1.0935e18 (~9.3% accrued). Fork-tested in test/MethRateAdapter.fork.t.sol (opt-in via ETHEREUM_RPC).",
+    "chain": "ethereum-mainnet (1)",
+    "l1Meth": "0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa",
+    "l1Staking": "0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f",
+    "rateFn": "mETHToETH(uint256)"
   }
 }

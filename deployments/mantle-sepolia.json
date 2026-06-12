@@ -156,6 +156,16 @@
     "mockProtocol": "0x9ef3Feb3C404651C8d240c529969B99b743dE8D0",
     "mockProtocolNote": "Reference EXTERNAL protocol (chain 5003, 2026-06-09) that gates an agent action behind ReefGuard.canExecute() before letting it touch capital - reverts with the policy reason if not cleared. Deployed wired to the live ReefGuard; a real gated action executed on-chain for agent 1 (emits ActionExecuted). Proves Reef is infrastructure other Mantle protocols call, not a dashboard. Mantlescan-verified."
   },
+  "trustOracle": {
+    "_comment": "Standalone public Trust Oracle (chain 5003, 2026-06-11). The single on-chain read surface for 'how much should capital trust this agent?' - scoreOf(agentId) returns a 0..1e18 Trust Score computed in-source from the same 4 components as scores.json (reputation 40% / freshness 20% / drawdown 20% / bond 20%), report(agentId,asset,sizeBps) folds in ReefGuard's live verdict. Pure views: any Mantle protocol can read trust without running Reef's stack. Wired to the live AgentIdentity + ReputationBond + ReefGuard; the 5 seeded agents registered. On-chain scoreOf matches scores.json (verifiable parity). Governor = arena key. Mantlescan-verified.",
+    "address": "0x18b26f170dCA58306C2c9e20DA74e2d4531Fb3f2",
+    "consumer": "0x2A696AC743E9652807f7105D1eB7Ad6cf949670e",
+    "consumerNote": "TrustOracleConsumer reference: an external protocol that gates AND sizes credit by Trust Score - drawCredit reverts below min 0.55 (rating 'A'), limit = baseLimit * score/1e18. The trust-weighted-capital integration shape. Mantlescan-verified.",
+    "identity": "0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7",
+    "bond": "0xeF2F3602d5fe04487a971e5d749DAC7343b8F895",
+    "guard": "0xe84E84D7e2E588aa8F88d1D1ADF2bdc70365a02b",
+    "registeredAgents": [1, 2, 3, 4, 5]
+  },
   "a2a": {
     "_comment": "Agent-to-agent (A2A) signal marketplace (chain 5003, 2026-06-09). Standalone AgentIdentity + SignalMarket: provider agents list priced signals under categories; consumer agents buy them and payment routes provider->wallet. Lifetime sales/revenue are tracked ON-CHAIN per provider (salesOf/revenueOf) + globally (totalSales/totalRevenueWei) and read in one call via getActiveListings() - no log scanning. Reputation is NOT credited by purchases (vault-only model, so A2A cannot farm ERC-8004 reputation). Seeded with 3 listings + 3 real purchases. Deployed from the arena key (also each agent's wallet). Isolated from the live leaderboard instance. Mantlescan-verified.",
     "identity": "0x99AF42c59edA09a86543c57602e2c6a1AEE2AA76",
