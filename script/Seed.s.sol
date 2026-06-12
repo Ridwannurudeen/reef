@@ -66,7 +66,8 @@ contract Seed is Script {
         registry.approveAdapter(address(adapter));
         vault.approveStrategy(address(adapter));
         vault.deployToStrategy(address(adapter), 1e18);
-        asset.mint(address(adapter), uint256(delta));
+        asset.mint(address(adapter), uint256(delta)); // strategy yield (unrealized mark)
+        vault.recallFromStrategy(address(adapter), 1e18 + uint256(delta)); // realize it (cost basis)
 
         bytes32 evidence = keccak256(abi.encode("seed", i));
         vault.publishReceipt(0, evidence, delta, uint64(86_400), _sign(pk, vault, agentId, evidence, delta));

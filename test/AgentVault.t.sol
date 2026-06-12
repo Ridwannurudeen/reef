@@ -247,12 +247,14 @@ contract AgentVaultTest is Test {
     // --- Receipts ---
 
     function test_publishReceipt_creditsRealNavDelta_notClaim() public {
-        // Establish a real +0.5 per-share NAV gain via the strategy (donation-proof reputableNav).
+        // Establish a real +0.5 per-share gain: deposit, deploy, mark up, then REALIZE via recall.
         vm.prank(alice);
         vault.deposit(1e18); // nav = 1e18
         vm.prank(operator);
         vault.deployToStrategy(address(strategy), 1e18);
-        token.mint(address(strategy), 5e17); // strategy yield -> reputableNav = 1.5e18
+        token.mint(address(strategy), 5e17); // mark 1.5
+        vm.prank(operator);
+        vault.recallFromStrategy(address(strategy), 15e17); // realize -> reputableNav 1.5
 
         bytes32 evidence = keccak256("ev1");
         // The claimed delta in the signed receipt is a lie (1e24); it is ignored on-chain.
@@ -264,38 +266,45 @@ contract AgentVaultTest is Test {
         assertEq(vault.nextReceiptSeq(), 1);
         assertEq(vault.lastReceiptEvidenceHash(), evidence);
         (int256 cum, uint256 count) = identity.getSummary(agentId);
-        assertEq(cum, 5e17); // credited the REAL nav delta, not the claimed 1e24
+        assertEq(cum, 5e17); // credited the REAL realized delta, not the claimed 1e24
         assertEq(count, 1);
     }
 
-    function test_reputation_highWaterMark_ignoresDrawdownRecovery() public {
+    function test_reputation_creditsRealizedRecallNotMark() public {
+        // SECURITY #13 regression: an UNREALIZED strategy mark credits zero reputation — only a
+        // recall that realizes profit above the high-water mark does. (reputableNav values the
+        // strategy at cost, so a flash-loaned/inflated spot mark cannot mint reputation.)
         vm.prank(alice);
-        vault.deposit(1e18); // nav 1.0
+        vault.deposit(1e18); // 1.0
         vm.prank(operator);
         vault.deployToStrategy(address(strategy), 1e18);
-        token.mint(address(strategy), 1e18); // strategy yield -> reputableNav 2.0
-        vault.publishReceipt(0, keccak256("h0"), int256(0), uint64(60), _sign(operatorPk, 0, keccak256("h0"), 0, 60));
+
+        token.mint(address(strategy), 1e18); // strategy MARKS up to 2.0 — but not recalled
+        assertEq(vault.reputableNav(), 1e18); // valued at cost; mark ignored
+        vault.publishReceipt(0, keccak256("m0"), int256(0), uint64(60), _sign(operatorPk, 0, keccak256("m0"), 0, 60));
         (int256 c0,) = identity.getSummary(agentId);
-        assertEq(c0, 1e18); // credited the +1.0 gain (new HWM = 2.0)
+        assertEq(c0, 0); // unrealized mark mints nothing
 
-        // Drawdown: the strategy loses 1.0 (reputableNav back to 1.0); a receipt credits nothing.
-        vm.prank(address(strategy));
-        token.transfer(address(0xdEaD), 1e18);
-        vault.publishReceipt(1, keccak256("h1"), int256(0), uint64(60), _sign(operatorPk, 1, keccak256("h1"), 0, 60));
+        vm.prank(operator);
+        vault.recallFromStrategy(address(strategy), 2e18); // REALIZE: +1.0 lands in managedIdle
+        assertEq(vault.reputableNav(), 2e18);
+        vault.publishReceipt(1, keccak256("m1"), int256(0), uint64(60), _sign(operatorPk, 1, keccak256("m1"), 0, 60));
         (int256 c1,) = identity.getSummary(agentId);
-        assertEq(c1, 1e18); // unchanged — in drawdown
+        assertEq(c1, 1e18); // credited the REALIZED +1.0 (new HWM = 2.0)
 
-        // Recovery back to the prior peak (reputableNav 2.0): still no credit (not a NEW high).
-        token.mint(address(strategy), 1e18);
-        vault.publishReceipt(2, keccak256("h2"), int256(0), uint64(60), _sign(operatorPk, 2, keccak256("h2"), 0, 60));
+        // Redeploy + a fresh unrealized mark to 2.5: still no credit (cost basis == HWM).
+        vm.prank(operator);
+        vault.deployToStrategy(address(strategy), 2e18);
+        token.mint(address(strategy), 5e17); // mark 2.5
+        vault.publishReceipt(2, keccak256("m2"), int256(0), uint64(60), _sign(operatorPk, 2, keccak256("m2"), 0, 60));
         (int256 c2,) = identity.getSummary(agentId);
-        assertEq(c2, 1e18); // no double-count of recovered ground
+        assertEq(c2, 1e18); // unrealized — no new high credited
 
-        // New high (reputableNav 2.5): credit only the 0.5 above the high-water mark.
-        token.mint(address(strategy), 5e17);
-        vault.publishReceipt(3, keccak256("h3"), int256(0), uint64(60), _sign(operatorPk, 3, keccak256("h3"), 0, 60));
+        vm.prank(operator);
+        vault.recallFromStrategy(address(strategy), 25e17); // realize the new high
+        vault.publishReceipt(3, keccak256("m3"), int256(0), uint64(60), _sign(operatorPk, 3, keccak256("m3"), 0, 60));
         (int256 c3,) = identity.getSummary(agentId);
-        assertEq(c3, 1e18 + 5e17);
+        assertEq(c3, 1e18 + 5e17); // only the 0.5 above the prior high-water mark
     }
 
     function test_publishReceipt_donationDoesNotCreditReputation() public {
