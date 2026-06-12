@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {AgentIdentity} from "./AgentIdentity.sol";
 import {SafeTransferLib} from "./utils/SafeTransferLib.sol";
+import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 
 /// @title ReputationBond
 /// @notice Skin-in-the-game + dispute layer for Reef agents. An agent's operator
@@ -14,7 +15,7 @@ import {SafeTransferLib} from "./utils/SafeTransferLib.sol";
 /// the window, the challenger reclaims their stake. Operator identity is verified
 /// against the ERC-8004 AgentIdentity registry.
 /// Testnet/hackathon code — it custodies funds and is unaudited.
-contract ReputationBond {
+contract ReputationBond is ReentrancyGuard {
     using SafeTransferLib for IERC20;
 
     enum Status {
@@ -95,14 +96,14 @@ contract ReputationBond {
         emit ArbiterTransferred(msg.sender);
     }
 
-    function postBond(uint256 agentId, uint256 amount) external onlyOperator(agentId) {
+    function postBond(uint256 agentId, uint256 amount) external nonReentrant onlyOperator(agentId) {
         require(amount > 0, "zero amount");
         asset.safeTransferFrom(msg.sender, address(this), amount);
         bondOf[agentId] += amount;
         emit BondPosted(agentId, amount, bondOf[agentId]);
     }
 
-    function withdrawBond(uint256 agentId, uint256 amount) external onlyOperator(agentId) {
+    function withdrawBond(uint256 agentId, uint256 amount) external nonReentrant onlyOperator(agentId) {
         require(activeDisputes[agentId] == 0, "active dispute");
         require(amount > 0 && amount <= bondOf[agentId], "amount");
         bondOf[agentId] -= amount;
@@ -112,7 +113,7 @@ contract ReputationBond {
 
     /// @notice Open a dispute against `agentId`, staking `challengeStake`. The agent
     /// must be bonded for at least `slashAmount`.
-    function openDispute(uint256 agentId, bytes32 evidence) external returns (uint256 id) {
+    function openDispute(uint256 agentId, bytes32 evidence) external nonReentrant returns (uint256 id) {
         require(bondOf[agentId] >= slashAmount, "underbonded");
         require(evidence != bytes32(0), "zero evidence");
         // An agent's own operator cannot dispute itself (self-slash farming / griefing).
@@ -137,7 +138,7 @@ contract ReputationBond {
         emit DisputeOpened(id, agentId, msg.sender, challengeStake);
     }
 
-    function resolveDispute(uint256 id, bool uphold) external {
+    function resolveDispute(uint256 id, bool uphold) external nonReentrant {
         require(msg.sender == arbiter, "not arbiter");
         Dispute storage d = disputes[id];
         require(d.status == Status.Open, "not open");
@@ -156,7 +157,7 @@ contract ReputationBond {
     }
 
     /// @notice If the arbiter never resolves within the window, the challenger reclaims their stake.
-    function claimExpiredStake(uint256 id) external {
+    function claimExpiredStake(uint256 id) external nonReentrant {
         Dispute storage d = disputes[id];
         require(d.status == Status.Open, "not open");
         require(block.timestamp > d.deadline, "window open");
