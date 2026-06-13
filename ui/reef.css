@@ -289,6 +289,19 @@ a:hover {
 .r-nav-links a[aria-current="page"]:not(.r-btn) {
   color: var(--text);
 }
+/* Mobile menu toggle (hamburger) — hidden on desktop */
+.r-nav-toggle {
+  display: none;
+  margin-left: auto;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
 
 /* ── Buttons ── */
 .r-btn {
@@ -517,11 +530,45 @@ a:hover {
   }
 }
 @media (max-width: 600px) {
+  .r-nav-toggle {
+    display: inline-grid;
+  }
   .r-nav-links {
-    gap: var(--space-4);
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 0 var(--space-5);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      max-height 240ms var(--ease),
+      opacity 180ms var(--ease),
+      padding 240ms var(--ease);
+  }
+  .r-nav.menu-open .r-nav-links {
+    max-height: 70vh;
+    opacity: 1;
+    pointer-events: auto;
+    padding: var(--space-2) var(--space-5) var(--space-5);
   }
   .r-nav-links a:not(.r-btn) {
-    display: none;
+    display: block;
+    padding: 14px 2px;
+    font-size: 15px;
+    border-bottom: 1px solid var(--line);
+  }
+  .r-nav-links .r-btn {
+    margin-top: var(--space-4);
+    width: 100%;
   }
   .r-grid--2,
   .r-grid--3,
