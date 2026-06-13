@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
-    <meta name="theme-color" content="#0a0b12" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c74ff'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%230a0b12' font-family='sans-serif' font-weight='700'%3ER%3C/text%3E%3C/svg%3E" />
+    <meta name="theme-color" content="#0a0a0b" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='7' fill='%2336d39a'/%3E%3Cpath d='M6 16.6c2.3-3.3 4.6-3.3 7 0 2.4 3.3 4.7 3.3 7 0' stroke='%230a0a0b' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
     <meta property="og:title" content="Reef — capital allocation for AI agents on Mantle" />
     <meta property="og:description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
     <meta property="og:type" content="website" />
@@ -46,10 +46,10 @@
         pointer-events: none;
         z-index: 0;
         background-image: radial-gradient(
-          rgba(150, 140, 220, 0.1) 1px,
+          rgba(255, 255, 255, 0.022) 1px,
           transparent 1px
         );
-        background-size: 30px 30px;
+        background-size: 32px 32px;
         mask-image: radial-gradient(
           ellipse 86% 80% at 50% 0%,
           #000 26%,
@@ -92,7 +92,7 @@
       button.primary {
         background: var(--accent);
         border-color: var(--accent);
-        color: #0a0b12;
+        color: #0a0a0b;
         font-weight: 600;
       }
       button.primary:hover:not(:disabled) {
@@ -163,16 +163,16 @@
         letter-spacing: 0;
       }
       .brand-mark {
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
         display: grid;
         place-items: center;
-        border-radius: var(--radius-sm);
-        background: var(--accent);
-        color: #0a0b12;
-        font-family: var(--sans);
-        font-weight: 700;
-        font-size: 15px;
+        flex: none;
+      }
+      .brand-mark img {
+        display: block;
+        width: 28px;
+        height: 28px;
       }
       .nav {
         display: flex;
@@ -470,7 +470,7 @@
         font-weight: 500;
       }
       tr:hover td {
-        background: rgba(124, 116, 255, 0.035);
+        background: rgba(54, 211, 154, 0.035);
       }
       .num {
         text-align: right;
@@ -498,7 +498,7 @@
         color: var(--accent-2);
       }
       .leader-row td {
-        background: rgba(124, 116, 255, 0.045);
+        background: rgba(54, 211, 154, 0.045);
       }
       .leader-row td:first-child {
         box-shadow: inset 3px 0 0 var(--accent);
@@ -677,7 +677,7 @@
         display: inline-block;
         padding: 1px 8px;
         border-radius: 999px;
-        border: 1px solid rgba(124, 116, 255, 0.4);
+        border: 1px solid rgba(54, 211, 154, 0.4);
         background: var(--accent-soft);
         font-family: var(--mono);
         font-size: 11px;
@@ -1195,7 +1195,7 @@
         text-decoration: none;
       }
       .agent-modal-foot a:hover {
-        background: rgba(124, 116, 255, 0.18);
+        background: rgba(54, 211, 154, 0.18);
       }
       .lb-row {
         cursor: pointer;
@@ -1293,8 +1293,8 @@
       }
       body.beginner {
         font-size: 15px;
-        --muted: #b8bacb;
-        --subtle: #9a9cb0;
+        --muted: #a0a0a6;
+        --subtle: #a0a0a6;
       }
       body.beginner .lead {
         color: var(--text);
@@ -1415,7 +1415,7 @@
         background-image: linear-gradient(
           90deg,
           var(--surface-3) 0%,
-          rgba(124, 116, 255, 0.14) 50%,
+          rgba(54, 211, 154, 0.14) 50%,
           var(--surface-3) 100%
         );
         background-size: 200% 100%;
@@ -1466,7 +1466,7 @@
     <header class="topbar">
       <div class="topbar-inner">
         <a class="brand" href="/" aria-label="Reef home">
-          <span class="brand-mark">R</span>
+          <span class="brand-mark"><img src="/reef-mark.svg" width="28" height="28" alt="" /></span>
           <span>Reef</span>
         </a>
         <nav class="nav" aria-label="Primary">
@@ -1590,7 +1590,7 @@
               preserveAspectRatio="none"
               aria-label="Index NAV trend"
             >
-              <path d="M0,47 L600,47" stroke="#272749" fill="none" />
+              <path d="M0,47 L600,47" stroke="#26262a" fill="none" />
             </svg>
             <div class="metric-label" id="navSparkCaption">
               Index NAV trend — accumulating samples.
@@ -2930,7 +2930,7 @@
             ? persistent.map((p) => BigInt(p.indexNav))
             : state.navHistory;
         if (series.length === 0) {
-          svg.innerHTML = `<path d="M0,47 L600,47" stroke="#272749" fill="none" />`;
+          svg.innerHTML = `<path d="M0,47 L600,47" stroke="#26262a" fill="none" />`;
           return;
         }
         const nums = series.map((n) => Number(formatEther(n)));
@@ -2951,19 +2951,19 @@
         const last = coords[coords.length - 1];
         // Color the trend by direction: green if NAV is up over the window, gold if flat/down.
         const up = nums[nums.length - 1] >= nums[0];
-        const tip = up ? "#7c74ff" : "#f2c14e";
+        const tip = up ? "#36d39a" : "#c69a44";
         svg.innerHTML = `
     <defs>
       <linearGradient id="sparkLine" x1="0" x2="1">
-        <stop offset="0%" stop-color="#7c74ff" />
-        <stop offset="100%" stop-color="#f2c14e" />
+        <stop offset="0%" stop-color="#36d39a" />
+        <stop offset="100%" stop-color="#c69a44" />
       </linearGradient>
       <linearGradient id="sparkArea" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="rgba(124, 116, 255, 0.26)" />
-        <stop offset="100%" stop-color="rgba(124, 116, 255, 0)" />
+        <stop offset="0%" stop-color="rgba(54, 211, 154, 0.26)" />
+        <stop offset="100%" stop-color="rgba(54, 211, 154, 0)" />
       </linearGradient>
     </defs>
-    <path d="M0,47 L600,47" stroke="#272749" stroke-dasharray="4 6" fill="none" />
+    <path d="M0,47 L600,47" stroke="#26262a" stroke-dasharray="4 6" fill="none" />
     <path d="${area}" fill="url(#sparkArea)" stroke="none" />
     <path d="${line}" fill="none" stroke="url(#sparkLine)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
     <circle class="spark-dot" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3" fill="${tip}" />`;
@@ -3838,37 +3838,19 @@
             /[&<>"]/g,
             (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
           );
-        const defs = `
-    <defs>
-      <radialGradient id="reefCoreGrad" cx="50%" cy="42%" r="60%">
-        <stop offset="0%" stop-color="#b3a9ff" /><stop offset="55%" stop-color="#5b50e0" /><stop offset="100%" stop-color="#0d2c1c" />
-      </radialGradient>
-      <radialGradient id="reefNodeGrad" cx="50%" cy="40%" r="65%">
-        <stop offset="0%" stop-color="#bff7ee" /><stop offset="45%" stop-color="#7c74ff" /><stop offset="100%" stop-color="#0f2d2a" />
-      </radialGradient>
-      <radialGradient id="reefLeadGrad" cx="50%" cy="40%" r="65%">
-        <stop offset="0%" stop-color="#eafffb" /><stop offset="40%" stop-color="#b3a9ff" /><stop offset="100%" stop-color="#5b50e0" />
-      </radialGradient>
-      <radialGradient id="reefGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="rgba(124,116,255,0.45)" /><stop offset="100%" stop-color="rgba(124,116,255,0)" />
-      </radialGradient>
-      <radialGradient id="reefVignette" cx="50%" cy="46%" r="62%">
-        <stop offset="0%" stop-color="rgba(124,116,255,0.10)" /><stop offset="100%" stop-color="rgba(10,10,20,0)" />
-      </radialGradient>
-    </defs>`;
-        const bg = `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#reefVignette)" />`;
+        const defs = "";
+        const bg = "";
         const links = nodes
           .map((nd) => {
             const wfrac = Number(nd.a.weightBps) / maxWnum;
             const sw = (0.6 + wfrac * 2.4).toFixed(2);
             const op = (0.18 + wfrac * 0.5).toFixed(2);
-            return `<line class="reef-flow" x1="${cx}" y1="${cy}" x2="${nd.x.toFixed(1)}" y2="${nd.y.toFixed(1)}" stroke="${nd.isLeader ? "#b3a9ff" : "#7c74ff"}" stroke-width="${sw}" stroke-opacity="${op}" stroke-linecap="round" />`;
+            return `<line class="reef-flow" x1="${cx}" y1="${cy}" x2="${nd.x.toFixed(1)}" y2="${nd.y.toFixed(1)}" stroke="${nd.isLeader ? "#74e6c0" : "#36d39a"}" stroke-width="${sw}" stroke-opacity="${op}" stroke-linecap="round" />`;
           })
           .join("");
         const core = `
-    <g class="reef-drift">
-      <circle cx="${cx}" cy="${cy}" r="74" fill="url(#reefGlow)" opacity="0.7" />
-      <circle cx="${cx}" cy="${cy}" r="34" fill="url(#reefCoreGrad)" stroke="rgba(124,116,255,0.55)" stroke-width="1.5" />
+    <g>
+      <circle cx="${cx}" cy="${cy}" r="34" fill="#15332a" stroke="rgba(54,211,154,0.5)" stroke-width="1.5" />
       <text x="${cx}" y="${cy - 2}" text-anchor="middle" class="reef-label" style="font-size:11px;letter-spacing:0.08em">VAULT</text>
       <text x="${cx}" y="${cy + 13}" text-anchor="middle" class="reef-sub" style="font-size:10px">CORE</text>
     </g>`;
@@ -3888,9 +3870,8 @@
        aria-label="Agent ${a.agentId.toString()}, weight ${wpct} percent. Open agent details."
        style="animation-delay:${(nd.i * 0.45).toFixed(2)}s">
       <title>${esc(title)}</title>
-      <circle class="reef-node-glow" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${haloR}" fill="url(#reefGlow)" opacity="${haloOp}" />
-      <circle class="reef-node-ring" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${(nd.r + 6).toFixed(1)}" fill="none" stroke="#7c74ff" stroke-width="1.5" opacity="0" />
-      <circle class="reef-node-core" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${nd.r.toFixed(1)}" fill="url(#${grad})" stroke="rgba(124,116,255,0.6)" stroke-width="1.25" />
+      <circle class="reef-node-ring" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${(nd.r + 6).toFixed(1)}" fill="none" stroke="#36d39a" stroke-width="1.5" opacity="0" />
+      <circle class="reef-node-core" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${nd.r.toFixed(1)}" fill="${nd.isLeader ? "#36d39a" : "rgba(54,211,154,0.42)"}" stroke="rgba(54,211,154,0.6)" stroke-width="1.25" />
       <text x="${nd.x.toFixed(1)}" y="${(nd.y + labelDy).toFixed(1)}" text-anchor="middle" class="reef-label">Agent ${a.agentId.toString()}</text>
       <text x="${nd.x.toFixed(1)}" y="${(nd.y + labelDy + 16).toFixed(1)}" text-anchor="middle" class="reef-sub">${wpct}%</text>
     </g>`;
