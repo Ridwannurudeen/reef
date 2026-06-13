@@ -11,40 +11,42 @@
 :root {
   color-scheme: dark;
 
-  /* Surfaces — near-black cool indigo, never pure #000 */
-  --bg: #0a0b12;
-  --bg-soft: #0e0f18;
-  --surface: #14151f;
-  --surface-2: #1b1c28;
-  --surface-3: #232534;
+  /* Surfaces — true-neutral near-black, never pure #000, no colour cast */
+  --bg: #0a0a0b;
+  --bg-soft: #0d0d0f;
+  --surface: #141416;
+  --surface-2: #1c1c1f;
+  --surface-3: #26262a;
 
-  /* Hairlines + low-alpha tints carry all depth */
-  --line: rgba(142, 146, 194, 0.1);
-  --line-strong: rgba(142, 146, 194, 0.2);
+  /* Hairlines + low-alpha tints carry all depth (neutral, no tint) */
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
 
   /* Neutral text ramp */
-  --text: #ebecf2;
-  --muted: #9a9cb0;
-  --subtle: #686a80;
+  --text: #f1f1f2;
+  --muted: #a0a0a6;
+  --subtle: #6b6b72;
 
-  /* One accent — periwinkle, flat, sparing */
-  --accent: #7c74ff;
-  --accent-deep: #645aee;
-  --accent-2: #9aa4ff;
-  --accent-soft: rgba(124, 116, 255, 0.1);
-  --accent-line: rgba(124, 116, 255, 0.32);
+  /* One accent — Mantle mint-green, flat, used sparingly */
+  --accent: #36d39a;
+  --accent-deep: #20bd86;
+  --accent-2: #74e6c0;
+  --accent-soft: rgba(54, 211, 154, 0.1);
+  --accent-line: rgba(54, 211, 154, 0.3);
 
-  /* Semantic (legacy names kept for the dashboard) */
-  --teal: #7c74ff;
-  --blue: #9aa4ff;
-  --gold: #e8b14a;
-  --gold-soft: rgba(232, 177, 74, 0.12);
-  --red: #f06868;
-  --success: #46cf93;
-  --danger: #f06868;
-  --warning: #e8b14a;
+  /* Semantic (legacy names kept so the dashboard re-skins by value).
+     Two-colour financial system: green = up/positive, red = down. Amber is
+     a rare neutral/flat marker, kept muted so it never reads as decoration. */
+  --teal: #36d39a;
+  --blue: #74e6c0;
+  --gold: #c69a44;
+  --gold-soft: rgba(198, 154, 68, 0.12);
+  --red: #e56a72;
+  --success: #36d39a;
+  --danger: #e56a72;
+  --warning: #c69a44;
 
-  --shadow: rgba(0, 0, 0, 0.4);
+  --shadow: rgba(0, 0, 0, 0.5);
 
   /* One radius scale */
   --radius: 8px;
@@ -208,7 +210,7 @@ a:hover {
   top: 0;
   z-index: 50;
   border-bottom: 1px solid transparent;
-  background: rgba(10, 11, 18, 0.72);
+  background: rgba(10, 10, 11, 0.72);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   transition:
@@ -216,7 +218,7 @@ a:hover {
     border-color 200ms var(--ease);
 }
 .r-nav.is-scrolled {
-  background: rgba(10, 11, 18, 0.9);
+  background: rgba(10, 10, 11, 0.9);
   border-bottom-color: var(--line);
 }
 .r-nav-inner {
@@ -245,11 +247,32 @@ a:hover {
   place-items: center;
   width: 26px;
   height: 26px;
-  border-radius: 7px;
-  background: var(--accent);
-  color: #0a0b12;
-  font-weight: 700;
-  font-size: 15px;
+  flex: none;
+}
+.r-brand-mark img,
+.r-brand-mark svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+
+/* "Built on Mantle" lockup — real Mantle logomark + wordmark, used in footer/hero */
+.r-mantle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.r-mantle:hover {
+  color: var(--text);
+}
+.r-mantle img {
+  display: block;
+  height: 17px;
+  width: auto;
+  opacity: 0.92;
 }
 .r-nav-links {
   display: flex;
@@ -297,13 +320,13 @@ a:hover {
 .r-btn--primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #0a0b12;
+  color: #0a0a0b;
   font-weight: 600;
 }
 .r-btn--primary:hover {
   background: var(--accent-deep);
   border-color: var(--accent-deep);
-  color: #0a0b12;
+  color: #0a0a0b;
 }
 .r-btn--sm {
   height: 34px;
