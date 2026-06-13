@@ -190,7 +190,7 @@ a:hover {
   padding: 0 var(--space-5);
 }
 .r-section {
-  padding: var(--space-9) 0;
+  padding: var(--space-8) 0;
   border-top: 1px solid var(--line);
 }
 .r-section--plain {
