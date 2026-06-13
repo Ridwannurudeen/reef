@@ -302,6 +302,9 @@
           <a href="/transparency" aria-current="page">Transparency</a>
           <a class="r-btn r-btn--primary r-btn--sm" href="/app">Launch App</a>
         </nav>
+        <button class="r-nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        </button>
       </div>
     </header>
 
@@ -724,6 +727,13 @@
         window.addEventListener("scroll", onScroll, { passive: true });
         onScroll();
 
+        var navToggle = document.getElementById("navToggle");
+        if (navToggle && nav)
+          navToggle.addEventListener("click", function () {
+            var open = nav.classList.toggle("menu-open");
+            navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+          });
+
         function esc(s) {
           return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
             return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -880,13 +890,21 @@
           });
           groups.push(groupHTML("Agent economy", "bonds · seasons · vaults", ae));
 
-          // Mainnet RWA references (linked to MAINNET explorer, not Sepolia)
+          // Live on Mantle MAINNET — the real mETH RWA vault (immutable demo-scale deploy)
+          var mn = [];
+          mn.push(rowHTML("Agent Vault (mETH)", "Real mETH · NAV reflects staking yield", "0x76f129D56a4BE538f7E3bd44DAC70b23BcDFcFA5", MAINNET_EXPLORER));
+          mn.push(rowHTML("MethRateAdapter", "Marks held mETH to ETH at the live rate", "0xb7Ceedf6BDC4Cf8bdBE8610EAe1D1f962E35a90A", MAINNET_EXPLORER));
+          mn.push(rowHTML("MethRate", "L2 mETH→ETH rate store", "0xf765d02A7F04bFDB8f72d97D5584d80475dF6b4E", MAINNET_EXPLORER));
+          mn.push(rowHTML("Agent Identity", "ERC-8004 · mainnet", "0x83c35DFCe04051BcF78f979C9170d2a178C2E23D", MAINNET_EXPLORER));
+          groups.push(groupHTML("Live on Mantle mainnet", "real mETH RWA vault · chain 5000 · NAV ≈ 1.07 · Mantlescan-verified", mn));
+
+          // Mainnet RWA references (token addresses the system wires to, linked to MAINNET explorer)
           var refLabels = { USDY: "Ondo US Dollar Yield", mUSD: "Mantle USD", mETH: "Mantle Staked ETH", USDC: "USD Coin", FBTC: "Function BTC", USDe: "Ethena USDe", MI4: "Mantle Index Four" };
           var refRows = [];
           Object.keys(refLabels).forEach(function (k) {
-            if (isAddr(refs[k])) refRows.push(rowHTML(k, refLabels[k] + " · mainnet, referenced", refs[k], MAINNET_EXPLORER));
+            if (isAddr(refs[k])) refRows.push(rowHTML(k, refLabels[k] + " · referenced asset", refs[k], MAINNET_EXPLORER));
           });
-          if (refRows.length) groups.push(groupHTML("Mainnet RWA references", "Mantle mainnet · chain 5000 · not deployed here", refRows));
+          if (refRows.length) groups.push(groupHTML("Mainnet RWA references", "Mantle mainnet · chain 5000 · token addresses", refRows));
 
           host.innerHTML = groups.join("");
 
