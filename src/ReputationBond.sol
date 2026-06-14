@@ -46,9 +46,14 @@ contract ReputationBond is ReentrancyGuard {
 
     mapping(uint256 => uint256) public bondOf; // agentId -> posted bond
     mapping(uint256 => uint256) public activeDisputes; // agentId -> open dispute count
+    /// @dev agentId -> earliest timestamp a bond withdrawal may be claimed (0 = no request).
+    /// Withdrawal is two-step (requestUnbond -> withdrawBond after a `disputeWindow` cooldown)
+    /// so a bond can't be yanked to dodge an incoming dispute (slash-evasion front-run).
+    mapping(uint256 => uint64) public unbondReadyAt;
     Dispute[] public disputes;
 
     event BondPosted(uint256 indexed agentId, uint256 amount, uint256 total);
+    event UnbondRequested(uint256 indexed agentId, uint64 readyAt);
     event BondWithdrawn(uint256 indexed agentId, uint256 amount, uint256 total);
     event DisputeOpened(uint256 indexed id, uint256 indexed agentId, address challenger, uint256 stake);
     event DisputeResolved(uint256 indexed id, uint256 indexed agentId, bool upheld, uint256 slashed);
@@ -103,9 +108,25 @@ contract ReputationBond is ReentrancyGuard {
         emit BondPosted(agentId, amount, bondOf[agentId]);
     }
 
+    /// @notice Step 1 of unbonding: signal intent to withdraw. The bond can only be pulled a
+    /// full `disputeWindow` later (see `withdrawBond`), giving challengers the entire window to
+    /// open a dispute — which then locks the bond — before it can leave. This defeats the
+    /// front-run where an agent yanks its bond in the same block as an incoming `openDispute`
+    /// to drop below `slashAmount` and dodge the slash.
+    function requestUnbond(uint256 agentId) external onlyOperator(agentId) {
+        require(activeDisputes[agentId] == 0, "active dispute");
+        unbondReadyAt[agentId] = uint64(block.timestamp) + disputeWindow;
+        emit UnbondRequested(agentId, unbondReadyAt[agentId]);
+    }
+
+    /// @notice Step 2 of unbonding: claim the withdrawal once the cooldown set by `requestUnbond`
+    /// has elapsed. The request is consumed, so each withdrawal needs a fresh cooldown.
     function withdrawBond(uint256 agentId, uint256 amount) external nonReentrant onlyOperator(agentId) {
         require(activeDisputes[agentId] == 0, "active dispute");
+        uint64 readyAt = unbondReadyAt[agentId];
+        require(readyAt != 0 && block.timestamp >= readyAt, "unbond not ready");
         require(amount > 0 && amount <= bondOf[agentId], "amount");
+        unbondReadyAt[agentId] = 0;
         bondOf[agentId] -= amount;
         asset.safeTransfer(msg.sender, amount);
         emit BondWithdrawn(agentId, amount, bondOf[agentId]);

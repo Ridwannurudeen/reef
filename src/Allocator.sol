@@ -70,6 +70,7 @@ contract Allocator is ReentrancyGuard, Pausable {
     mapping(address => uint256) public vaultShares; // AgentVault shares held by this allocator
 
     event VaultAdded(address indexed vault);
+    event VaultRemoved(address indexed vault);
     event MandateAdded(uint256 indexed id, string name, uint256 minTrustScore, uint256 maxWeightBps);
     event ActiveMandateSet(uint256 indexed id);
     event BondSet(address bond);
@@ -104,6 +105,24 @@ contract Allocator is ReentrancyGuard, Pausable {
         isRegistered[vault] = true;
         vaults.push(AgentVault(vault));
         emit VaultAdded(vault);
+    }
+
+    /// @notice Evict a vault from the allocator without calling it, so a single reverting
+    /// vault (whose `nav()` bricks `totalAssets()` and locks every withdrawal) can be removed
+    /// and the allocator restored. The allocator forgets any shares it held in the vault.
+    function removeVault(address vault) external onlyGovernor {
+        require(isRegistered[vault], "not registered");
+        isRegistered[vault] = false;
+        vaultShares[vault] = 0;
+        uint256 n = vaults.length;
+        for (uint256 i = 0; i < n; i++) {
+            if (address(vaults[i]) == vault) {
+                vaults[i] = vaults[n - 1];
+                vaults.pop();
+                break;
+            }
+        }
+        emit VaultRemoved(vault);
     }
 
     function addMandate(string calldata name_, uint256 minTrustScore_, uint256 maxWeightBps_)

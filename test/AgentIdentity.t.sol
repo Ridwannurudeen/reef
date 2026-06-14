@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {AgentIdentity} from "../src/AgentIdentity.sol";
+import {MockReputationSource} from "./mocks/MockReputationSource.sol";
 
 contract AgentIdentityTest is Test {
     AgentIdentity identity;
@@ -59,11 +60,11 @@ contract AgentIdentityTest is Test {
     function test_giveFeedback_updatesSummary() public {
         vm.prank(alice);
         uint256 id = identity.register();
+        MockReputationSource src = new MockReputationSource(address(identity), id);
         vm.prank(alice);
-        identity.setReputationSource(id, bob);
+        identity.setReputationSource(id, address(src));
 
-        vm.prank(bob);
-        identity.giveFeedback(id, 5e17, 18); // +0.5
+        src.giveFeedback(5e17, 18); // +0.5
 
         (int256 cum, uint256 count) = identity.getSummary(id);
         assertEq(cum, 5e17);
@@ -73,11 +74,11 @@ contract AgentIdentityTest is Test {
     function test_giveFeedback_normalizesDecimals() public {
         vm.prank(alice);
         uint256 id = identity.register();
+        MockReputationSource src = new MockReputationSource(address(identity), id);
         vm.prank(alice);
-        identity.setReputationSource(id, bob);
+        identity.setReputationSource(id, address(src));
 
-        vm.prank(bob);
-        identity.giveFeedback(id, 50, 2); // +0.50 in 2-decimal fixed point
+        src.giveFeedback(50, 2); // +0.50 in 2-decimal fixed point
 
         (int256 cum,) = identity.getSummary(id);
         assertEq(cum, 5e17); // normalized to 18 decimals
@@ -86,20 +87,19 @@ contract AgentIdentityTest is Test {
     function test_revokeFeedback_decreasesSummary_onlyBySource() public {
         vm.prank(alice);
         uint256 id = identity.register();
+        MockReputationSource src = new MockReputationSource(address(identity), id);
         vm.prank(alice);
-        identity.setReputationSource(id, bob);
+        identity.setReputationSource(id, address(src));
 
-        vm.prank(bob);
-        identity.giveFeedback(id, 1e18, 18);
+        src.giveFeedback(1e18, 18);
 
-        // operator cannot revoke bob's feedback
+        // operator cannot revoke the source's feedback
         vm.prank(operator);
         vm.expectRevert(bytes("not source"));
         identity.revokeFeedback(id, 0);
 
-        // bob can
-        vm.prank(bob);
-        identity.revokeFeedback(id, 0);
+        // the source can
+        src.revokeFeedback(0);
         (int256 cum, uint256 count) = identity.getSummary(id);
         assertEq(cum, 0);
         assertEq(count, 0);
@@ -108,15 +108,13 @@ contract AgentIdentityTest is Test {
     function test_revokeFeedback_cannotDoubleRevoke() public {
         vm.prank(alice);
         uint256 id = identity.register();
+        MockReputationSource src = new MockReputationSource(address(identity), id);
         vm.prank(alice);
-        identity.setReputationSource(id, bob);
-        vm.prank(bob);
-        identity.giveFeedback(id, 1e18, 18);
-        vm.prank(bob);
-        identity.revokeFeedback(id, 0);
-        vm.prank(bob);
+        identity.setReputationSource(id, address(src));
+        src.giveFeedback(1e18, 18);
+        src.revokeFeedback(0);
         vm.expectRevert(bytes("already revoked"));
-        identity.revokeFeedback(id, 0);
+        src.revokeFeedback(0);
     }
 
     function test_giveFeedback_revertsForUnknownAgent() public {
@@ -134,15 +132,61 @@ contract AgentIdentityTest is Test {
         identity.giveFeedback(id, 1e18, 18);
     }
 
+    function test_setReputationSource_cannotBindEOA_norRebind_andMintRep() public {
+        vm.prank(alice);
+        uint256 id = identity.register();
+
+        // An EOA cannot be the source (blocks pointing it at the agent's own wallet to
+        // mint arbitrary reputation, bypassing the vault's realized-PnL machinery).
+        vm.prank(alice);
+        vm.expectRevert(bytes("source must be a contract"));
+        identity.setReputationSource(id, bob);
+
+        // A contract not bound to this identity + agentId is rejected.
+        MockReputationSource wrong = new MockReputationSource(address(identity), id + 1);
+        vm.prank(alice);
+        vm.expectRevert(bytes("source agent mismatch"));
+        identity.setReputationSource(id, address(wrong));
+
+        AgentIdentity other = new AgentIdentity();
+        MockReputationSource wrongIdentity = new MockReputationSource(address(other), id);
+        vm.prank(alice);
+        vm.expectRevert(bytes("source identity mismatch"));
+        identity.setReputationSource(id, address(wrongIdentity));
+
+        // The legitimate one-time binding to the agent's own (vault-like) source works.
+        MockReputationSource src = new MockReputationSource(address(identity), id);
+        vm.prank(alice);
+        identity.setReputationSource(id, address(src));
+        assertEq(identity.reputationSource(id), address(src));
+        src.giveFeedback(1e18, 18);
+        (int256 cum,) = identity.getSummary(id);
+        assertEq(cum, 1e18);
+
+        // One-shot: it cannot be repointed (e.g. to an EOA) after being set.
+        MockReputationSource src2 = new MockReputationSource(address(identity), id);
+        vm.prank(alice);
+        vm.expectRevert(bytes("source already set"));
+        identity.setReputationSource(id, address(src2));
+        vm.prank(alice);
+        vm.expectRevert(bytes("source already set"));
+        identity.setReputationSource(id, bob);
+
+        // And the agent's wallet still cannot mint reputation directly.
+        vm.prank(alice);
+        vm.expectRevert(bytes("unauthorized source"));
+        identity.giveFeedback(id, 1e18, 18);
+    }
+
     function test_readFeedback_paginates() public {
         vm.prank(alice);
         uint256 id = identity.register();
+        MockReputationSource src = new MockReputationSource(address(identity), id);
         vm.prank(alice);
-        identity.setReputationSource(id, bob);
+        identity.setReputationSource(id, address(src));
 
         for (uint256 i = 0; i < 5; i++) {
-            vm.prank(bob);
-            identity.giveFeedback(id, int128(int256(i + 1) * 1e17), 18);
+            src.giveFeedback(int128(int256(i + 1) * 1e17), 18);
         }
 
         (int128[] memory vals,) = identity.readFeedback(id, 1, 3);

@@ -13,11 +13,11 @@
   ],
   "nativeToken": "MNT",
   "reef": {
-    "_comment": "REDEPLOY 2026-06-02 with real EIP-712 signed receipts (relayable) + risk-adjusted high-water-mark reputation, on top of the post-Phase-3/4 set (must-fixes #2/#3/#6/#7 + AdapterRegistry + circuit-breaker/withdrawPool + rotatable arbiter). All Mantlescan-verified via Etherscan V2. Sepolia uses a generic MockERC20 as the index asset (real USDY/mETH live on mainnet only - see mainnetReferences). Full on-chain parity: identity + index(rINDEX) + AdapterRegistry + 5 reputation-weighted vaults + MockYieldAdapter (live time-growing NAV on agent 1) + ReputationBond (bond-gate active) + Seasons (season 0 open) \u2014 see seeded.*. A receipt loop (agents/scripts/receipt_tick.py, cron) keeps receipts fresh. UNAUDITED. Prior instances: 0x94ea17aEA0415c86d16c85D788803917BA7E3C60 (2026-06-01), 0x9071f05834123ed4F71Ce342f1Af8e0a7077215E (pre-fix).",
-    "AgentIdentity": "0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7",
-    "AgentIndex": "0xC10eCcC78492395f12a8455C8A13471990c53047",
-    "AdapterRegistry": "0xc1ed73d6707701561df96abbbc37fc7e81f9cc36",
-    "AgentVault": "0x7E4399B91bF6801d7D74E359d162065c88EA9d1B",
+    "_comment": "HARDENED REDEPLOY #2 (2026-06-14): carries the multi-agent adversarial fixes #21/#23/#27 LIVE on top of the donation-proof/realized-PnL set (#13/#15). #21 = setReputationSource is now one-shot + no-EOA + agentId/identity-bound (an agent can no longer repoint its reputation writer to its own EOA and mint arbitrary reputation \u2014 proven on-chain: setReputationSource reverts 'source already set'). #23 = governor removeVault on AgentIndex+Allocator. #27 = ReputationBond requestUnbond cooldown. Prior hardened instance (no #21/#23/#27): identity 0xDc9a22A75bAA45cb4d93e6015d7753FF8F696Be6. Original gameable instance: identity 0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7. UNAUDITED.",
+    "AgentIdentity": "0xe6D6320a3647a4b21Abe1654C30E848318D161DD",
+    "AgentIndex": "0xf847D0d2c3E4DBED7cd02eB729e48d0aAEfB8C54",
+    "AdapterRegistry": "0xa19323f17e7c28a3E88d407499595A31e0E28bE4",
+    "AgentVault": "0xfEB9E7903CA909cC04aF18e2CcE08211c7ef8a67",
     "ReputationOracle": "0x0000000000000000000000000000000000000000",
     "UsdyAdapter": "0x0000000000000000000000000000000000000000",
     "MethAdapter": "0x0000000000000000000000000000000000000000",
@@ -30,54 +30,53 @@
     "asset": "0xbc17D7F8f265d069781ed765914ED092989d92e7",
     "indexTotalAssets": "999999999999999999986",
     "tradeableIndex": {
-      "address": "0xC10eCcC78492395f12a8455C8A13471990c53047",
+      "address": "0xf847D0d2c3E4DBED7cd02eB729e48d0aAEfB8C54",
       "symbol": "rINDEX",
       "name": "Reef AI Yield Index",
       "note": "The AgentIndex itself is the ERC-20 rINDEX (transfer/approve/transferFrom over index shares). Same address as reef.AgentIndex."
     },
     "yieldAdapter": {
-      "address": "0x63bad8f71455099ebc7a01743c42f9471301edeb",
-      "vault": "0x7E4399B91bF6801d7D74E359d162065c88EA9d1B",
-      "aprBps": 2000,
-      "note": "MockYieldAdapter (testnet, linear-accruing) wired into agent 1's vault 2026-06-02; ~half the vault's idle deployed, so its per-share NAV grows on-chain and (with the receipt loop) sets new high-water marks \u2192 rising risk-adjusted reputation. Mantlescan-verified."
+      "address": "0x70bd05dbca17ED16f204226fCF99A065005524Bd",
+      "vault": "0xfEB9E7903CA909cC04aF18e2CcE08211c7ef8a67",
+      "note": "MockStrategyAdapter for agent 1 under the HARDENED realized-PnL model: strategy yield is REALIZED via recall (enters deployedCostBasis) before it credits reputation, so unrealized marks and bare donations no longer move reputation (#13/#15). Not a live-accruing mark. Mantlescan-verified."
     },
     "reputationBond": {
-      "address": "0xef2f3602d5fe04487a971e5d749dac7343b8f895",
+      "address": "0xccfF181441a636a63f8b5f9b6697585b54165DAe",
       "arbiter": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
-      "challengeStake": "5000000000000000000",
-      "slashAmount": "10000000000000000000",
+      "challengeStake": "1000000000000000000",
+      "slashAmount": "5000000000000000000",
       "disputeWindowSec": 86400,
-      "note": "Rotatable arbiter (transferArbiter/acceptArbiter). All 5 indexed agents bonded 50e18; index bond-gate ACTIVE via setReputationBond(bond, 10e18). Mantlescan-verified."
+      "note": "Rotatable arbiter + two-step unbond cooldown (requestUnbond->withdrawBond, #27). All 5 agents bonded 50e18; index bond-gate ACTIVE via setReputationBond(bond, 10e18). Mantlescan-verified."
     },
     "seasons": {
-      "address": "0xbf8f5e4434f4467cd1d9e10ea5c58fdcf67e5a80",
+      "address": "0x52EDb6943bF74328e640bcb9E76734Fe63750697",
       "seasonId": 0,
-      "note": "On-chain Human-vs-AI Seasons. Season 0 open (7-day); all 5 agents enrolled (even agentId=AI, odd=Human), entry reputation snapshotted. Mantlescan-verified."
+      "note": "On-chain Human-vs-AI Seasons. Season 0 open (7-day); all 5 hardened agents enrolled (even agentId=AI, odd=Human). Mantlescan-verified."
     },
     "vaults": [
       {
         "agentId": 1,
-        "vault": "0x7E4399B91bF6801d7D74E359d162065c88EA9d1B",
+        "vault": "0xfEB9E7903CA909cC04aF18e2CcE08211c7ef8a67",
         "weightBps": 526
       },
       {
         "agentId": 2,
-        "vault": "0x06e196408356D2BDa4d21301B3bbB78c931AE9E3",
+        "vault": "0xbeb8CaDAFD213f5Cd24b5Bc36FC82C3802509A23",
         "weightBps": 1052
       },
       {
         "agentId": 3,
-        "vault": "0xBA8075d91983D15628DE99CDC510cD6C70F434EE",
+        "vault": "0x5Cd85315163BBfFDB4F196F51741917aB82E83E5",
         "weightBps": 1578
       },
       {
         "agentId": 4,
-        "vault": "0x7E1827697843f377761F19f6F3386D8750d75BBD",
+        "vault": "0x54c62c634D12286FB2895aE443F1d6d06009BdC4",
         "weightBps": 2631
       },
       {
         "agentId": 5,
-        "vault": "0xa40AF1a30E4094b2807fDfbF6195C06245ab0822",
+        "vault": "0xd107D0b110F60582672d28b00236acD39EB46eca",
         "weightBps": 4210
       }
     ]
@@ -146,25 +145,31 @@
   },
   "reefGuard": {
     "_comment": "On-chain policy gate (chain 5003, 2026-06-08): canExecute(agentId,asset,sizeBps)->(allowed,reason) checking registration, ERC-8004 reputation, bond, open disputes, asset allowlist, action size. Any Mantle protocol can query it before letting an agent act. Governor = arena key. Wired to live AgentIdentity + ReputationBond.",
-    "address": "0xe84E84D7e2E588aa8F88d1D1ADF2bdc70365a02b",
+    "address": "0x108411e3AA1fA2D3643b86A0B52Fd5bE12FDfe3f",
     "asset": "0xbc17D7F8f265d069781ed765914ED092989d92e7",
     "policy": {
       "minReputationE18": "500000000000000000",
       "minBondE18": "10000000000000000000",
       "maxSizeBps": 5000
     },
-    "mockProtocol": "0x9ef3Feb3C404651C8d240c529969B99b743dE8D0",
+    "mockProtocol": "0x44E2324BBd1A645c776c442DCa418b791E93fbb2",
     "mockProtocolNote": "Reference EXTERNAL protocol (chain 5003, 2026-06-09) that gates an agent action behind ReefGuard.canExecute() before letting it touch capital - reverts with the policy reason if not cleared. Deployed wired to the live ReefGuard; a real gated action executed on-chain for agent 1 (emits ActionExecuted). Proves Reef is infrastructure other Mantle protocols call, not a dashboard. Mantlescan-verified."
   },
   "trustOracle": {
-    "_comment": "Standalone public Trust Oracle (chain 5003, 2026-06-11). The single on-chain read surface for 'how much should capital trust this agent?' - scoreOf(agentId) returns a 0..1e18 Trust Score computed in-source from the same 4 components as scores.json (reputation 40% / freshness 20% / drawdown 20% / bond 20%), report(agentId,asset,sizeBps) folds in ReefGuard's live verdict. Pure views: any Mantle protocol can read trust without running Reef's stack. Wired to the live AgentIdentity + ReputationBond + ReefGuard; the 5 seeded agents registered. On-chain scoreOf matches scores.json (verifiable parity). Governor = arena key. Mantlescan-verified.",
-    "address": "0x18b26f170dCA58306C2c9e20DA74e2d4531Fb3f2",
-    "consumer": "0x2A696AC743E9652807f7105D1eB7Ad6cf949670e",
+    "_comment": "Standalone public Trust Oracle (chain 5003, 2026-06-11). The single on-chain read surface for 'how much should capital trust this agent?' - scoreOf(agentId) returns a 0..1e18 Trust Score computed in-source from the same 4 components as scores.json (reputation 40% / freshness 20% / drawdown 20% / bond 20%), report(agentId,asset,sizeBps) folds in ReefGuard's live verdict. Pure views: any Mantle protocol can read trust without running Reef's stack. HARDENED 2026-06-14: scoreOf reads reputableNav (donation-proof). Wired to the hardened AgentIdentity + ReputationBond + ReefGuard; the 5 hardened agents registered. On-chain scoreOf matches scores.json (verifiable parity). Governor = deployer. Mantlescan-verified.",
+    "address": "0x9C7db1eF649095d5c543aF66538a5E36A04d6598",
+    "consumer": "0xF4fcd1A79d2D95Ae86257be385d8b5FFCd403830",
     "consumerNote": "TrustOracleConsumer reference: an external protocol that gates AND sizes credit by Trust Score - drawCredit reverts below min 0.55 (rating 'A'), limit = baseLimit * score/1e18. The trust-weighted-capital integration shape. Mantlescan-verified.",
-    "identity": "0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7",
-    "bond": "0xeF2F3602d5fe04487a971e5d749DAC7343b8F895",
-    "guard": "0xe84E84D7e2E588aa8F88d1D1ADF2bdc70365a02b",
-    "registeredAgents": [1, 2, 3, 4, 5]
+    "identity": "0xe6D6320a3647a4b21Abe1654C30E848318D161DD",
+    "bond": "0xccfF181441a636a63f8b5f9b6697585b54165DAe",
+    "guard": "0x108411e3AA1fA2D3643b86A0B52Fd5bE12FDfe3f",
+    "registeredAgents": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
   },
   "a2a": {
     "_comment": "Agent-to-agent (A2A) signal marketplace (chain 5003, 2026-06-09). Standalone AgentIdentity + SignalMarket: provider agents list priced signals under categories; consumer agents buy them and payment routes provider->wallet. Lifetime sales/revenue are tracked ON-CHAIN per provider (salesOf/revenueOf) + globally (totalSales/totalRevenueWei) and read in one call via getActiveListings() - no log scanning. Reputation is NOT credited by purchases (vault-only model, so A2A cannot farm ERC-8004 reputation). Seeded with 3 listings + 3 real purchases. Deployed from the arena key (also each agent's wallet). Isolated from the live leaderboard instance. Mantlescan-verified.",
@@ -178,11 +183,11 @@
   },
   "allocator": {
     "_comment": "Trust-weighted capital allocator (chain 5003, 2026-06-09). LPs deposit the index asset; rebalance() allocates across the 5 seeded AgentVaults weighted by each agent's ON-CHAIN Trust Score (same 4 components as scores.json: reputation/freshness/drawdown/bond), gated by the active mandate (qualification bar + per-agent concentration cap). Conservative active: min Trust 70/100 (excludes the lowest-trust agent), 35% cap. Seeded 100e18 + rebalanced live. Governor = arena key. Mantlescan-verified.",
-    "address": "0x3169A913fF6d3542Bab8dB3BeB6Ef99aa708f05D",
-    "governor": "0xeCF9541C6Ff5e8774A6d8f64B57A4BE473De49eF",
+    "address": "0x8F7eAC650F91B87DD927A44F1FB03f5f8f985003",
+    "governor": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
     "asset": "0xbc17D7F8f265d069781ed765914ED092989d92e7",
-    "identity": "0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7",
-    "bond": "0xeF2F3602d5fe04487a971e5d749DAC7343b8F895",
+    "identity": "0xe6D6320a3647a4b21Abe1654C30E848318D161DD",
+    "bond": "0xccfF181441a636a63f8b5f9b6697585b54165DAe",
     "activeMandate": 2,
     "mandates": [
       {
@@ -212,48 +217,48 @@
     ]
   },
   "erc8004Canonical": {
-    "_comment": "Mantle's OFFICIAL canonical ERC-8004 registries on Sepolia (the erc-8004 team's cross-testnet singletons, vanity 0x8004... CREATE2 addresses; the Sepolia proxies point at the SAME implementations as the source-verified Mantle-mainnet registries - impl 0x7274e874... identity / 0x16e0fa7f... reputation, checked on-chain 2026-06-10). Each seeded Reef agent is registered here as an ERC-721 agent whose agentURI resolves to its live Reef Agent Passport, with a reef.vault metadata entry binding the canonical NFT to its AgentVault. Registered + recorded by agents/scripts/canonical_register.py from the arena key.",
+    "_comment": "Mantle's OFFICIAL canonical ERC-8004 registries on Sepolia (the erc-8004 team's cross-testnet singletons, vanity 0x8004... CREATE2 addresses; the Sepolia proxies point at the SAME implementations as the source-verified Mantle-mainnet registries - impl 0x7274e874... identity / 0x16e0fa7f... reputation, checked on-chain 2026-06-10). Re-registered 2026-06-14 for the HARDENED agents (same agentURIs /api/agent/N.json bound to the new AgentVaults). Registered by agents/scripts/canonical_register.py from the registrant key.",
     "identityRegistry": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
     "reputationRegistry": "0x8004B663056A597Dffe9eCcC1965A193B7388713",
     "registrant": "0xeCF9541C6Ff5e8774A6d8f64B57A4BE473De49eF",
     "agentUriBase": "https://reef.gudman.xyz/api/agent/",
     "agents": {
       "1": {
-        "canonicalAgentId": 131,
+        "canonicalAgentId": 197,
         "agentURI": "https://reef.gudman.xyz/api/agent/1.json",
-        "registerTx": "0x5fb8f93d7626a37c385633a2411d489663b5c4a6b3300d7a37e651f0ccd23599",
-        "metadataTx": "0x8ad4d9034206506143c6e1e9912c8f92e955b5fc307a060bd6751687ee1332b5"
+        "registerTx": "0x335cf4567133d40a48756c5829daa7d1b1d921d4e5ddd604a80feecc00a12d23",
+        "metadataTx": "0xb41f42781f53b0177b9c81e7dff0cd9f173681cc54ca02052d9081268f6e134a"
       },
       "2": {
-        "canonicalAgentId": 132,
+        "canonicalAgentId": 198,
         "agentURI": "https://reef.gudman.xyz/api/agent/2.json",
-        "registerTx": "0xd34f473928974611d63394322b67d35d03b30055283c594159cc727cd11bc8a7",
-        "metadataTx": "0xe88aea18057121b3c6d054e00283542b47d30189768474fe845761fad6807b3e"
+        "registerTx": "0xba340e9f17202799469e60b9ed1c14901a881d1c1b9aa2fa0260752ebacd2fe7",
+        "metadataTx": "0x52e1605580a7fb23456ad0607cf2b1d6e4f9ace82b138e9802369e87782acf64"
       },
       "3": {
-        "canonicalAgentId": 133,
+        "canonicalAgentId": 199,
         "agentURI": "https://reef.gudman.xyz/api/agent/3.json",
-        "registerTx": "0x03f4de2f3f783c0e4457e8a45e1d9972cab275c1fdf6e400f386968bb6ed39c9",
-        "metadataTx": "0xe0ec2bae0609483ea516c7b4c648732903ea9595ea5e9cb384457a9d3ebb46df"
+        "registerTx": "0xd89d2f09722ca59f01dd3efad658c92e9022305247baceb6c01fe263862b29cf",
+        "metadataTx": "0xc3841e71c10f0ca240a0ec3deaa37dad2d6baf862fbdbf6db17813bf840218e4"
       },
       "4": {
-        "canonicalAgentId": 134,
+        "canonicalAgentId": 200,
         "agentURI": "https://reef.gudman.xyz/api/agent/4.json",
-        "registerTx": "0x59d742d4e853367dc2df03c4d5304551930f1b74a151d2a88f50a58cef28e287",
-        "metadataTx": "0xce654091bfca5edc5afdcdf6dfdc35dfa6144b31cf987a180d653d13ab778528"
+        "registerTx": "0xb5e3c12ed75dfcd9ec1a52befc8d2a6db28f83a23968c8afc69d40de63286358",
+        "metadataTx": "0x3bc5cb0e74f8617f21285fc9e3a097976650a19be36b0cd932378a1d6efad800"
       },
       "5": {
-        "canonicalAgentId": 135,
+        "canonicalAgentId": 201,
         "agentURI": "https://reef.gudman.xyz/api/agent/5.json",
-        "registerTx": "0xf7ebd60ebe05cf6aacd7c5504b5c45cb69fc0945b84f818c1a684c47049495af",
-        "metadataTx": "0xc27f937a223b2d25c35d71c279da886cea24d964f7c14f3d494234b8e69942e5"
+        "registerTx": "0x930cf81c14f5b111e3698b0eba87ab2b2eeda500ddce21d0f92549d73d3637c5",
+        "metadataTx": "0x5dbb8668b06a2d54599602d1e95eef10d39e9687fdf8136b1931e8b91de35190"
       }
     }
   },
   "permissionedAllocator": {
     "_comment": "Permissioned Allocator for compliance-sensitive RWA flows (chain 5003, 2026-06-09). Same trust-weighted mandate allocation as the open instance, but the depositor allowlist is ON: only governor-approved (e.g. KYC'd) addresses may deposit; withdrawals stay open. Real on-chain access control, not a claimed off-chain check. The deployer was allowlisted and made a live 50e18 deposit + rebalance; a non-allowlisted deposit reverts 'depositor not allowed' (proven via eth_call from 0x..dEaD). Mantlescan-verified.",
-    "address": "0xECe0489534C8C16D6A5282315479Fee6928bDB13",
-    "governor": "0xeCF9541C6Ff5e8774A6d8f64B57A4BE473De49eF",
+    "address": "0xf9F27122a7acA7d6665922BE380AdC3d57142F0c",
+    "governor": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
     "permissioned": true,
     "activeMandate": 2
   }

@@ -78,6 +78,34 @@ contract AgentIndexTest is Test {
         index.addVault(address(other));
     }
 
+    function test_removeVault_evictsAndKeepsTotalAssetsLive() public {
+        assertEq(index.vaultCount(), 2);
+
+        vm.prank(alice);
+        vm.expectRevert(bytes("not governor"));
+        index.removeVault(address(vaultA));
+
+        // Deposit + rebalance so the index actually holds shares in both vaults.
+        vm.prank(alice);
+        index.deposit(100e18);
+        index.rebalance();
+        assertGt(index.vaultShares(address(vaultA)), 0);
+
+        index.removeVault(address(vaultA));
+        assertEq(index.vaultCount(), 1);
+        assertFalse(index.isRegistered(address(vaultA)));
+        assertEq(index.vaultShares(address(vaultA)), 0);
+
+        // totalAssets still computes (the removed vault is never called) and getAllocation excludes it.
+        index.totalAssets();
+        AgentIndex.Allocation[] memory alloc = index.getAllocation();
+        assertEq(alloc.length, 1);
+        assertEq(alloc[0].vault, address(vaultB));
+
+        vm.expectRevert(bytes("not registered"));
+        index.removeVault(address(vaultA));
+    }
+
     function test_addVault_rejectsWrongAsset() public {
         MockERC20 otherToken = new MockERC20();
         vm.prank(opA);

@@ -3,6 +3,15 @@ pragma solidity ^0.8.20;
 
 import {IIdentityRegistry, IReputationRegistry, IValidationRegistry} from "./interfaces/IERC8004.sol";
 
+/// @notice Minimal view used to bind a reputation source to the agent it writes for.
+/// A valid source (e.g. an AgentVault) exposes its `agentId` and the `identity` it is
+/// bound to, so `setReputationSource` can verify the source belongs to THIS identity
+/// and THIS agent — blocking an agent pointing its source at an arbitrary writer.
+interface IReputationSourceView {
+    function agentId() external view returns (uint256);
+    function identity() external view returns (address);
+}
+
 /// @title AgentIdentity
 /// @notice ERC-8004 agent identity for Reef, on Mantle (Mantle deployed the official
 /// ERC-8004 registry to its mainnet in Feb 2026; this is Reef's own instance built on
@@ -93,8 +102,15 @@ contract AgentIdentity is IIdentityRegistry, IReputationRegistry, IValidationReg
     }
 
     /// @notice The agent's wallet designates which address may write its reputation
-    /// (e.g. its AgentVault). Required before any feedback can be recorded.
+    /// (its AgentVault). Required before any feedback can be recorded. One-shot and
+    /// bound: the source must be a contract reporting this same identity + agentId, so
+    /// an agent cannot point it at its own EOA and mint arbitrary reputation, bypassing
+    /// the vault's realized-PnL machinery (SECURITY #1).
     function setReputationSource(uint256 agentId, address source) external onlyAgentWallet(agentId) {
+        require(reputationSource[agentId] == address(0), "source already set");
+        require(source.code.length > 0, "source must be a contract");
+        require(IReputationSourceView(source).agentId() == agentId, "source agent mismatch");
+        require(IReputationSourceView(source).identity() == address(this), "source identity mismatch");
         reputationSource[agentId] = source;
         emit ReputationSourceSet(agentId, source);
     }
