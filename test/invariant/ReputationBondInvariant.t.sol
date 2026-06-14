@@ -43,10 +43,20 @@ contract BondHandler is Test {
         vm.stopPrank();
     }
 
+    function requestUnbond(uint256 agentSeed) external {
+        uint256 i = agentSeed % 3;
+        if (bond.activeDisputes(agentIds[i]) != 0) return;
+        vm.prank(operators[i]);
+        bond.requestUnbond(agentIds[i]);
+    }
+
     function withdrawBond(uint256 agentSeed, uint256 amount) external {
         uint256 i = agentSeed % 3;
         uint256 held = bond.bondOf(agentIds[i]);
         if (held == 0 || bond.activeDisputes(agentIds[i]) != 0) return;
+        uint64 readyAt = bond.unbondReadyAt(agentIds[i]);
+        if (readyAt == 0) return;
+        if (block.timestamp < readyAt) vm.warp(readyAt);
         amount = bound(amount, 1, held);
         vm.prank(operators[i]);
         bond.withdrawBond(agentIds[i], amount);

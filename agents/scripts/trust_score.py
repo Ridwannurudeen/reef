@@ -36,6 +36,23 @@ _BOND_ABI = [
     }
 ]
 
+_ORACLE_ABI = [
+    {
+        "name": "allScores",
+        "inputs": [],
+        "outputs": [{"type": "uint256[]"}, {"type": "uint256[]"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+    {
+        "name": "reputationTarget",
+        "inputs": [],
+        "outputs": [{"type": "uint256"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+]
+
 FRESH_WINDOW_S = 86_400  # receipt older than 24h scores 0 on freshness
 BOND_TARGET = 50 * 10**18  # full marks at the cohort's standard 50e18 bond
 WEIGHTS = {"reputation": 0.40, "freshness": 0.20, "drawdown": 0.20, "bond": 0.20}
@@ -80,7 +97,7 @@ def main() -> int:
         cum, _cnt = rpc_read(
             lambda vc=vc, aid=aid: identity.functions.getSummary(aid).call()
         )
-        nav = rpc_read(lambda vc=vc: vc.functions.nav().call())
+        nav = rpc_read(lambda vc=vc: vc.functions.reputableNav().call())
         hwm = rpc_read(lambda vc=vc: vc.functions.highWaterNav().call())
         last = rpc_read(lambda vc=vc: vc.functions.lastReceiptAt().call())
         bonded = (
@@ -98,10 +115,38 @@ def main() -> int:
             }
         )
 
+    # Cohort denominator + reputationTarget come from the on-chain TrustOracle so the
+    # off-chain score reproduces scoreOf() exactly: max_rep mirrors _maxRep() over the
+    # oracle's registered cohort, and reputationTarget selects the same repC branch.
     max_rep = max((r["rep"] for r in raw), default=0) or 1
+    rep_target = 0
+    oracle_addr = (data.get("trustOracle") or {}).get("address")
+    if oracle_addr:
+        try:
+            oracle = w3.eth.contract(
+                address=w3.to_checksum_address(oracle_addr), abi=_ORACLE_ABI
+            )
+            ids, _wads = rpc_read(lambda: oracle.functions.allScores().call())
+            rep_target = int(
+                rpc_read(lambda: oracle.functions.reputationTarget().call())
+            )
+            cohort_max = 0
+            for cid in ids:
+                cum, _cnt = rpc_read(
+                    lambda cid=int(cid): identity.functions.getSummary(int(cid)).call()
+                )
+                cohort_max = max(cohort_max, max(0, int(cum)))
+            if cohort_max > 0:
+                max_rep = cohort_max
+        except Exception as e:  # noqa: BLE001 - oracle optional; keep off-chain fallback
+            print(
+                f"warn: TrustOracle unreachable ({e}); using seeded cohort denominator",
+                file=sys.stderr,
+            )
+
     agents = []
     for r in raw:
-        rep_c = r["rep"] / max_rep
+        rep_c = min(r["rep"] / rep_target, 1.0) if rep_target else r["rep"] / max_rep
         age = max(0, now - r["last"]) if r["last"] else FRESH_WINDOW_S
         fresh_c = max(0.0, 1.0 - age / FRESH_WINDOW_S)
         dd = max(0.0, (r["hwm"] - r["nav"]) / r["hwm"]) if r["hwm"] else 0.0

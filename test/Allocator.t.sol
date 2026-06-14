@@ -72,6 +72,35 @@ contract AllocatorTest is Test {
         assertEq(allocator.activeMandate(), 0);
     }
 
+    function test_removeVault_evictsAndKeepsTotalAssetsLive() public {
+        assertEq(allocator.vaultCount(), 3);
+
+        vm.prank(alice);
+        vm.expectRevert(bytes("not governor"));
+        allocator.removeVault(address(vaultB));
+
+        // Deposit + rebalance so the allocator actually holds shares across vaults.
+        vm.prank(alice);
+        allocator.deposit(100e18);
+        allocator.rebalance();
+
+        allocator.removeVault(address(vaultB));
+        assertEq(allocator.vaultCount(), 2);
+        assertFalse(allocator.isRegistered(address(vaultB)));
+        assertEq(allocator.vaultShares(address(vaultB)), 0);
+
+        // totalAssets still computes and previewTargets excludes the removed vault.
+        allocator.totalAssets();
+        (address[] memory vaultAddrs,,,) = allocator.previewTargets();
+        assertEq(vaultAddrs.length, 2);
+        for (uint256 i = 0; i < vaultAddrs.length; i++) {
+            assertTrue(vaultAddrs[i] != address(vaultB));
+        }
+
+        vm.expectRevert(bytes("not registered"));
+        allocator.removeVault(address(vaultB));
+    }
+
     function test_addMandate_onlyGovernor_andValidates() public {
         vm.prank(alice);
         vm.expectRevert(bytes("not governor"));

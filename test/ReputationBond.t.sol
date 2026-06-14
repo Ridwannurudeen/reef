@@ -58,12 +58,71 @@ contract ReputationBondTest is Test {
         assertEq(token.balanceOf(address(bond)), 100e18);
     }
 
+    function _unbond() internal {
+        vm.prank(operator);
+        bond.requestUnbond(agentId);
+        vm.warp(block.timestamp + WINDOW);
+    }
+
     function test_withdrawBond_returnsFunds() public {
         _post(100e18);
+        _unbond();
         vm.prank(operator);
         bond.withdrawBond(agentId, 40e18);
         assertEq(bond.bondOf(agentId), 60e18);
         assertEq(token.balanceOf(operator), 1_000e18 - 60e18);
+    }
+
+    function test_withdrawBond_requiresMaturedRequest() public {
+        _post(100e18);
+        // No request yet: withdrawal is not claimable.
+        vm.prank(operator);
+        vm.expectRevert(bytes("unbond not ready"));
+        bond.withdrawBond(agentId, 40e18);
+
+        // Requested but still inside the cooldown: still not claimable.
+        vm.prank(operator);
+        bond.requestUnbond(agentId);
+        vm.prank(operator);
+        vm.expectRevert(bytes("unbond not ready"));
+        bond.withdrawBond(agentId, 40e18);
+
+        // After the cooldown it claims; the request is consumed (one-shot per withdrawal).
+        vm.warp(block.timestamp + WINDOW);
+        vm.prank(operator);
+        bond.withdrawBond(agentId, 40e18);
+        assertEq(bond.bondOf(agentId), 60e18);
+        assertEq(bond.unbondReadyAt(agentId), 0);
+        vm.prank(operator);
+        vm.expectRevert(bytes("unbond not ready"));
+        bond.withdrawBond(agentId, 10e18);
+    }
+
+    function test_withdrawBond_cannotFrontRunDispute_toEvadeSlash() public {
+        _post(SLASH); // bonded exactly at the slashable amount
+
+        // The front-run: with no matured request, an agent cannot yank its bond in the same
+        // block as an incoming dispute to drop below `slashAmount` — withdrawBond reverts.
+        vm.prank(operator);
+        vm.expectRevert(bytes("unbond not ready"));
+        bond.withdrawBond(agentId, SLASH);
+
+        // Requesting starts a cooldown during which the bond is still locked, so a challenger
+        // can open a dispute that lands.
+        vm.prank(operator);
+        bond.requestUnbond(agentId);
+        uint256 id = _open();
+
+        // Even once the cooldown has elapsed, an open dispute blocks the withdrawal outright.
+        vm.warp(block.timestamp + WINDOW + 1);
+        vm.prank(operator);
+        vm.expectRevert(bytes("active dispute"));
+        bond.withdrawBond(agentId, SLASH);
+
+        // The slash lands: the evasion failed.
+        vm.prank(arbiter);
+        bond.resolveDispute(id, true);
+        assertEq(bond.bondOf(agentId), 0);
     }
 
     function test_openDispute_requiresBond_andStakes() public {
@@ -120,6 +179,7 @@ contract ReputationBondTest is Test {
 
         vm.prank(arbiter);
         bond.resolveDispute(id, false);
+        _unbond();
         vm.prank(operator);
         bond.withdrawBond(agentId, 1e18);
         assertEq(bond.activeDisputes(agentId), 0);

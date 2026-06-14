@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {Test} from "forge-std/Test.sol";
 import {AgentIdentity} from "../src/AgentIdentity.sol";
 import {Seasons} from "../src/Seasons.sol";
+import {MockReputationSource} from "./mocks/MockReputationSource.sol";
 
 contract SeasonsTest is Test {
     AgentIdentity identity;
@@ -13,6 +14,8 @@ contract SeasonsTest is Test {
     address ai = makeAddr("ai");
     uint256 humanId;
     uint256 aiId;
+    MockReputationSource humanSrc;
+    MockReputationSource aiSrc;
 
     function setUp() public {
         identity = new AgentIdentity();
@@ -23,15 +26,21 @@ contract SeasonsTest is Test {
         vm.prank(ai);
         aiId = identity.register();
 
-        // Use the test contract as each agent's reputation source so it can grow rep.
+        // Bind each agent's reputation source (a vault-like writer) so it can grow rep.
+        humanSrc = new MockReputationSource(address(identity), humanId);
+        aiSrc = new MockReputationSource(address(identity), aiId);
         vm.prank(human);
-        identity.setReputationSource(humanId, address(this));
+        identity.setReputationSource(humanId, address(humanSrc));
         vm.prank(ai);
-        identity.setReputationSource(aiId, address(this));
+        identity.setReputationSource(aiId, address(aiSrc));
     }
 
     function _grow(uint256 agentId, int128 amount) internal {
-        identity.giveFeedback(agentId, amount, 18);
+        if (agentId == humanId) {
+            humanSrc.giveFeedback(amount, 18);
+        } else {
+            aiSrc.giveFeedback(amount, 18);
+        }
     }
 
     function test_season_scoresRepEarnedDuringWindow_andPicksWinners() public {

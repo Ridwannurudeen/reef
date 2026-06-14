@@ -54,6 +54,7 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard, Pausable {
     mapping(address => uint256) public vaultShares;
 
     event VaultAdded(address indexed vault);
+    event VaultRemoved(address indexed vault);
     event BondGateSet(address reputationBond, uint256 minBond);
     event ReserveSet(uint256 reserveBps);
 
@@ -93,6 +94,24 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard, Pausable {
         isRegistered[vault] = true;
         vaults.push(AgentVault(vault));
         emit VaultAdded(vault);
+    }
+
+    /// @notice Evict a vault from the index without calling it, so a single reverting
+    /// vault (whose `nav()` bricks `totalAssets()` and locks every redemption) can be
+    /// removed and the index restored. The index forgets any shares it held in the vault.
+    function removeVault(address vault) external onlyGovernor {
+        require(isRegistered[vault], "not registered");
+        isRegistered[vault] = false;
+        vaultShares[vault] = 0;
+        uint256 n = vaults.length;
+        for (uint256 i = 0; i < n; i++) {
+            if (address(vaults[i]) == vault) {
+                vaults[i] = vaults[n - 1];
+                vaults.pop();
+                break;
+            }
+        }
+        emit VaultRemoved(vault);
     }
 
     function vaultCount() external view returns (uint256) {

@@ -2051,7 +2051,7 @@
         isAddress,
       } from "https://esm.sh/viem@2.21.0?bundle";
 
-      const NS = "reef.ui.v1";
+      const NS = "reef.ui.v2";
       const ZERO = "0x0000000000000000000000000000000000000000";
       const DEPLOYMENTS_URL = "../deployments/mantle-sepolia.json";
       const AI_FEED_URL = "../api/executions.json";
@@ -2880,14 +2880,34 @@
             });
         } catch {}
 
+        // The on-chain TrustOracle is the authoritative Trust Score; prefer it for the
+        // badge and fall back to scores.json only when an oracle entry is missing.
+        let oracleByAgent = {};
+        try {
+          const ores = await fetch("../api/trust-oracle.json", {
+            cache: "no-store",
+          });
+          if (ores.ok)
+            ((await ores.json()).agents || []).forEach((o) => {
+              oracleByAgent[String(o.agentId)] = o;
+            });
+        } catch {}
+
         $("lbBody").innerHTML = enriched
           .map((a, i) => {
             const repClass =
               a.reputation > 0n ? "pos" : a.reputation < 0n ? "neg" : "";
             const sc = scoresByAgent[a.agentId.toString()];
-            const trust = sc
-              ? `<span class="badge ${sc.trustScore >= 70 ? "good" : sc.trustScore >= 55 ? "" : "warn"}" title="Reef Trust Score">${sc.trustScore} ${sc.rating}</span>`
-              : "";
+            const oc = oracleByAgent[a.agentId.toString()];
+            const tScore = oc ? oc.scoreOnChain : sc ? sc.trustScore : null;
+            const tRating = oc ? oc.rating : sc ? sc.rating : "";
+            const trustTitle = oc
+              ? `On-chain Trust Oracle${oc.deltaPct != null ? ` — off-chain parity Δ ${oc.deltaPct}` : ""}`
+              : "Reef Trust Score (off-chain)";
+            const trust =
+              tScore != null
+                ? `<span class="badge ${tScore >= 70 ? "good" : tScore >= 55 ? "" : "warn"}" title="${trustTitle}">${tScore} ${tRating}</span>`
+                : "";
             const lead =
               i === 0 && a.reputation > 0n
                 ? `<span class="badge good">leader</span>`
