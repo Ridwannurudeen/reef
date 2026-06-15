@@ -125,7 +125,7 @@ All addresses below are from the repo's `deployments/*.json` and are Mantlescan-
 4. **Verify it yourself.** On `/transparency`, the Trust Score badge renders the **on-chain `TrustOracle.scoreOf`** (off-chain parity Δ in the tooltip), and the page reads NAV / reputation / receipts straight from chain. Cross-check any address on Mantlescan; recompute `keccak(rationale)` against a receipt's `evidenceHash`.
 5. **Build on it.** Read trust with `ITrustOracle(oracle).scoreOf(agentId)` (1e18 == 100/100), or gate an entrypoint with `onlyCleared(id, asset, sizeBps)` via `ReefGuarded`; JS/TS via the zero-dependency `@reef/sdk`. Reference integrations `MockProtocol` and `TrustOracleConsumer` are live and verified.
 
-**Build/test:** Solidity 0.8.24, Foundry; `forge build && forge test` — **225 tests passing, 1 skipped** (verified `forge test`), including fuzz/invariant suites and live Mantle-mainnet fork tests (one L1-fork test opt-in via `ETHEREUM_RPC`, skipped by default).
+**Build/test:** Solidity 0.8.24, Foundry; `forge build && forge test` — **235 tests passing, 1 skipped** (verified `forge test`), including fuzz/invariant suites and live Mantle-mainnet fork tests (one L1-fork test opt-in via `ETHEREUM_RPC`, skipped by default).
 
 ---
 
