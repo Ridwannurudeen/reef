@@ -3,9 +3,11 @@
   "network": "Mantle Mainnet",
   "chainId": 5000,
   "rpc": "https://rpc.mantle.xyz",
-  "explorer": { "mantlescan": "https://mantlescan.xyz" },
+  "explorer": {
+    "mantlescan": "https://mantlescan.xyz"
+  },
   "nativeToken": "MNT",
-  "status": "NOT DEPLOYED — mainnet-ready, real-RWA micro-instance. Deploy wires the vault to mUSD (rebasing wrapper of Ondo USDY, so on-chain NAV accrues real yield). Run `DEPOSIT_AMOUNT=<mUSD wei> PRIVATE_KEY=<funded key> forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url mantle --broadcast` (omit DEPOSIT_AMOUNT to deploy wiring only). Needs a funded Mantle key: real MNT for gas + mUSD to deposit. Contracts are UNAUDITED (SECURITY.md) — keep deposits at demo scale.",
+  "status": "NOT DEPLOYED \u2014 mainnet-ready, real-RWA micro-instance. Deploy wires the vault to mUSD (rebasing wrapper of Ondo USDY, so on-chain NAV accrues real yield). Run `DEPOSIT_AMOUNT=<mUSD wei> PRIVATE_KEY=<funded key> forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url mantle --broadcast` (omit DEPOSIT_AMOUNT to deploy wiring only). Needs a funded Mantle key: real MNT for gas + mUSD to deposit. Contracts are UNAUDITED (SECURITY.md) \u2014 keep deposits at demo scale.",
   "reef": {
     "AgentIdentity": "0x0000000000000000000000000000000000000000",
     "AgentIndex": "0x0000000000000000000000000000000000000000",
@@ -25,7 +27,9 @@
     "comment": "FusionX V2 (Uniswap-V2-style) on Mantle mainnet. Router/factory RPC-verified on-chain 2026-06-04 (factory() matches; live USDC/WMNT pool quotes ~0.585 USDC/MNT). FusionXAdapter is fork-tested against this router + pool (test/FusionXAdapter.fork.t.sol).",
     "name": "FusionX V2",
     "router": "0xDd0840118bF9CCCc6d67b2944ddDfbdb995955FD",
-    "factory": "0xE5020961fA51ffd3662CDf307dEf18F9a87Cce7c"
+    "factory": "0xE5020961fA51ffd3662CDf307dEf18F9a87Cce7c",
+    "wmnt": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+    "usdc": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9"
   },
   "methRate": {
     "comment": "mETH is non-rebasing: validator yield accrues in the mETH->ETH exchange rate, which lives on L1 ETHEREUM (chain 1), not Mantle L2 - the bridged L2 token has no rate function. MethRateAdapter reads this to mark held mETH to ETH so vault NAV reflects REAL staking yield. RPC-verified 2026-06-12: mETHToETH(1e18) = 1.0935e18 (~9.3% accrued). Fork-tested in test/MethRateAdapter.fork.t.sol (opt-in via ETHEREUM_RPC).",
@@ -52,5 +56,47 @@
     "initialRateE18": "1093461146897506711",
     "depositedMethWei": "717221909343180",
     "observedNavE18": "1074768917518004602"
+  },
+  "benchmark": {
+    "chainId": 5000,
+    "asset": "USDC",
+    "assetAddress": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
+    "long": "WMNT",
+    "longAddress": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+    "router": "0xDd0840118bF9CCCc6d67b2944ddDfbdb995955FD",
+    "maxSlippageBps": 150,
+    "deployer": "0x94Da2d2052D8d037c6DcED14B892f8Fb865885fc",
+    "identity": "0xF51c14d9aC8471cfE24E424dE80E63A0Ed7eF465",
+    "registry": "0x548cEee3f65C40b03c6CA2fef67dB030F580E5b8",
+    "vaults": [
+      {
+        "agentId": 1,
+        "persona": "GLM Synthesis",
+        "vault": "0xCFB1308E6d6Fd1Afc87C4c5C79b69Ab35264A223",
+        "adapter": "0xD73C9135F75A8FB3f7c5C28aBF0F89C840491214"
+      },
+      {
+        "agentId": 2,
+        "persona": "Momentum",
+        "vault": "0x76Bc4dDA30492cE847B1405551E351486f8cEEb1",
+        "adapter": "0xe81242E0Cd6A16090250d23A7B6D5Dc00B347109"
+      },
+      {
+        "agentId": 3,
+        "persona": "Contrarian",
+        "vault": "0xdE90846D7B2C661E051Ea14c72372d4b1ba58E08",
+        "adapter": "0xeB0328c7b456535a8406C4071ef9B2Bf0A424f47"
+      },
+      {
+        "agentId": 4,
+        "persona": "HODL",
+        "vault": "0x57A3DbF51603e452E6934135E3037c3CeD9C596c",
+        "adapter": "0x5895A0698E4488E9233c2C08c50b621a158c372b"
+      }
+    ],
+    "status": "live",
+    "note": "UNAUDITED demo-scale; LIVE on Mantle mainnet \u2014 4 vaults seeded 2.5 USDC each, first keeper round deployed real FusionX positions, all 10 contracts Mantlescan-verified",
+    "verified": true,
+    "seededPerVaultUsdc6dp": 2500000
   }
 }

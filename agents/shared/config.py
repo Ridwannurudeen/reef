@@ -61,10 +61,16 @@ def load_chain(network: str = "mantle-sepolia") -> ChainConfig:
     # has placeholder zero addresses.
     identity_addr = _optional("IDENTITY_ADDR") or data["reef"]["AgentIdentity"]
     if not identity_addr or int(identity_addr, 16) == 0:
-        raise RuntimeError(
-            "AgentIdentity address not set. Set IDENTITY_ADDR in .env or fill "
-            f"{path.name}.reef.AgentIdentity."
-        )
+        # REEF_BENCHMARK lets the FusionX benchmark run before an identity is deployed:
+        # it only needs the dex/rpc config, not the AgentIdentity. Sepolia (which ships a
+        # real identity) is unaffected, and IDENTITY_ADDR still satisfies the check.
+        if _optional("REEF_BENCHMARK"):
+            identity_addr = "0x0000000000000000000000000000000000000000"
+        else:
+            raise RuntimeError(
+                "AgentIdentity address not set. Set IDENTITY_ADDR in .env or fill "
+                f"{path.name}.reef.AgentIdentity."
+            )
 
     return ChainConfig(
         name=data["network"],

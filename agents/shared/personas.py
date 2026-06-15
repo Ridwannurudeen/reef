@@ -116,6 +116,44 @@ def conservative(ctx: dict) -> Decision:
     return Decision("hold", 0, "Signals not aligned -> preserve capital.", "rule")
 
 
+def momentum(ctx: dict) -> Decision:
+    """Ride momentum extremes — buy strength, sell weakness (trend-following)."""
+    sig = ctx.get("signal")
+    if not sig:
+        return Decision("hold", 0, "No market signal.", "rule")
+    m = sig["change24hPct"]
+    if m > 3.0:
+        return Decision(
+            "increase",
+            _clip(int(m * 30)),
+            f"Momentum {m:+.2f}% trending up -> ride (add).",
+            "rule",
+        )
+    if m < -3.0:
+        return Decision(
+            "decrease",
+            _clip(int(m * 30)),
+            f"Momentum {m:+.2f}% breaking down -> cut.",
+            "rule",
+        )
+    return Decision("hold", 0, f"Momentum {m:+.2f}% within range -> hold.", "rule")
+
+
+# Passive baseline state: agentIds that have already entered full long exposure.
+_HODL_ENTERED: set[int] = set()
+
+
+def hodl(ctx: dict) -> Decision:
+    """Passive buy & hold — reach full long once, then never trade (market baseline)."""
+    aid = ctx.get("agent_id", 0)
+    if aid in _HODL_ENTERED:
+        return Decision("hold", 0, "Passive buy & hold baseline -> hold.", "rule")
+    _HODL_ENTERED.add(aid)
+    return Decision(
+        "increase", 500, "Passive buy & hold baseline -> enter full long.", "rule"
+    )
+
+
 # agentId -> (display name, edge tagline, strategy fn). Order matches seeded vaults 1..5.
 PERSONAS: dict[int, tuple[str, str, Callable[[dict], Decision]]] = {
     1: ("Allora Quant", "trades Allora's ETH price prediction vs spot", allora_quant),
@@ -123,4 +161,16 @@ PERSONAS: dict[int, tuple[str, str, Callable[[dict], Decision]]] = {
     3: ("GLM Synthesis", "Z.ai GLM reasons over all signals", glm_synthesis),
     4: ("Contrarian", "fades momentum extremes", contrarian),
     5: ("Conservative", "acts only on aligned multi-signal moves", conservative),
+}
+
+
+# Mainnet FusionX benchmark roster (4 agents), kept SEPARATE from the live testnet
+# PERSONAS above so the two pipelines never interfere. Driven by mainnet_keeper.py
+# against real on-chain vaults: three active AI strategies vs a passive HODL baseline.
+# Names MUST mirror script/DeployMainnetFusionX.s.sol _personaNames().
+BENCHMARK_PERSONAS: dict[int, tuple[str, str, Callable[[dict], Decision]]] = {
+    1: ("GLM Synthesis", "Z.ai GLM reasons over all signals", glm_synthesis),
+    2: ("Momentum", "rides momentum extremes (trend-following)", momentum),
+    3: ("Contrarian", "fades momentum extremes (mean-reversion)", contrarian),
+    4: ("HODL", "passive buy & hold market baseline", hodl),
 }

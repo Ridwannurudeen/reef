@@ -1891,6 +1891,25 @@
         </div>
       </section>
 
+      <section id="mainnet-bench" data-tab="agents">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Live on Mantle mainnet</div>
+            <h2>Real multi-agent PnL — mainnet</h2>
+          </div>
+          <p class="section-copy">
+            Four real AgentVaults on Mantle mainnet (chain 5000) trade USDC↔WMNT via FusionX:
+            three AI strategies against a passive HODL baseline, each marked to live on-chain NAV
+            and ranked by risk-adjusted return (Sharpe). Unaudited and demo-scale — this panel
+            fills once the mainnet benchmark is deployed and the keeper runs.
+          </p>
+        </div>
+        <div id="mainnetBenchHead" class="feed-row muted" style="margin-bottom: var(--space-3)">loading benchmark…</div>
+        <div class="feed" id="mainnetBenchOut">
+          <div class="feed-row muted">loading competitors…</div>
+        </div>
+      </section>
+
       <section id="strategies" data-tab="agents">
         <div class="section-head">
           <div>
@@ -2157,6 +2176,7 @@
       const A2A_URL = "../api/a2a.json";
       const ALLORA_BENCH_URL = "../api/allora-bench.json";
       const TURING_URL = "../api/turing-bench.json";
+      const MAINNET_TURING_URL = "../api/mainnet-turing-bench.json";
       const HISTORY_URL = "../api/history.json";
 
       function addr(a) {
@@ -3568,6 +3588,49 @@
           .join("");
       }
 
+      async function refreshMainnetTuring() {
+        let data;
+        try {
+          const res = await fetch(MAINNET_TURING_URL, { cache: "no-store" });
+          if (!res.ok) return;
+          data = await res.json();
+        } catch {
+          return;
+        }
+        const comp = (data && data.competitors) || [];
+        const head = $("mainnetBenchHead");
+        if (head) {
+          const tail = data && data.state !== "live" ? " · accumulating" : "";
+          head.innerHTML = `<span class="badge">${comp.length} competitors</span> <span class="feed-when">mainnet · chain 5000 · ranked by Sharpe${tail}</span>`;
+        }
+        if (!comp.length) {
+          $("mainnetBenchOut").innerHTML = `<div class="feed-row muted">benchmark initialising — deploy the mainnet vaults to populate</div>`;
+          return;
+        }
+        $("mainnetBenchOut").innerHTML = comp
+          .map((c, i) => {
+            const human = c.kind === "human";
+            const roi = c.paperRoiBps == null ? "—" : `${c.paperRoiBps > 0 ? "+" : ""}${(c.paperRoiBps / 100).toFixed(2)}%`;
+            const sharpe = c.sharpe == null ? "—" : c.sharpe.toFixed(2);
+            const dd = c.maxDrawdownBps == null ? "—" : `${(c.maxDrawdownBps / 100).toFixed(2)}%`;
+            const excess = c.excessRoiBps == null ? "—" : `${c.excessRoiBps > 0 ? "+" : ""}${(c.excessRoiBps / 100).toFixed(2)}%`;
+            const ir = c.informationRatio == null ? "—" : c.informationRatio.toFixed(2);
+            const stance = c.stance == null ? "—" : c.stance;
+            const samples = c.samples == null ? "—" : c.samples;
+            const edge = c.edge == null ? "—" : c.edge;
+            const cls = c.paperRoiBps > 0 ? "pos" : c.paperRoiBps < 0 ? "neg" : "";
+            const tag = human ? ' <span class="muted" style="font-weight:400">· human baseline</span>' : "";
+            return `<div class="feed-row">
+              <div class="feed-line">
+                <span class="badge">#${i + 1} ${c.name}${tag}</span>
+                <span class="feed-when">Sharpe ${sharpe} · <span class="${cls}">ROI ${roi}</span></span>
+              </div>
+              <span class="meta">${stance} · excess ${excess} vs HODL · IR ${ir} · maxDD ${dd} · ${samples} samples · ${edge}</span>
+            </div>`;
+          })
+          .join("");
+      }
+
       async function refreshArena() {
         let data;
         try {
@@ -4232,6 +4295,7 @@
         await refreshA2A();
         await refreshAlloraBench();
         await refreshTuring();
+        await refreshMainnetTuring();
         await renderGuard();
         await renderKyc();
         if (state.account) renderConn();
@@ -4253,6 +4317,7 @@
             refreshA2A();
             refreshAlloraBench();
             refreshTuring();
+            refreshMainnetTuring();
           }
         }, 30000);
         const ms = $("mandateSel");

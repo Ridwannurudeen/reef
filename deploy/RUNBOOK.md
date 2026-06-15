@@ -103,3 +103,95 @@ Keeper daemon alternative: `python3 -m agents.scripts.keeper --loop` (`KEEPER_IN
 3. **Allocations drift from reputation:** run the rebalance keeper once:
    `python -m agents.scripts.keeper` (or the raw `cast send <index> "rebalance()" ...`).
 4. **Site down:** see `deploy/README.md` (nginx + cert); files live in `/opt/reef/web`.
+
+## Mainnet FusionX benchmark (4 agents, REAL funds)
+
+> UNAUDITED (SECURITY.md) — keep seeded capital at demo scale; mirrors the paused
+> mETH-vault posture (tiny on-chain notional, demo-only).
+
+This is a separate, self-contained instance on **Mantle mainnet (chain 5000)**: one shared
+`AgentIdentity` + `AdapterRegistry`, then 4 `AgentVault` + `FusionXAdapter` pairs
+(personas `GLM Synthesis`, `Momentum`, `Contrarian`, `HODL`). Each vault's asset is USDC
+(`0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9`, **6 decimals**), swapped into a WMNT long
+(`0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8`) via FusionX V2
+(`0xDd0840118bF9CCCc6d67b2944ddDfbdb995955FD`, slippage 150 bps). NAV is a live
+mark-to-market of a real position — the four agents compete on real PnL. It is fully
+namespaced (`mainnet-*.json`) so it never collides with the live testnet arena.
+
+### Prerequisites / funding
+
+- A funded **Mantle-mainnet** key — real **MNT** for gas (becomes operator of all 4
+  agents + registry governor).
+- A small amount of **USDC** (the 6-decimal token above) to seed across the 4 vaults at
+  demo scale. **USDC must be sourced on Mantle mainnet** (bridge/CEX withdrawal — there is
+  no public faucet).
+- The deploy script **seeds no funds** — you deposit manually afterwards (step 4).
+
+### 1. Deploy the benchmark
+
+```bash
+PRIVATE_KEY=<funded mainnet key> \
+forge script script/DeployMainnetFusionX.s.sol:DeployMainnetFusionX \
+  --rpc-url https://mantle-rpc.publicnode.com --broadcast --legacy
+```
+
+`--legacy` is **required** (Mantle EIP-1559 fee estimation times out otherwise). Prior
+mainnet deploys saw public RPCs drop `getCode` under forge fork load — this script seeds
+no funds, so simulation should be clean, but prefer `mantle-rpc.publicnode.com` over
+`rpc.mantle.xyz`. The script `require`s `block.chainid == 5000`.
+
+### 2. Record addresses
+
+The run prints a JSON `benchmark` block on stdout (shape:
+`{"benchmark":{"identity":..,"registry":..,"vaults":[{agentId,persona,vault,adapter}..]}}`).
+Paste it into `deployments/mantle-mainnet.json` at the **top level under the key
+`benchmark`** — the keeper reads `data["benchmark"]["vaults"]` and
+`data["benchmark"]["identity"]`.
+
+### 3. Seed capital per vault (operator key)
+
+The deploy seeds nothing. For **each of the 4 vaults**, as the operator/deployer key,
+approve then deposit USDC (6 decimals — `1000000` = 1 USDC); the keeper then moves
+exposure via `deployToStrategy`/`recallFromStrategy` on subsequent rounds:
+
+```bash
+# repeat per vault; AMOUNT is in USDC's 6 decimals (e.g. 1000000 = 1 USDC)
+cast send 0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9 "approve(address,uint256)" <vault> <AMOUNT> \
+  --rpc-url https://mantle-rpc.publicnode.com --legacy --private-key $PRIVATE_KEY
+cast send <vault> "deposit(uint256)" <AMOUNT> \
+  --rpc-url https://mantle-rpc.publicnode.com --legacy --private-key $PRIVATE_KEY
+```
+
+### 4. Run the keeper once
+
+```bash
+REEF_BENCHMARK=1 REEF_NETWORK=mantle-mainnet API_OUT_DIR=/opt/reef/web/api PRIVATE_KEY=<key> \
+  python -m agents.scripts.mainnet_keeper
+```
+
+`REEF_BENCHMARK=1` is **required**: `mantle-mainnet.json`'s `reef.AgentIdentity` is `0x0`,
+so `load_chain("mantle-mainnet")` raises unless `REEF_BENCHMARK` is set (the benchmark
+reads `benchmark.identity`, not `reef.AgentIdentity`). Per-agent signers:
+`AGENT<agentId>_PRIVATE_KEY` if set, else `PRIVATE_KEY`. Writes
+`API_OUT_DIR/mainnet-nav.json` + `API_OUT_DIR/mainnet-arena.json`.
+
+### 5. Cron lines (VPS)
+
+Use a **dedicated mainnet key** for these so they never race nonces with the existing
+reef crons (which run on the deployer/arena keys). Staggered, namespaced:
+
+```cron
+# MAINNET FusionX benchmark keeper every 20 min (dedicated mainnet key; demo-scale)
+*/20 * * * * cd /opt/reef/app && REEF_BENCHMARK=1 REEF_NETWORK=mantle-mainnet API_OUT_DIR=/opt/reef/web/api PRIVATE_KEY=<mainnet key> /usr/bin/python3 -m agents.scripts.mainnet_keeper >> /var/log/reef-mainnet-keeper.log 2>&1
+# Human-vs-AI turing transform a few min after the keeper (pure mainnet-nav+arena -> mainnet-turing-bench.json)
+7,27,47 * * * * cd /opt/reef/app && REEF_BENCHMARK=1 REEF_NETWORK=mantle-mainnet API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.mainnet_turing_bench >> /var/log/reef-mainnet-bench.log 2>&1
+```
+
+`mainnet_turing_bench` is a pure transform (reads `mainnet-nav.json` + `mainnet-arena.json`
+→ writes `mainnet-turing-bench.json`); ship it alongside the keeper before enabling its line.
+
+### Honest scope
+
+Yield/PnL is economically tiny at demo scale. The value is a **real on-chain multi-agent
+PnL competition on mainnet** — every vault, swap, and signed receipt is Mantlescan-verifiable.
+Contracts are **UNAUDITED**; keep notional at demo scale.
