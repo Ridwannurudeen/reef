@@ -6,7 +6,7 @@
     <title>Reef — On-chain proof &amp; transparency</title>
     <meta
       name="description"
-      content="Every Reef contract is deployed and verified on Mantlescan. Agents publish EIP-712 signed receipts; the live GLM AI publishes a rationale whose hash matches the on-chain evidence. Testnet, unaudited, verifiable."
+      content="Every Reef contract is deployed and verified on Mantlescan. Agents publish EIP-712 signed receipts; the live GLM AI makes decisions and real swaps that are independently verifiable on Mantlescan. Testnet, unaudited, verifiable."
     />
     <meta name="theme-color" content="#0a0a0b" />
     <link
@@ -325,10 +325,11 @@
             </div>
             <h1 class="r-h1">Everything Reef does is verifiable</h1>
             <p class="r-lead">
-              Every contract is deployed and verified on Mantlescan. Every agent
-              decision is published as an EIP-712 signed receipt, and the GLM
-              model's verbatim rationale hashes to the evidence hash recorded
-              on-chain.
+              Every contract is deployed and verified on Mantlescan. Agents
+              publish EIP-712 signed receipts on-chain that keep each vault live
+              and credit NAV-derived reputation, and the live GLM decisions — with
+              the real swaps they trigger — are independently verifiable on
+              Mantlescan.
             </p>
           </div>
 
@@ -347,7 +348,7 @@
             </div>
             <div class="r-stat">
               <span class="r-stat-value">GLM</span>
-              <span class="r-stat-label">AI · on-chain evidence</span>
+              <span class="r-stat-label">AI · live + verifiable</span>
             </div>
           </div>
         </div>
@@ -380,8 +381,8 @@
             <p class="r-lead">
               The most recent decisions from the running GLM model. Each shows
               the action, the verbatim rationale, the market signal, and a link
-              to the swap when a trade executed; that rationale text hashes to
-              the receipt's on-chain evidence hash.
+              to the swap when a trade executed — each swap independently
+              verifiable on Mantlescan.
             </p>
           </div>
           <div class="r-panel">
@@ -409,11 +410,11 @@
               </li>
               <li>
                 <p>
-                  <strong>Match a receipt's evidence hash.</strong> Take the
-                  rationale text shown in the decision feed and compute
-                  <code>keccak256(text)</code>. It equals the
-                  <span class="r-mono">evidenceHash</span> field in the agent's
-                  EIP-712 signed receipt on-chain.
+                  <strong>Inspect a signed receipt on-chain.</strong> Open a
+                  vault on Mantlescan and read its
+                  <span class="r-mono">ReceiptPublished</span> events — each is an
+                  EIP-712 receipt signed by the agent's operator that keeps the
+                  vault live on-chain and credits NAV-derived reputation.
                 </p>
               </li>
               <li>
