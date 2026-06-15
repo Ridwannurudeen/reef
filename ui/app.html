@@ -1841,6 +1841,37 @@
         <div class="feed" id="guardOut"></div>
       </section>
 
+      <section id="compliance-kyc" data-tab="overview">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Wallet eligibility</div>
+            <h2>Demo KYC &amp; accreditation</h2>
+          </div>
+          <p class="section-copy">
+            <code>ComplianceRegistry</code> is an on-chain KYC / accreditation /
+            jurisdiction registry. Deposits and allocations are gated on a live
+            <code>screen(address)</code> verdict. This is a testnet demo you can
+            self-attest in one click; in production the attestation is written by
+            a licensed issuer.
+          </p>
+        </div>
+        <div class="tool">
+          <div
+            id="kycStatus"
+            class="small"
+            style="margin-bottom: var(--space-3)"
+          >
+            loading eligibility…
+          </div>
+          <div class="row">
+            <button id="kycBtn" class="primary" type="button">
+              Complete demo KYC
+            </button>
+            <span id="kycResult" class="small"></span>
+          </div>
+        </div>
+      </section>
+
       <section id="turing" data-tab="agents">
         <div class="section-head">
           <div>
@@ -2402,6 +2433,40 @@
           outputs: [
             { name: "allowed", type: "bool" },
             { name: "reason", type: "string" },
+          ],
+        },
+      ];
+
+      const COMPLIANCE_ABI = [
+        {
+          type: "function",
+          name: "screen",
+          stateMutability: "view",
+          inputs: [{ name: "who", type: "address" }],
+          outputs: [
+            { name: "eligible", type: "bool" },
+            { name: "reason", type: "string" },
+          ],
+        },
+        {
+          type: "function",
+          name: "selfAttestDemo",
+          stateMutability: "nonpayable",
+          inputs: [],
+          outputs: [],
+        },
+        {
+          type: "function",
+          name: "attestationOf",
+          stateMutability: "view",
+          inputs: [{ name: "who", type: "address" }],
+          outputs: [
+            { name: "kyc", type: "bool" },
+            { name: "accredited", type: "bool" },
+            { name: "country", type: "uint16" },
+            { name: "issuedAt", type: "uint64" },
+            { name: "expiresAt", type: "uint64" },
+            { name: "evidenceHash", type: "bytes32" },
           ],
         },
       ];
@@ -3723,6 +3788,26 @@
       }
 
       async function doDeposit() {
+        const creg = state.deployment?.complianceRegistry?.address;
+        if (creg && state.account) {
+          try {
+            const [eligible, reason] = await rpcRead(
+              () =>
+                state.publicClient.readContract({
+                  address: creg,
+                  abi: COMPLIANCE_ABI,
+                  functionName: "screen",
+                  args: [state.account],
+                }),
+              "compliance screen",
+            );
+            if (!eligible)
+              return toast(
+                `complete demo KYC first${reason ? " — " + reason : ""}`,
+                "err",
+              );
+          } catch {}
+        }
         const amt = $("depAmt").value.trim();
         if (!amt) return toast("amount required", "err");
         if (!state.cfg.index || !state.cfg.asset)
@@ -3831,6 +3916,26 @@
       }
 
       async function doAllocate() {
+        const creg = state.deployment?.complianceRegistry?.address;
+        if (creg && state.account) {
+          try {
+            const [eligible, reason] = await rpcRead(
+              () =>
+                state.publicClient.readContract({
+                  address: creg,
+                  abi: COMPLIANCE_ABI,
+                  functionName: "screen",
+                  args: [state.account],
+                }),
+              "compliance screen",
+            );
+            if (!eligible)
+              return toast(
+                `complete demo KYC first${reason ? " — " + reason : ""}`,
+                "err",
+              );
+          } catch {}
+        }
         const amt = $("allocAmt").value.trim();
         if (!amt) return toast("amount required", "err");
         const allocator = addr(allocatorDoc?.allocator);
@@ -4040,6 +4145,70 @@
         host.innerHTML = rows.join("");
       }
 
+      async function renderKyc() {
+        const statusEl = $("kycStatus");
+        if (!statusEl) return;
+        const creg = state.deployment?.complianceRegistry?.address;
+        if (!creg || !state.publicClient) {
+          statusEl.innerHTML = `<span class="muted">waiting for ComplianceRegistry</span>`;
+          return;
+        }
+        if (!state.account) {
+          statusEl.innerHTML = `<span class="muted">Connect a wallet to check on-chain eligibility.</span>`;
+          const cb = $("kycBtn");
+          if (cb) cb.disabled = true;
+          return;
+        }
+        try {
+          const [eligible, reason] = await rpcRead(
+            () =>
+              state.publicClient.readContract({
+                address: creg,
+                abi: COMPLIANCE_ABI,
+                functionName: "screen",
+                args: [state.account],
+              }),
+            "compliance screen",
+          );
+          let html = `<span class="badge ${eligible ? "good" : "bad"}">${eligible ? "eligible" : "not eligible"}</span>${reason ? ` <span class="feed-detail">${reason}</span>` : ""}`;
+          try {
+            const att = await rpcRead(
+              () =>
+                state.publicClient.readContract({
+                  address: creg,
+                  abi: COMPLIANCE_ABI,
+                  functionName: "attestationOf",
+                  args: [state.account],
+                }),
+              "compliance attestationOf",
+            );
+            if (att[0] || att[1]) {
+              html += ` · <span class="badge">KYC ${att[0] ? "✓" : "✗"}</span> <span class="badge">accredited ${att[1] ? "✓" : "✗"}</span> <span class="badge">country ${att[2]}</span>`;
+            }
+          } catch {}
+          statusEl.innerHTML = html;
+          const cb = $("kycBtn");
+          if (cb) cb.disabled = eligible;
+        } catch {
+          statusEl.innerHTML = `<span class="muted">eligibility read failed</span>`;
+        }
+      }
+
+      async function doKyc() {
+        const creg = state.deployment?.complianceRegistry?.address;
+        if (!creg) return toast("compliance registry not configured", "err");
+        const r = await sendTx({
+          address: creg,
+          abi: COMPLIANCE_ABI,
+          functionName: "selfAttestDemo",
+          args: [],
+        });
+        if (!r) return;
+        $("kycResult").innerHTML =
+          `demo KYC attested — ${txLink(r.transactionHash)}`;
+        renderKyc();
+      }
+
       async function refreshAll() {
         await refreshIndex();
         await refreshHistory();
@@ -4052,6 +4221,7 @@
         await refreshAlloraBench();
         await refreshTuring();
         await renderGuard();
+        await renderKyc();
         if (state.account) renderConn();
       }
 
@@ -4476,6 +4646,7 @@
       $("rebalBtn").addEventListener("click", doRebalance);
       $("chalBtn").addEventListener("click", doChallenge);
       $("allocBtn").addEventListener("click", doAllocate);
+      $("kycBtn").addEventListener("click", doKyc);
 
       initGlossary();
       initBeginnerMode();
