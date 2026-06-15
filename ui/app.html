@@ -1460,6 +1460,261 @@
         border-bottom: 2px solid var(--accent);
         padding-bottom: 4px;
       }
+      /* ── Live proof cockpit ── */
+      .ck-cockpit {
+        margin-top: 16px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+      .ck-cockpit-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px 20px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .ck-cockpit-title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+      .ck-cockpit-h {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--text);
+        overflow-wrap: break-word;
+      }
+      .ck-cockpit-sub {
+        max-width: 60ch;
+        color: var(--muted);
+        font-size: 13px;
+        overflow-wrap: break-word;
+        min-width: 0;
+      }
+      .ck-status {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .ck-stat {
+        flex: 1 1 130px;
+        min-width: 0;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+        padding: 9px 11px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        background: var(--surface-2);
+      }
+      .ck-stat-label {
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--subtle);
+      }
+      .ck-stat-value {
+        max-width: 100%;
+        min-width: 0;
+        font-size: 13px;
+        color: var(--text);
+        overflow-wrap: anywhere;
+      }
+      .ck-steps {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .ck-step {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        min-width: 0;
+        max-width: 100%;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        background: var(--surface-2);
+        transition:
+          border-color 140ms var(--ease),
+          background 140ms var(--ease);
+      }
+      .ck-step[data-state="active"] {
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+      }
+      .ck-step[data-state="locked"] {
+        opacity: 0.5;
+      }
+      .ck-step-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+      .ck-step-n {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--line-strong);
+        background: var(--surface-3);
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .ck-step[data-state="active"] .ck-step-n,
+      .ck-step[data-state="done"] .ck-step-n {
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+        color: var(--accent-2);
+      }
+      .ck-step-name {
+        flex: 1;
+        min-width: 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        overflow-wrap: anywhere;
+      }
+      .ck-state {
+        flex: none;
+        font-size: 11px;
+        font-weight: 500;
+      }
+      .ck-state.is-done {
+        color: var(--accent-2);
+      }
+      .ck-state.is-active {
+        color: var(--accent);
+      }
+      .ck-state.is-locked {
+        color: var(--subtle);
+      }
+      .ck-step-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: auto;
+        min-width: 0;
+      }
+      .ck-step-actions button {
+        min-height: 32px;
+        padding: 0 11px;
+        font-size: 12px;
+        max-width: 100%;
+      }
+      .ck-link,
+      .ck-link:hover:not(:disabled) {
+        min-height: 0;
+        padding: 0;
+        border: 0;
+        background: none;
+        transform: none;
+        color: var(--accent);
+        font-size: 12px;
+      }
+      .ck-link:hover:not(:disabled) {
+        color: var(--accent-2);
+        text-decoration: underline;
+      }
+      .ck-result {
+        width: 100%;
+        min-width: 0;
+        font-size: 12px;
+        color: var(--muted);
+        overflow-wrap: anywhere;
+      }
+      @media (max-width: 900px) {
+        .ck-steps {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 600px) {
+        .ck-steps {
+          grid-template-columns: 1fr;
+        }
+        .ck-stat {
+          flex-basis: 100%;
+        }
+      }
+      /* ── Live Evidence card strip ── */
+      .ev-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .ev-card {
+        flex: 1 1 190px;
+        min-width: 0;
+        max-width: 100%;
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--line-strong);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+      .ev-card.is-up,
+      .ev-card.is-good {
+        border-left-color: var(--accent);
+      }
+      .ev-card.is-down,
+      .ev-card.is-bad {
+        border-left-color: var(--red);
+      }
+      .ev-card.is-flat {
+        border-left-color: var(--gold);
+      }
+      .ev-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        font-family: var(--sans);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .ev-card .ev-value {
+        margin-top: 8px;
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+      .ev-card .ev-sub {
+        margin-top: 5px;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 11px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+      }
+      .ev-card .swap-pill {
+        margin-top: 7px;
+      }
+      @media (max-width: 560px) {
+        .ev-card {
+          flex: 1 1 100%;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1511,6 +1766,164 @@
           ×
         </button>
       </div>
+      <section
+        id="reefCockpit"
+        class="ck-cockpit"
+        data-tab="overview"
+        aria-label="Live proof cockpit"
+      >
+        <div class="ck-cockpit-head">
+          <div class="ck-cockpit-title">
+            <span class="eyebrow">Live proof cockpit</span>
+            <span id="ckHeadline" class="ck-cockpit-h">Explore live proof</span>
+          </div>
+          <p id="ckSub" class="ck-cockpit-sub">
+            Everything below is live on-chain. Connect a wallet when you're
+            ready to act.
+          </p>
+        </div>
+
+        <div class="ck-status" role="group" aria-label="Your live status">
+          <div class="ck-stat">
+            <span class="ck-stat-label">Wallet</span>
+            <span id="ckWallet" class="ck-stat-value r-mono">Not connected</span>
+          </div>
+          <div class="ck-stat">
+            <span class="ck-stat-label">Network</span>
+            <span id="ckChain" class="ck-stat-value">—</span>
+          </div>
+          <div class="ck-stat">
+            <span class="ck-stat-label">KYC</span>
+            <span id="ckKyc" class="badge">—</span>
+          </div>
+          <div class="ck-stat">
+            <span class="ck-stat-label">Wallet USDY</span>
+            <span id="ckUsdy" class="ck-stat-value r-mono">-</span>
+          </div>
+          <div class="ck-stat">
+            <span class="ck-stat-label">rINDEX shares</span>
+            <span id="ckShares" class="ck-stat-value r-mono">-</span>
+          </div>
+          <div class="ck-stat">
+            <span class="ck-stat-label">Receipts</span>
+            <span id="ckFresh" class="badge">—</span>
+          </div>
+        </div>
+
+        <div class="ck-steps">
+          <div id="ckStep1" class="ck-step" data-state="active">
+            <div class="ck-step-top">
+              <span class="ck-step-n">1</span>
+              <span class="ck-step-name">Connect wallet</span>
+              <span id="ckStep1State" class="ck-state is-active">Next</span>
+            </div>
+            <div class="ck-step-actions">
+              <button type="button" class="primary" onclick="connect()">
+                Connect
+              </button>
+            </div>
+            <div id="ckStep1Result" class="ck-result"></div>
+          </div>
+
+          <div id="ckStep2" class="ck-step" data-state="locked">
+            <div class="ck-step-top">
+              <span class="ck-step-n">2</span>
+              <span class="ck-step-name">Complete demo KYC</span>
+              <span id="ckStep2State" class="ck-state is-locked">Locked</span>
+            </div>
+            <div class="ck-step-actions">
+              <button type="button" onclick="doKyc()">Self-attest</button>
+              <button
+                type="button"
+                class="ck-link"
+                onclick="scrollToAction('kycStatus')"
+              >
+                Details ↗
+              </button>
+            </div>
+            <div id="ckStep2Result" class="ck-result"></div>
+          </div>
+
+          <div id="ckStep3" class="ck-step" data-state="locked">
+            <div class="ck-step-top">
+              <span class="ck-step-n">3</span>
+              <span class="ck-step-name">Get test USDY</span>
+              <span id="ckStep3State" class="ck-state is-locked">Locked</span>
+            </div>
+            <div class="ck-step-actions">
+              <button type="button" onclick="doFaucet()">Mint 1,000</button>
+            </div>
+            <div id="ckStep3Result" class="ck-result"></div>
+          </div>
+
+          <div id="ckStep4" class="ck-step" data-state="locked">
+            <div class="ck-step-top">
+              <span class="ck-step-n">4</span>
+              <span class="ck-step-name">Deposit</span>
+              <span id="ckStep4State" class="ck-state is-locked">Locked</span>
+            </div>
+            <div class="ck-step-actions">
+              <button type="button" class="primary" onclick="doDeposit()">
+                Approve + deposit
+              </button>
+              <button
+                type="button"
+                class="ck-link"
+                onclick="scrollToAction('depAmt')"
+              >
+                Set amount ↗
+              </button>
+            </div>
+            <div id="ckStep4Result" class="ck-result"></div>
+          </div>
+
+          <div id="ckStep5" class="ck-step" data-state="locked">
+            <div class="ck-step-top">
+              <span class="ck-step-n">5</span>
+              <span class="ck-step-name">Run rebalance</span>
+              <span id="ckStep5State" class="ck-state is-locked">Locked</span>
+            </div>
+            <div class="ck-step-actions">
+              <button type="button" class="ghost" onclick="doRebalance()">
+                Rebalance
+              </button>
+            </div>
+            <div id="ckStep5Result" class="ck-result"></div>
+          </div>
+
+          <div id="ckStep6" class="ck-step" data-state="locked">
+            <div class="ck-step-top">
+              <span class="ck-step-n">6</span>
+              <span class="ck-step-name">Challenge or allocate</span>
+              <span id="ckStep6State" class="ck-state is-locked">Locked</span>
+            </div>
+            <div class="ck-step-actions">
+              <button type="button" onclick="doChallenge()">Challenge</button>
+              <button
+                type="button"
+                class="ck-link"
+                onclick="scrollToAction('chalAgent')"
+              >
+                Pick agent ↗
+              </button>
+            </div>
+            <div id="ckStep6ResultChal" class="ck-result"></div>
+            <div class="ck-step-actions">
+              <button type="button" class="primary" onclick="doAllocate()">
+                Allocate via mandate
+              </button>
+              <button
+                type="button"
+                class="ck-link"
+                onclick="scrollToAction('allocAmt')"
+              >
+                Set amount ↗
+              </button>
+            </div>
+            <div id="ckStep6ResultAlloc" class="ck-result"></div>
+          </div>
+        </div>
+      </section>
       <section class="hero" data-tab="overview">
         <div>
           <div class="mantle-badge"><span class="mantle-dot"></span>Mantle Sepolia</div>
@@ -1597,6 +2010,45 @@
             </div>
           </div>
         </aside>
+      </section>
+
+      <section id="evidence" data-tab="overview">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Live evidence</div>
+            <h2>Latest proof, at a glance</h2>
+          </div>
+          <p class="section-copy">
+            The newest of each on-chain signal. Full panels with history sit in
+            the Agents and Activity tabs.
+          </p>
+        </div>
+        <div class="ev-strip">
+          <div class="ev-card" id="evGlm">
+            <div class="ev-label"><span class="live-dot"></span> Latest GLM decision</div>
+            <div id="evGlmBody"><span class="muted">loading…</span></div>
+          </div>
+          <div class="ev-card" id="evSwap">
+            <div class="ev-label">Latest real swap</div>
+            <div id="evSwapBody"><span class="muted">loading…</span></div>
+          </div>
+          <div class="ev-card" id="evReceipt">
+            <div class="ev-label">Freshest on-chain receipt</div>
+            <div id="evReceiptBody"><span class="muted">loading…</span></div>
+          </div>
+          <div class="ev-card" id="evGuard">
+            <div class="ev-label">ReefGuard verdict</div>
+            <div id="evGuardBody"><span class="muted">loading…</span></div>
+          </div>
+          <div class="ev-card" id="evBench">
+            <div class="ev-label">Mainnet benchmark leader</div>
+            <div id="evBenchBody"><span class="muted">loading…</span></div>
+          </div>
+          <div class="ev-card" id="evTrust">
+            <div class="ev-label">Top trust score</div>
+            <div id="evTrustBody"><span class="muted">loading…</span></div>
+          </div>
+        </div>
       </section>
 
       <section id="arena" data-tab="overview">
@@ -4299,12 +4751,15 @@
         await renderGuard();
         await renderKyc();
         if (state.account) renderConn();
+        renderCockpit();
+        await renderEvidenceCards();
       }
 
       function startPolling() {
         stopPolling();
         state.pollIndex = setInterval(() => {
-          if (document.visibilityState === "visible") refreshIndex();
+          if (document.visibilityState === "visible")
+            refreshIndex().then(renderCockpit);
         }, 15000);
         state.pollFeed = setInterval(() => {
           if (document.visibilityState === "visible") {
@@ -4318,6 +4773,7 @@
             refreshAlloraBench();
             refreshTuring();
             refreshMainnetTuring();
+            renderEvidenceCards();
           }
         }, 30000);
         const ms = $("mandateSel");
@@ -4711,6 +5167,328 @@
               openAgentModal(row.dataset.agentId);
             }
           });
+        }
+      }
+
+      // ── Live proof cockpit ──
+      function ckText(id) {
+        const el = $(id);
+        return el ? el.textContent : "-";
+      }
+      function ckNum(s) {
+        const m = String(s || "").match(/-?\d+(?:\.\d+)?/);
+        return m ? parseFloat(m[0]) : null;
+      }
+      function ckMirror(destId, srcId) {
+        const d = $(destId);
+        const s = $(srcId);
+        if (!d) return;
+        if (s && s.innerHTML.trim()) d.innerHTML = s.innerHTML;
+      }
+
+      function setCockpitStepStatus(stepId, st) {
+        const el = $(stepId);
+        if (!el) return;
+        el.dataset.state = st;
+        const pill = $(stepId + "State");
+        if (!pill) return;
+        const label =
+          st === "done" ? "Done" : st === "active" ? "Next" : "Locked";
+        pill.textContent = label;
+        pill.className =
+          "ck-state " +
+          (st === "done"
+            ? "is-done"
+            : st === "active"
+              ? "is-active"
+              : "is-locked");
+      }
+
+      function scrollToAction(id) {
+        const el = $(id);
+        if (!el) return;
+        el.scrollIntoView({
+          behavior: REDUCED_MOTION ? "auto" : "smooth",
+          block: "center",
+        });
+        if (typeof el.focus === "function") {
+          try {
+            el.focus({ preventScroll: true });
+          } catch {
+            el.focus();
+          }
+        }
+      }
+
+      function renderCockpit() {
+        if (!$("reefCockpit")) return;
+
+        const acct = state.account;
+        const connected = !!acct;
+
+        // Status row — pull from the SAME elements the refreshers populate.
+        setText("ckWallet", connected ? shortAddr(acct) : "Not connected");
+        setText(
+          "ckChain",
+          connected ? chainForId(state.chainId).name || "—" : "—",
+        );
+
+        const usdyText = ckText("idxWalletAsset");
+        const sharesText = ckText("idxYourShares");
+        setText("ckUsdy", usdyText);
+        setText("ckShares", sharesText);
+        const hasUsdy = (ckNum(usdyText) || 0) > 0;
+        const hasShares = (ckNum(sharesText) || 0) > 0;
+
+        // KYC eligibility — read the badge renderKyc() wrote into #kycStatus.
+        let eligible = null;
+        const kycEl = $("kycStatus");
+        if (kycEl) {
+          const b = kycEl.querySelector(".badge");
+          if (b)
+            eligible = b.classList.contains("good")
+              ? true
+              : b.classList.contains("bad")
+                ? false
+                : null;
+        }
+        const ckKyc = $("ckKyc");
+        if (ckKyc) {
+          ckKyc.textContent = !connected
+            ? "Connect to check"
+            : eligible === true
+              ? "Eligible"
+              : eligible === false
+                ? "Not eligible"
+                : "Checking…";
+          ckKyc.className =
+            "badge" +
+            (eligible === true ? " good" : eligible === false ? " bad" : "");
+        }
+
+        // Receipt freshness — mirror the hero #freshnessSummary badge.
+        const fresh = $("freshnessSummary");
+        const ckFresh = $("ckFresh");
+        if (ckFresh) {
+          ckFresh.textContent = fresh ? fresh.textContent : "—";
+          const fcls = fresh
+            ? fresh.classList.contains("good")
+              ? " good"
+              : fresh.classList.contains("warn")
+                ? " warn"
+                : fresh.classList.contains("bad")
+                  ? " bad"
+                  : ""
+            : "";
+          ckFresh.className = "badge" + fcls;
+        }
+
+        // Headline / journey copy — never hides data from non-wallet users.
+        setText("ckHeadline", connected ? "Live proof cockpit" : "Explore live proof");
+        setText(
+          "ckSub",
+          connected
+            ? "Your guided path through every on-chain action."
+            : "Everything below is live on-chain. Connect a wallet when you're ready to act.",
+        );
+
+        // Step states.
+        setCockpitStepStatus("ckStep1", connected ? "done" : "active");
+        setCockpitStepStatus(
+          "ckStep2",
+          !connected ? "locked" : eligible === true ? "done" : "active",
+        );
+        setCockpitStepStatus(
+          "ckStep3",
+          !connected ? "locked" : hasUsdy ? "done" : "active",
+        );
+        setCockpitStepStatus(
+          "ckStep4",
+          !connected || !hasUsdy ? "locked" : hasShares ? "done" : "active",
+        );
+        setCockpitStepStatus(
+          "ckStep5",
+          !connected || !hasShares ? "locked" : "active",
+        );
+        setCockpitStepStatus(
+          "ckStep6",
+          !connected || !hasShares ? "locked" : "active",
+        );
+
+        // Latest result per step — mirror existing result slots (no new tx logic).
+        setText(
+          "ckStep1Result",
+          connected ? `connected · ${chainForId(state.chainId).name}` : "",
+        );
+        ckMirror("ckStep2Result", "kycResult");
+        ckMirror("ckStep3Result", "faucetResult");
+        ckMirror("ckStep4Result", "depResult");
+        ckMirror("ckStep5Result", "rebalResult");
+        ckMirror("ckStep6ResultChal", "chalResult");
+        ckMirror("ckStep6ResultAlloc", "allocResult");
+      }
+
+      // ── Live Evidence card strip ──
+      async function renderEvidenceCards() {
+        const setEv = (id, html) => {
+          const el = $(id);
+          if (el) el.innerHTML = html;
+        };
+        const cardClass = (id, cls) => {
+          const el = $(id);
+          if (el) el.className = "ev-card" + (cls ? " " + cls : "");
+        };
+        const DASH = `<span class="muted">—</span>`;
+        const grab = async (url) => {
+          try {
+            const r = await fetch(url, { cache: "no-store" });
+            return r.ok ? await r.json() : null;
+          } catch {
+            return null;
+          }
+        };
+
+        const [exec, bench, guard, oracle, scores] = await Promise.all([
+          grab(AI_FEED_URL),
+          grab(MAINNET_TURING_URL),
+          grab("../api/guard.json"),
+          grab("../api/trust-oracle.json"),
+          grab("../api/scores.json"),
+        ]);
+
+        // (a) Latest GLM decision — fallback labelled honestly when source !== "glm"
+        const xs = (exec && exec.executions) || [];
+        const x = xs[0];
+        if (!x) {
+          setEv("evGlmBody", DASH);
+          cardClass("evGlm");
+        } else {
+          const dir =
+            x.action === "increase"
+              ? "is-up"
+              : x.action === "decrease"
+                ? "is-down"
+                : "is-flat";
+          cardClass("evGlm", dir);
+          const tag =
+            x.source === "glm"
+              ? `<span class="badge">GLM${x.model ? " · " + aifEscape(x.model) : ""}</span>`
+              : `<span class="badge warn">deterministic fallback</span>`;
+          const bps =
+            x.navDeltaBps != null ? ` ${aifEscape(x.navDeltaBps)}bps` : "";
+          const reason = aifEscape((x.reasoning || "").slice(0, 88));
+          setEv(
+            "evGlmBody",
+            `<div class="ev-value">agent ${aifEscape(x.agent)} · ${aifEscape(x.action || "—")}${bps}</div>
+             <div class="ev-sub">${tag} ${reason}</div>`,
+          );
+        }
+
+        // (b) Latest real swap tx — Mantlescan link, only when txHash present
+        const swap = xs.find((e) => e && e.execution && e.execution.txHash);
+        if (!swap) {
+          setEv("evSwapBody", `${DASH}<div class="ev-sub">no real swap yet</div>`);
+          cardClass("evSwap");
+        } else {
+          const hash = swap.execution.txHash;
+          cardClass("evSwap", "is-good");
+          setEv(
+            "evSwapBody",
+            `<div class="ev-value">agent ${aifEscape(swap.agent)} · ${aifEscape(swap.action || "swap")}</div>
+             <a class="swap-pill" href="${explorerFor(state.chainId)}/tx/${aifEscape(hash)}" target="_blank" rel="noopener">${aifEscape(hash.slice(0, 12))}… ↗</a>`,
+          );
+        }
+
+        // (c) Freshest on-chain receipt — from in-memory state.allocation
+        const alloc = state.allocation || [];
+        const fresh = alloc
+          .filter((a) => a && a.lastReceiptAt)
+          .sort((a, b) => Number(b.lastReceiptAt) - Number(a.lastReceiptAt))[0];
+        if (!fresh) {
+          setEv("evReceiptBody", DASH);
+          cardClass("evReceipt");
+        } else {
+          const age = formatAge(fresh.lastReceiptAt);
+          cardClass(
+            "evReceipt",
+            age.cls === "good" ? "is-good" : age.cls === "warn" ? "is-flat" : "is-bad",
+          );
+          setEv(
+            "evReceiptBody",
+            `<div class="ev-value">agent ${fresh.agentId.toString()} · <span class="badge ${age.cls}">${age.label}</span></div>
+             <div class="ev-sub">freshest of ${alloc.length} vault${alloc.length === 1 ? "" : "s"}</div>`,
+          );
+        }
+
+        // (d) Latest ReefGuard verdict — allowed/blocked + reason
+        const gAgents = (guard && guard.agents) || [];
+        if (!gAgents.length) {
+          setEv("evGuardBody", DASH);
+          cardClass("evGuard");
+        } else {
+          const cleared = gAgents.filter((a) => a && a.allowed).length;
+          const blocked = gAgents.find((a) => a && !a.allowed);
+          cardClass("evGuard", blocked ? "is-down" : "is-good");
+          const sub = blocked
+            ? `<span class="badge bad">blocked</span> ${aifEscape(blocked.reason || "")}`
+            : `<span class="badge good">all eligible</span>`;
+          setEv(
+            "evGuardBody",
+            `<div class="ev-value">${cleared}/${gAgents.length} agents cleared</div>
+             <div class="ev-sub">${sub}</div>`,
+          );
+        }
+
+        // (e) Mainnet benchmark leader — Sharpe-ranked, honestly labelled (HODL may lead)
+        const comp = (bench && bench.competitors) || [];
+        const top = comp[0];
+        if (!top) {
+          setEv("evBenchBody", DASH);
+          cardClass("evBench");
+        } else {
+          const human = top.kind === "human";
+          cardClass("evBench", human ? "is-flat" : "is-good");
+          const sharpe = top.sharpe == null ? "—" : top.sharpe.toFixed(2);
+          const lead = human
+            ? "HODL baseline leads"
+            : `AI · ${aifEscape(top.name)} leads`;
+          const excess =
+            top.excessRoiBps == null
+              ? ""
+              : ` · ${top.excessRoiBps > 0 ? "+" : ""}${(top.excessRoiBps / 100).toFixed(2)}% vs HODL`;
+          setEv(
+            "evBenchBody",
+            `<div class="ev-value">${lead}</div>
+             <div class="ev-sub">Sharpe ${sharpe}${excess}</div>`,
+          );
+        }
+
+        // (f) Top trust score — on-chain TrustOracle, else off-chain scores.json
+        let trustList = (oracle && oracle.agents) || [];
+        const onchain = trustList.length > 0;
+        if (!trustList.length) trustList = (scores && scores.agents) || [];
+        if (!trustList.length) {
+          setEv("evTrustBody", DASH);
+          cardClass("evTrust");
+        } else {
+          const topT = trustList
+            .slice()
+            .sort((a, b) =>
+              onchain
+                ? (b.scoreOnChain || 0) - (a.scoreOnChain || 0)
+                : (b.trustScore || 0) - (a.trustScore || 0),
+            )[0];
+          const score = onchain ? topT.scoreOnChain : topT.trustScore;
+          cardClass("evTrust", score != null && score >= 70 ? "is-good" : "is-flat");
+          const parity =
+            onchain && topT.deltaPct != null
+              ? ` · parity Δ ${aifEscape(topT.deltaPct)}`
+              : "";
+          setEv(
+            "evTrustBody",
+            `<div class="ev-value">agent ${aifEscape(topT.agentId)} · ${score == null ? "—" : aifEscape(score)} ${aifEscape(topT.rating || "")}</div>
+             <div class="ev-sub">${onchain ? "on-chain TrustOracle" : "off-chain score"}${parity}</div>`,
+          );
         }
       }
 
