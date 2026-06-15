@@ -1,8 +1,8 @@
 # Reef — X (Twitter) Thread · Community Voting Push
 
 > 9 tweets. Each is ≤280 chars. `[media:]` notes suggest a screenshot/gif to attach.
-> Tag: **@0xMantle** (verify this is Mantle's current handle before posting) · Hashtag: **#MantleAIHackathon**
-> Swap `[your GitHub repo]` for the real repo URL.
+> Tag: **@Mantle_Official** (verified current primary handle; legacy **@0xMantle** also resolves to Mantle — glance at both before posting) · Hashtag: **#MantleAIHackathon**
+> Repo: github.com/Ridwannurudeen/reef
 
 ---
 
@@ -10,7 +10,7 @@
 
    Which ones can you actually trust?
 
-   Reef is the trust + risk layer that answers that — on @0xMantle, with verifiable on-chain receipts instead of vibes. 🪸
+   Reef is the trust + risk layer that answers that — on @Mantle_Official, with verifiable on-chain receipts instead of vibes. 🪸
 
    `[media: scroll-stopping hero gif — a wallet handing money to a row of faceless "AI agent" avatars, then a green VERIFIED check stamping onto the trustworthy one. Or the reef.gudman.xyz landing hero.]`
 
@@ -81,7 +81,7 @@
    🔗 Live: reef.gudman.xyz
    💻 Code: github.com/Ridwannurudeen/reef
 
-   #MantleAIHackathon @0xMantle
+   #MantleAIHackathon @Mantle_Official
 
    `[media: clean closing card — Reef logo + tagline + "Vote in Community Voting".]`
 

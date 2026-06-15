@@ -171,6 +171,14 @@
       5
     ]
   },
+  "complianceRegistry": {
+    "_comment": "On-chain KYC / accreditation / jurisdiction attestation registry (chain 5003, 2026-06-15). A composable compliance primitive any Mantle protocol reads via screen(address)->(eligible,reason) before letting an address into a gated flow - checks KYC, accreditation, expiry, and an ISO-3166 jurisdiction blocklist. Licensed issuers post attestations via attest(); the reef compliance_screen.py agent uses Z.ai GLM to decide+attest with evidenceHash=keccak(rationale) (AI-assisted compliance, verifiable). selfAttestDemo() is a TESTNET-ONLY one-click demo KYC (owner-disablable via setDemoEnabled). Owner/issuer = deployer. Seeded: DPRK(408)+Iran(364) blocked; deployer attested (US, accredited). Deposits/allocations in the dApp are gated on screen(). Mantlescan-verified.",
+    "address": "0xDa89AF73a6c6Fb636075A266F4D881150A96eA02",
+    "owner": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
+    "blockedCountries": [408, 364],
+    "seedAttested": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
+    "seedCountry": 840
+  },
   "a2a": {
     "_comment": "Agent-to-agent (A2A) signal marketplace (chain 5003, 2026-06-09). Standalone AgentIdentity + SignalMarket: provider agents list priced signals under categories; consumer agents buy them and payment routes provider->wallet. Lifetime sales/revenue are tracked ON-CHAIN per provider (salesOf/revenueOf) + globally (totalSales/totalRevenueWei) and read in one call via getActiveListings() - no log scanning. Reputation is NOT credited by purchases (vault-only model, so A2A cannot farm ERC-8004 reputation). Seeded with 3 listings + 3 real purchases. Deployed from the arena key (also each agent's wallet). Isolated from the live leaderboard instance. Mantlescan-verified.",
     "identity": "0x99AF42c59edA09a86543c57602e2c6a1AEE2AA76",
