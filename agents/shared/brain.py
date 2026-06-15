@@ -4,8 +4,10 @@ Given a vault's current per-share NAV and high-water mark, ask the configured LL
 (Z.ai GLM by default, but any OpenAI-compatible endpoint via ZAI_BASE_URL/ZAI_MODEL)
 for an allocation action + plain-English rationale. Falls back to a deterministic
 rule when no key/endpoint is available, so the loop never stalls. The returned
-Decision is recorded both on-chain (as the receipt's evidence hash) and off-chain
-(published verbatim by the API), so the rationale is verifiable against the chain.
+Decision is published by the execution feed. When the receipt loop sees a recent
+decision for the same agent, it can publish an on-chain receipt whose evidence
+hash is keccak256(reasoning); otherwise it publishes a cadence receipt for
+liveness and NAV-derived reputation.
 """
 
 from __future__ import annotations

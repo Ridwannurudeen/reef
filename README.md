@@ -3,7 +3,7 @@
 > **The trust, risk, and capital-allocation layer for autonomous AI agents on Mantle.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/forge%20test-235%20passing-brightgreen.svg)](#getting-started)
+[![Tests](https://img.shields.io/badge/forge%20test-250%20passing-brightgreen.svg)](#getting-started)
 [![Network](https://img.shields.io/badge/Mantle-Sepolia%20%2B%20Mainnet-000000.svg)](https://reef.gudman.xyz/transparency)
 [![Hackathon](https://img.shields.io/badge/Mantle%20Turing%20Test%202026-AI%20%C3%97%20RWA-36d39a.svg)](https://dorahacks.io/hackathon/mantleturingtesthackathon2026)
 
@@ -17,7 +17,7 @@
 
 Reef answers one question: **which autonomous agents can Mantle users trust with capital?**
 
-Software agents can now hold and move money on their own — but there is no tamper-proof way to tell a good one from a reckless one. Reef is a **credit-rating layer for AI money-managers**: every agent has a portable ERC-8004 identity, a sovereign vault that deploys into RWA/LSD strategies (USDY, mETH, FusionX), and a verifiable on-chain track record — every decision is an EIP-712-signed receipt and reputation is earned from **realized**, donation-proof performance. That trust is exposed as a public on-chain primitive (`TrustOracle`), enforced as policy (`ReefGuard`), and used to route capital under risk mandates (`Allocator`, and the reputation-weighted `AgentIndex` ERC-20 token).
+Software agents can now hold and move money on their own — but there is no tamper-proof way to tell a good one from a reckless one. Reef is a **credit-rating layer for AI money-managers**: every agent has a portable ERC-8004 identity, a sovereign vault that deploys into RWA/LSD strategies (USDY, mETH, FusionX), source-labelled decision records, and strict-sequence EIP-712 receipts for liveness and reputation. Reputation is earned from **realized**, donation-proof performance. That trust is exposed as a public on-chain primitive (`TrustOracle`), enforced as policy (`ReefGuard`), and used to route capital under risk mandates (`Allocator`, and the reputation-weighted `AgentIndex` ERC-20 token).
 
 Built for the **Mantle Turing Test Hackathon 2026 — AI × RWA track**.
 
@@ -25,7 +25,7 @@ Built for the **Mantle Turing Test Hackathon 2026 — AI × RWA track**.
 
 - **Composable trust** — `TrustOracle.scoreOf(agentId)` returns a 0–100 Trust Score (reputation 40% / receipt freshness 20% / drawdown 20% / bond 20%) in one on-chain call any Mantle protocol can read. The dashboard renders this exact on-chain number (verifiable parity ≈ 0.1%).
 - **Policy + capital gating** — `ReefGuard.canExecute(agentId, asset, sizeBps)` is a pure-view policy gate (registration, reputation, bond, disputes, asset allowlist, size). `Allocator` routes capital across agents trust-weighted, gated by named risk **mandates** (qualification bar + per-agent concentration cap).
-- **Real, autonomous AI** — reference agents read live **Allora** predictions, **Nansen** smart-money flow, and **CoinGecko** momentum, decide via **Z.ai GLM** (`glm-4.7-flash`), and execute **real swaps on FusionX V2** — with the model's verbatim rationale hash-committed on-chain (deterministic-rule fallback when API keys are absent).
+- **Real, autonomous AI** — reference agents read live **Allora** predictions, **Nansen** smart-money flow, and **CoinGecko** momentum, decide via **Z.ai GLM** (`glm-4.7-flash`) or a deterministic fallback, and execute **real swaps on FusionX V2**. Decision source, model, rationale, and swap tx hashes are published at `/api/executions.json`; rationale-bound receipts are summarized at `/api/proofs.json`.
 - **Automated risk management** — a transparent exposure-band policy maps live ETH momentum to a target exposure and executes a **real on-chain** de-risk/re-risk on a DEX-backed vault (proven: 60% → 20% → 80%, each move a verifiable Mantlescan tx).
 - **The Financial Turing Test** — strategies, Allora, and a passive **human buy-and-hold baseline** are scored on one basis and ranked by **risk-adjusted return (Sharpe)** — the hackathon's question made measurable.
 - **Portable ERC-8004 reputation** — every agent is registered in Mantle's **official** ERC-8004 registries (canonical `0x8004…` singletons), with its Trust Score published to the official Reputation Registry.
@@ -72,7 +72,7 @@ Everything is on-chain and verifiable — the source of truth is [`deployments/`
 
 ![On-chain proof — every contract verified](docs/transparency.png)
 
-**Mantle Sepolia (chain 5003)** — full system seeded: 5 agent vaults, the reputation-weighted index, bond gate, open season, `TrustOracle`, `ReefGuard`, both `Allocator`s, and the A2A market. VPS crons run the live GLM agents (real swaps + signed receipts) and the read-only snapshots behind the dashboard. All addresses in [`deployments/mantle-sepolia.json`](deployments/mantle-sepolia.json).
+**Mantle Sepolia (chain 5003)** — full system seeded: 5 agent vaults, the reputation-weighted index, bond gate, open season, `TrustOracle`, `ReefGuard`, both `Allocator`s, and the A2A market. VPS crons run the live agents (source-labelled decisions, real swaps, rationale-bound/cadence receipts) and the read-only snapshots behind the dashboard. All addresses in [`deployments/mantle-sepolia.json`](deployments/mantle-sepolia.json).
 
 **Mantle Mainnet (chain 5000) — real mETH RWA vault.** A vault custodying real **mETH** (Mantle's liquid-staked ETH). Because mETH is non-rebasing (yield accrues in the mETH→ETH rate maintained on L1), `MethRateAdapter` marks the held mETH to ETH via an on-chain `MethRate` store, so the vault's `nav()` reflects **real staking yield**. All 6 contracts Mantlescan-verified; addresses in [`deployments/mantle-mainnet.json`](deployments/mantle-mainnet.json):
 
@@ -86,7 +86,7 @@ Everything is on-chain and verifiable — the source of truth is [`deployments/`
 
 ## Tech stack
 
-- **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); unit + fuzz/invariant suites + live mainnet-fork tests. **235 tests passing** (one L1-fork test is opt-in via `ETHEREUM_RPC`, skipped by default).
+- **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); unit + fuzz/invariant suites + live mainnet-fork tests. **250 tests passing** (one L1-fork test is opt-in via `ETHEREUM_RPC`, skipped by default).
 - **Agents** — Python (web3.py) reference agents, keeper, receipt loop, and read-only snapshots in `agents/`; decisions via Z.ai GLM with a deterministic fallback.
 - **Frontend** — static, no build step (`ui/`): `index.html` (landing), `app.html` (dashboard), `transparency.html` (on-chain proof), `agent.html` (agent passport), served at [reef.gudman.xyz](https://reef.gudman.xyz).
 - **SDK** — `@reef/sdk` (`sdk/`), a zero-dependency JS/TS client.
@@ -98,7 +98,7 @@ git clone https://github.com/Ridwannurudeen/reef.git
 cd reef
 cp .env.example .env     # fill in PRIVATE_KEY + API keys (all optional for build/test)
 forge build
-forge test                # 235 passing
+forge test                # 250 passing, 1 skipped
 ```
 
 The static site needs no build — open `ui/index.html`, or visit [reef.gudman.xyz](https://reef.gudman.xyz).

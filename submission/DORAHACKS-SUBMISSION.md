@@ -25,7 +25,7 @@ Every agent in Reef has a portable **ERC-8004 identity**, a **sovereign vault**,
 
 - **NAV-derived reputation above a high-water mark.** Reputation is credited only when the vault's per-share NAV makes a *new high* — and only off **donation-proof, realized PnL**. `reputableNav()` counts internally-accounted idle plus a strategy valued at `deployedCostBasis`, so a bare token donation or a flash-loan-inflated spot mark credits **zero** reputation; only a `recall` that returns more than cost lifts the high-water and mints reputation. (Security findings #13/#15, fixed at source and live on the leaderboard.)
 
-- **EIP-712 signed receipts.** Every agent decision is an EIP-712-signed (relayable) receipt published on-chain (`publishReceipt`), with the decision rationale committed as the receipt's `evidenceHash`.
+- **EIP-712 signed receipts.** Each vault publishes strict-sequence EIP-712 receipts on-chain (`publishReceipt`) for liveness and NAV-derived reputation. When the receipt loop has a recent decision rationale for that agent, the receipt is rationale-bound and `proofs.json` exposes the exact reasoning/evidenceHash pair.
 
 - **TrustOracle (0–100, on-chain view).** `TrustOracle.scoreOf(agentId)` returns a 0–100 Trust Score in a single pure-view call any Mantle protocol can read — composed of reputation 40% / receipt-freshness 20% / drawdown 20% / bond 20%. `report(agentId, asset, sizeBps)` folds in ReefGuard's live verdict. The drawdown leg reads the donation-proof `reputableNav()`. The on-chain `scoreOf` reproduces the dashboard number (verifiable parity ≈0.1%).
 
@@ -49,12 +49,12 @@ Reef's agents are **not a cosmetic chatbot bolted onto a dashboard**. The AI sit
 
 1. **Grounded inputs.** Each agent reads live market signals — **Allora** ETH predictions, **Nansen** smart-money flow, and **CoinGecko** price/24h momentum — plus the vault's on-chain NAV state.
 2. **Real LLM decision.** Those inputs go to **Z.ai GLM (`glm-4.7-flash`)**, which returns an allocation action (`increase`/`hold`/`decrease`) and a plain-English rationale grounded in the data (e.g. at a drawdown with ETH down ~2.9% it chose `decrease`, citing momentum). A VPS cron runs one rotating agent per cycle under the free-tier rate limit; if the model is unavailable it falls back to a deterministic rule, recorded honestly as `source:"fallback"`.
-3. **Verifiable AI on-chain.** The LLM's verbatim rationale is **hash-committed on-chain** as the EIP-712 receipt's evidence — `keccak(rationale) == evidenceHash` can be recomputed and matched against the chain (proven). The reasoning behind a capital decision is auditable, not asserted.
+3. **Verifiable AI on-chain.** Decisions are source-labelled in `/api/executions.json`; rationale-bound receipts are summarized in `/api/proofs.json`. For records marked `proofStatus: "matched"`, `keccak(reasoning) == evidenceHash` can be recomputed and matched against the vault's on-chain `lastReceiptEvidenceHash`. Cadence-only receipts are labelled separately.
 4. **Real execution.** On an `increase`, the agent executes a **real swap on FusionX V2** (a Mantle-native Uniswap-V2 DEX) on Sepolia; the decision + real swap txHash are served at `/api/executions.json` and verifiable on Mantlescan.
 
-This is the maximal AI×RWA shape: an LLM making the allocation call, its reasoning committed on-chain for verification, and the decision actually moving on-chain through a Mantle-native DEX into the agent's vault track record that drives its reputation and trust score.
+This is the maximal AI×RWA shape for a hackathon prototype: an LLM or explicitly-labelled fallback making the allocation call, matched reasoning records that can be verified against on-chain receipt evidence, and the decision actually moving on-chain through a Mantle-native DEX.
 
-> Honest scope (from `AI_USAGE.md`): live execution swaps currently acquire tokens to the operator wallet (agent-level execution); routing the swap output into the vault NAV via a strategy adapter is a follow-up. The decision → on-chain rationale → swap loop is real and live; full vault-routed execution is the next step.
+> Honest scope (from `AI_USAGE.md`): live execution swaps currently acquire tokens to the operator wallet (agent-level execution); routing the swap output into the vault NAV via a strategy adapter is a follow-up. The decision → matched proof record → swap loop is real and live when `proofStatus` is `matched`; full vault-routed execution is the next step.
 
 ---
 
@@ -122,10 +122,10 @@ All addresses below are from the repo's `deployments/*.json` and are Mantlescan-
 1. **Open the live site** — https://reef.gudman.xyz : landing `/`, dashboard `/app`, on-chain proof `/transparency`, per-agent passport `/agent?id=N`.
 2. **Faucet → deposit.** Use the in-UI faucet to mint the demo index asset, then deposit into a vault / the index from the dashboard.
 3. **Rebalance (permissionless).** Trigger `rebalance()` from the UI — capital re-allocates across agents by their **on-chain** Trust Score, gated by the active Conservative mandate. Anyone can call it.
-4. **Verify it yourself.** On `/transparency`, the Trust Score badge renders the **on-chain `TrustOracle.scoreOf`** (off-chain parity Δ in the tooltip), and the page reads NAV / reputation / receipts straight from chain. Cross-check any address on Mantlescan; recompute `keccak(rationale)` against a receipt's `evidenceHash`.
+4. **Verify it yourself.** On `/transparency`, the Trust Score badge renders the **on-chain `TrustOracle.scoreOf`** (off-chain parity Δ in the tooltip), and the page reads NAV / reputation / receipts straight from chain. Cross-check any address on Mantlescan; for `/api/proofs.json` records marked `matched`, recompute `keccak(reasoning)` against the receipt's `evidenceHash`.
 5. **Build on it.** Read trust with `ITrustOracle(oracle).scoreOf(agentId)` (1e18 == 100/100), or gate an entrypoint with `onlyCleared(id, asset, sizeBps)` via `ReefGuarded`; JS/TS via the zero-dependency `@reef/sdk`. Reference integrations `MockProtocol` and `TrustOracleConsumer` are live and verified.
 
-**Build/test:** Solidity 0.8.24, Foundry; `forge build && forge test` — **235 tests passing, 1 skipped** (verified `forge test`), including fuzz/invariant suites and live Mantle-mainnet fork tests (one L1-fork test opt-in via `ETHEREUM_RPC`, skipped by default).
+**Build/test:** Solidity 0.8.24, Foundry; `forge build && forge test` — **250 tests passing, 1 skipped** (verified `forge test`), including fuzz/invariant suites and live Mantle-mainnet fork tests (one L1-fork test opt-in via `ETHEREUM_RPC`, skipped by default).
 
 ---
 

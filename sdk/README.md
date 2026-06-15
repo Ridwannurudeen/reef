@@ -19,8 +19,8 @@ import { ReefClient } from "@reef/sdk";
 
 const reef = new ReefClient({
   rpcUrl: "https://rpc.sepolia.mantle.xyz",
-  guardAddress: "0xe84E84D7e2E588aa8F88d1D1ADF2bdc70365a02b", // ReefGuard (Sepolia)
-  oracleAddress: "0x18b26f170dCA58306C2c9e20DA74e2d4531Fb3f2", // TrustOracle (Sepolia)
+  guardAddress: "0x108411e3AA1fA2D3643b86A0B52Fd5bE12FDfe3f", // ReefGuard (Sepolia)
+  oracleAddress: "0x9C7db1eF649095d5c543aF66538a5E36A04d6598", // TrustOracle (Sepolia)
   apiBase: "https://reef.gudman.xyz/api",
 });
 
@@ -92,10 +92,10 @@ deployed + Mantlescan-verified — for live reference integrations, and
 
 | Contract | Address |
 |---|---|
-| TrustOracle | `0x18b26f170dCA58306C2c9e20DA74e2d4531Fb3f2` |
-| ReefGuard | `0xe84E84D7e2E588aa8F88d1D1ADF2bdc70365a02b` |
-| TrustOracleConsumer (example) | `0x2A696AC743E9652807f7105D1eB7Ad6cf949670e` |
-| MockProtocol (example) | `0x9ef3Feb3C404651C8d240c529969B99b743dE8D0` |
+| TrustOracle | `0x9C7db1eF649095d5c543aF66538a5E36A04d6598` |
+| ReefGuard | `0x108411e3AA1fA2D3643b86A0B52Fd5bE12FDfe3f` |
+| TrustOracleConsumer (example) | `0xF4fcd1A79d2D95Ae86257be385d8b5FFCd403830` |
+| MockProtocol (example) | `0x44E2324BBd1A645c776c442DCa418b791E93fbb2` |
 
 > Unaudited testnet code. See `SECURITY.md` before any mainnet TVL.
 > Publishing: `@reef/sdk` is scoped — `npm publish` requires owning the `@reef` npm scope (or

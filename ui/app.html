@@ -1818,7 +1818,7 @@
               <span id="ckStep1State" class="ck-state is-active">Next</span>
             </div>
             <div class="ck-step-actions">
-              <button type="button" class="primary" onclick="connect()">
+              <button id="ckConnectBtn" type="button" class="primary">
                 Connect
               </button>
             </div>
@@ -1832,11 +1832,11 @@
               <span id="ckStep2State" class="ck-state is-locked">Locked</span>
             </div>
             <div class="ck-step-actions">
-              <button type="button" onclick="doKyc()">Self-attest</button>
+              <button id="ckKycBtn" type="button">Self-attest</button>
               <button
+                id="ckKycScrollBtn"
                 type="button"
                 class="ck-link"
-                onclick="scrollToAction('kycStatus')"
               >
                 Details ↗
               </button>
@@ -1851,7 +1851,7 @@
               <span id="ckStep3State" class="ck-state is-locked">Locked</span>
             </div>
             <div class="ck-step-actions">
-              <button type="button" onclick="doFaucet()">Mint 1,000</button>
+              <button id="ckFaucetBtn" type="button">Mint 1,000</button>
             </div>
             <div id="ckStep3Result" class="ck-result"></div>
           </div>
@@ -1863,13 +1863,13 @@
               <span id="ckStep4State" class="ck-state is-locked">Locked</span>
             </div>
             <div class="ck-step-actions">
-              <button type="button" class="primary" onclick="doDeposit()">
+              <button id="ckDepositBtn" type="button" class="primary">
                 Approve + deposit
               </button>
               <button
+                id="ckDepositScrollBtn"
                 type="button"
                 class="ck-link"
-                onclick="scrollToAction('depAmt')"
               >
                 Set amount ↗
               </button>
@@ -1884,7 +1884,7 @@
               <span id="ckStep5State" class="ck-state is-locked">Locked</span>
             </div>
             <div class="ck-step-actions">
-              <button type="button" class="ghost" onclick="doRebalance()">
+              <button id="ckRebalanceBtn" type="button" class="ghost">
                 Rebalance
               </button>
             </div>
@@ -1898,24 +1898,24 @@
               <span id="ckStep6State" class="ck-state is-locked">Locked</span>
             </div>
             <div class="ck-step-actions">
-              <button type="button" onclick="doChallenge()">Challenge</button>
+              <button id="ckChallengeBtn" type="button">Challenge</button>
               <button
+                id="ckChallengeScrollBtn"
                 type="button"
                 class="ck-link"
-                onclick="scrollToAction('chalAgent')"
               >
                 Pick agent ↗
               </button>
             </div>
             <div id="ckStep6ResultChal" class="ck-result"></div>
             <div class="ck-step-actions">
-              <button type="button" class="primary" onclick="doAllocate()">
+              <button id="ckAllocateBtn" type="button" class="primary">
                 Allocate via mandate
               </button>
               <button
+                id="ckAllocateScrollBtn"
                 type="button"
                 class="ck-link"
-                onclick="scrollToAction('allocAmt')"
               >
                 Set amount ↗
               </button>
@@ -2025,7 +2025,7 @@
         </div>
         <div class="ev-strip">
           <div class="ev-card" id="evGlm">
-            <div class="ev-label"><span class="live-dot"></span> Latest GLM decision</div>
+            <div class="ev-label"><span class="live-dot"></span> Latest AI decision</div>
             <div id="evGlmBody"><span class="muted">loading…</span></div>
           </div>
           <div class="ev-card" id="evSwap">
@@ -2472,8 +2472,10 @@
           </div>
           <p class="section-copy">
             Each agent reasons over a live market signal (CoinGecko ETH momentum) plus its
-            on-chain NAV via Z.ai GLM, and executes real swaps on FusionX V2 when it chooses to
-            increase. Each decision's rationale is committed on-chain as the receipt's evidence hash — keccak256(rationale) equals the vault's lastReceiptEvidenceHash — and the swaps are verifiable on Mantlescan.
+            on-chain NAV via Z.ai GLM or a deterministic fallback, and executes real swaps on
+            FusionX V2 when it chooses to increase or decrease. Decision source, model, rationale,
+            and swap transaction hashes are published in the feed; cadence receipts and swaps are
+            verifiable on Mantlescan.
           </p>
         </div>
         <div class="ai-featured" id="aiFeatured" hidden>
@@ -4737,22 +4739,28 @@
       }
 
       async function refreshAll() {
+        renderCockpit();
+        void renderEvidenceCards();
         await refreshIndex();
-        await refreshHistory();
-        await refreshFeed();
-        await refreshAiFeed();
-        await refreshStrategies();
-        await refreshArena();
-        await refreshAllocator();
-        await refreshA2A();
-        await refreshAlloraBench();
-        await refreshTuring();
-        await refreshMainnetTuring();
-        await renderGuard();
-        await renderKyc();
+        renderCockpit();
+        await Promise.allSettled([
+          refreshHistory(),
+          refreshFeed(),
+          refreshAiFeed(),
+          refreshStrategies(),
+          refreshArena(),
+          refreshAllocator(),
+          refreshA2A(),
+          refreshAlloraBench(),
+          refreshTuring(),
+          refreshMainnetTuring(),
+          renderGuard(),
+          renderKyc(),
+          renderEvidenceCards(),
+        ]);
         if (state.account) renderConn();
         renderCockpit();
-        await renderEvidenceCards();
+        void renderEvidenceCards();
       }
 
       function startPolling() {
@@ -5328,6 +5336,25 @@
         ckMirror("ckStep6ResultAlloc", "allocResult");
       }
 
+      function initCockpitActions() {
+        const bind = (id, fn) => {
+          const el = $(id);
+          if (!el) return;
+          el.addEventListener("click", fn);
+        };
+        bind("ckConnectBtn", connect);
+        bind("ckKycBtn", doKyc);
+        bind("ckFaucetBtn", doFaucet);
+        bind("ckDepositBtn", doDeposit);
+        bind("ckRebalanceBtn", doRebalance);
+        bind("ckChallengeBtn", doChallenge);
+        bind("ckAllocateBtn", doAllocate);
+        bind("ckKycScrollBtn", () => scrollToAction("kycStatus"));
+        bind("ckDepositScrollBtn", () => scrollToAction("depAmt"));
+        bind("ckChallengeScrollBtn", () => scrollToAction("chalAgent"));
+        bind("ckAllocateScrollBtn", () => scrollToAction("allocAmt"));
+      }
+
       // ── Live Evidence card strip ──
       async function renderEvidenceCards() {
         const setEv = (id, html) => {
@@ -5356,7 +5383,7 @@
           grab("../api/scores.json"),
         ]);
 
-        // (a) Latest GLM decision — fallback labelled honestly when source !== "glm"
+        // (a) Latest AI decision — fallback labelled honestly when source !== "glm"
         const xs = (exec && exec.executions) || [];
         const x = xs[0];
         if (!x) {
@@ -5503,6 +5530,7 @@
       $("allocBtn").addEventListener("click", doAllocate);
       $("kycBtn").addEventListener("click", doKyc);
 
+      initCockpitActions();
       initGlossary();
       initBeginnerMode();
       initNoWalletBanner();

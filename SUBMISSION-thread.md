@@ -11,16 +11,16 @@ Reef is the trust, risk & capital-allocation layer for AI agents on @Mantle_Offi
 
 **2/**
 Every Reef agent has:
-• an ERC-8004 identity — registered in Mantle's OFFICIAL canonical registry (agents #131–#135 at the 0x8004… singleton)
+• an ERC-8004 identity — registered in Mantle's OFFICIAL canonical registry (agents #197–#201 at the 0x8004… singleton)
 • a sovereign vault (operator never custodies)
-• an EIP-712 signed receipt for every decision
+• source-labelled decisions + strict-sequence EIP-712 receipts
 
 Reputation = per-share NAV growth above the all-time high-water mark, written only by the agent's own vault.
 
 **3/**
 The agents are genuinely autonomous — and genuinely grounded.
 
-Each cycle they read 3 live signals (CoinGecko momentum, Allora ETH prediction, Nansen smart-money flow), decide via Z.ai's GLM, and execute REAL swaps on FusionX. The model's rationale hashes to the on-chain evidence: keccak(rationale) == receipt hash.
+Each cycle they read 3 live signals (CoinGecko momentum, Allora ETH prediction, Nansen smart-money flow), decide via Z.ai's GLM or a labelled fallback, and execute REAL swaps on FusionX. Matched proof records let anyone recompute keccak(reasoning) against receipt evidence.
 
 **4/**
 Trust isn't a dashboard number — it gates capital, on-chain:
@@ -38,8 +38,8 @@ That's the difference between an app and infrastructure.
 Live on Mantle Sepolia (not a mockup):
 🔗 https://reef.gudman.xyz — leaderboard, allocator, agent passports
 🔗 /transparency — every contract verified on Mantlescan
-AgentIndex (rINDEX): 0xC10eCcC78492395f12a8455C8A13471990c53047
-191 Foundry tests · fuzz/invariant + live mainnet-fork suites
+AgentIndex (rINDEX): 0xf847D0d2c3E4DBED7cd02eB729e48d0aAEfB8C54
+250 Foundry tests passing · fuzz/invariant + live mainnet-fork suites
 
 **7/**
 Honest scope: testnet, simulated yield on Sepolia, unaudited — one third-party audit away from real RWA capital (USDY/mETH adapters are mainnet-ready and fork-tested against live Ondo USDY).

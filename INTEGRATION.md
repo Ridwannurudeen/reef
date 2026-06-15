@@ -38,7 +38,7 @@ require(ok, reason);
 ```
 
 `MockProtocol` (`src/MockProtocol.sol`, deployed + Mantlescan-verified at
-`0x9ef3Feb3C404651C8d240c529969B99b743dE8D0`) is a live reference: it gated a real agent action
+`0x44E2324BBd1A645c776c442DCa418b791E93fbb2`) is a live reference: it gated a real agent action
 on-chain and reverts with the policy reason when an agent isn't cleared.
 
 ## 2. Off-chain reads (JS / TS)
@@ -65,10 +65,10 @@ Per-agent JSON, regenerated from the live feeds:
 
 | Contract | Address |
 |---|---|
-| ReefGuard | `0xe84E84D7e2E588aa8F88d1D1ADF2bdc70365a02b` |
-| AgentIdentity (ERC-8004) | `0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7` |
-| ReputationBond | `0xeF2F3602d5fe04487a971e5d749DAC7343b8F895` |
-| MockProtocol (example) | `0x9ef3Feb3C404651C8d240c529969B99b743dE8D0` |
+| ReefGuard | `0x108411e3AA1fA2D3643b86A0B52Fd5bE12FDfe3f` |
+| AgentIdentity (ERC-8004) | `0xe6D6320a3647a4b21Abe1654C30E848318D161DD` |
+| ReputationBond | `0xccfF181441a636a63f8b5f9b6697585b54165DAe` |
+| MockProtocol (example) | `0x44E2324BBd1A645c776c442DCa418b791E93fbb2` |
 
 Full address set: `deployments/mantle-sepolia.json`. Unaudited testnet code — see `SECURITY.md`
 before any mainnet TVL.

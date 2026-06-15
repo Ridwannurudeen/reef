@@ -6,7 +6,7 @@
     <title>Reef — On-chain proof &amp; transparency</title>
     <meta
       name="description"
-      content="Every Reef contract is deployed and verified on Mantlescan. Agents publish EIP-712 signed receipts whose evidence hash is keccak256 of the agent's decision rationale — recompute it and match the vault's on-chain hash yourself. Testnet, unaudited, verifiable."
+      content="Every Reef contract is deployed and verified on Mantlescan. Agents publish EIP-712 signed receipts for liveness and NAV-derived reputation; rationale-bound receipts can be recomputed against proofs.json. Testnet, unaudited, verifiable."
     />
     <meta name="theme-color" content="#0a0a0b" />
     <link
@@ -16,7 +16,7 @@
     <meta property="og:title" content="Reef — On-chain proof &amp; transparency" />
     <meta
       property="og:description"
-      content="Everything Reef does is verifiable on Mantlescan: verified contracts, EIP-712 signed receipts, hash-matched AI rationales, real DEX swaps. Testnet, unaudited."
+      content="Everything Reef does is verifiable on Mantlescan: verified contracts, EIP-712 signed receipts, rationale-bound proof records, real DEX swaps. Testnet, unaudited."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://reef.gudman.xyz/transparency.html" />
@@ -26,7 +26,7 @@
     <meta name="twitter:title" content="Reef — On-chain proof &amp; transparency" />
     <meta
       name="twitter:description"
-      content="Everything Reef does is verifiable on Mantlescan: verified contracts, EIP-712 receipts, hash-matched AI rationales, real DEX swaps. Testnet, unaudited."
+      content="Everything Reef does is verifiable on Mantlescan: verified contracts, EIP-712 receipts, rationale-bound proof records, real DEX swaps. Testnet, unaudited."
     />
     <meta name="twitter:image" content="https://reef.gudman.xyz/og.png" />
 
@@ -327,11 +327,12 @@
             <p class="r-lead">
               Every contract is deployed and verified on Mantlescan. Agents
               publish EIP-712 signed receipts on-chain that keep each vault live
-              and credit NAV-derived reputation — and each receipt commits the
-              agent's decision rationale as its evidence hash, so
-              <span class="r-mono">keccak256(rationale)</span> equals the vault's
-              on-chain hash and anyone can verify it. The decisions, and the real
-              swaps they trigger, are independently verifiable on Mantlescan.
+              and credit NAV-derived reputation. When a receipt is
+              rationale-bound, <span class="r-mono">/api/proofs.json</span>
+              exposes the exact reasoning text and evidence hash so anyone can
+              recompute <span class="r-mono">keccak256(reasoning)</span> and
+              match the vault's on-chain hash. The decisions, and the real swaps
+              they trigger, are independently verifiable on Mantlescan.
             </p>
           </div>
 
@@ -349,8 +350,8 @@
               <span class="r-stat-label">Receipts · signed</span>
             </div>
             <div class="r-stat">
-              <span class="r-stat-value">GLM</span>
-              <span class="r-stat-label">AI · on-chain evidence</span>
+              <span class="r-stat-value">AI</span>
+              <span class="r-stat-label">Decisions · swaps · proofs</span>
             </div>
           </div>
         </div>
@@ -381,12 +382,12 @@
           <div class="r-section-head">
             <h2 class="r-h2">What the agents decided, and why</h2>
             <p class="r-lead">
-              The most recent decisions from the running GLM model. Each shows
-              the action, the verbatim rationale, the market signal, and a link
-              to the swap when a trade executed. The rationale shown hashes
-              (<span class="r-mono">keccak256</span>) to the receipt's on-chain
-              evidence hash, and each swap is independently verifiable on
-              Mantlescan.
+              The most recent decisions from the running GLM model or the
+              deterministic fallback. Each shows the action, rationale, market
+              signal, and a link to the swap when a trade executed. When
+              <span class="r-mono">/api/proofs.json</span> marks a receipt as
+              rationale-bound, that rationale hashes to the receipt's on-chain
+              evidence hash. Each swap is independently verifiable on Mantlescan.
             </p>
           </div>
           <div class="r-panel">
@@ -414,16 +415,15 @@
               </li>
               <li>
                 <p>
-                  <strong>Match a decision to its on-chain receipt.</strong> Take
-                  a decision's verbatim rationale, compute
-                  <span class="r-mono">keccak256(rationale)</span>, and read that
+                  <strong>Match a proof record to its on-chain receipt.</strong>
+                  Open <span class="r-mono">/api/proofs.json</span>. Records with
+                  <span class="r-mono">proofStatus: "matched"</span> include the
+                  exact reasoning text and evidenceHash; recompute
+                  <span class="r-mono">keccak256(reasoning)</span> and read that
                   agent's vault
                   <span class="r-mono">lastReceiptEvidenceHash</span> on
-                  Mantlescan — the two are equal. The EIP-712 receipt is signed by
-                  the agent's operator and keeps the vault live on-chain.
-                  <span class="r-mono">/api/proofs.json</span> gives you the exact
-                  rationale, its evidenceHash, and the publishing tx for each
-                  agent, so you can check the binding without leaving the page.
+                  Mantlescan. Cadence-only receipts are labelled separately and
+                  prove liveness rather than rationale binding.
                 </p>
               </li>
               <li>
@@ -988,8 +988,8 @@
           if (!decs.length && !exes.length) {
             host.innerHTML =
               '<p class="t-empty">Live feed loads from the running agents. When the decision and ' +
-              "execution feeds are reachable, the most recent moves appear here — each with its GLM " +
-              "rationale and, where a trade fired, a link to the real swap.</p>";
+              "execution feeds are reachable, the most recent moves appear here with a " +
+              "source-labelled rationale and, where a trade fired, a link to the real swap.</p>";
             return;
           }
           function tsMs(d) {
@@ -1028,7 +1028,7 @@
             var signal = sigText(pick(d, ["signal", "marketSignal", "market", "topic"]));
             var when = pick(d, ["ts", "timestamp", "time", "createdAt"]);
             var src = String(pick(d, ["source"]) || "").toLowerCase();
-            var label = src && src !== "glm" ? "agent rationale" : "GLM rationale";
+            var label = src === "glm" ? "GLM rationale" : src ? src + " rationale" : "AI rationale";
             var tx = swapTx(d);
             var validTx = tx != null;
             var allora =

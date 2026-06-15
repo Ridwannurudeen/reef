@@ -9,8 +9,8 @@ import {ReefGuard} from "../src/ReefGuard.sol";
 /// allowlisted, so any protocol can query canExecute(agentId, asset, sizeBps) for the seeded agents.
 /// Run: PRIVATE_KEY=<key> forge script script/DeployReefGuard.s.sol:DeployReefGuard --rpc-url <url> --broadcast
 contract DeployReefGuard is Script {
-    address constant IDENTITY = 0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7;
-    address constant BOND = 0xeF2F3602d5fe04487a971e5d749DAC7343b8F895;
+    address constant IDENTITY = 0xe6D6320a3647a4b21Abe1654C30E848318D161DD;
+    address constant BOND = 0xccfF181441a636a63f8b5f9b6697585b54165DAe;
     address constant ASSET = 0xbc17D7F8f265d069781ed765914ED092989d92e7; // live index MockAsset
 
     function run() external {

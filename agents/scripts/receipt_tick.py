@@ -3,12 +3,12 @@
 
 For each seeded vault, publish an EIP-712-signed receipt. When a recent agent
 decision exists for that agent (in API_OUT_DIR/executions.json), the receipt's
-evidence hash is keccak256(the verbatim rationale string) — so anyone can recompute
-keccak256(rationale) and match the vault's on-chain `lastReceiptEvidenceHash`
-("verify it yourself"). When no decision is available the receipt falls back to a
-cheap cadence record (keeps lastReceiptAt fresh / health green and credits
-NAV-derived reputation). This loop is the SOLE on-chain receipt publisher, so it
-never races the strict per-vault sequence — no LLM call is made here.
+evidence hash is keccak256(the verbatim rationale string) so anyone can recompute
+the hash and match the vault's on-chain `lastReceiptEvidenceHash`. When no decision
+is available the receipt falls back to a cheap cadence record (keeps lastReceiptAt
+fresh / health green and credits NAV-derived reputation). This loop is the SOLE
+on-chain receipt publisher, so it never races the strict per-vault sequence. No LLM
+call is made here.
 
 A per-agent proof summary is written to API_OUT_DIR/proofs.json
 ({agentId: {seq, evidenceHash, rationaleHash, reasoning, txHash, proofStatus}}).
@@ -89,8 +89,7 @@ def main() -> int:
             reasoning = (rec or {}).get("reasoning") if rec else None
             bound = bool(reasoning and reasoning.strip())
             if bound:
-                # Bind the on-chain evidence to the verbatim rationale: anyone can
-                # recompute keccak256(rationale) and match lastReceiptEvidenceHash.
+                # Bind the on-chain evidence to the verbatim rationale.
                 evidence = keccak(reasoning.encode("utf-8"))
             else:
                 # No decision for this agent yet: cheap cadence receipt (liveness).
@@ -129,7 +128,7 @@ def main() -> int:
             }
             published += 1
             print(
-                f"agent {agent_id} {'GLM-bound' if bound else 'cadence'} receipt seq={seq} published"
+                f"agent {agent_id} {'rationale-bound' if bound else 'cadence'} receipt seq={seq} published"
             )
         except Exception as e:  # noqa: BLE001 - keep ticking the remaining vaults
             failures += 1
