@@ -43,6 +43,10 @@
   --gold: #b07d18;
   --gold-soft: rgba(176, 125, 24, 0.12);
   --gold-line: rgba(176, 125, 24, 0.3);
+  --success-soft: rgba(15, 157, 110, 0.1);
+  --success-line: rgba(15, 157, 110, 0.32);
+  --danger-soft: rgba(216, 58, 68, 0.1);
+  --danger-line: rgba(216, 58, 68, 0.34);
   --red: #d83a44;
   --success: #0f9d6e;
   --danger: #d83a44;
@@ -125,6 +129,10 @@ html[data-theme="dark"] {
   --gold: #c69a44;
   --gold-soft: rgba(198, 154, 68, 0.12);
   --gold-line: rgba(198, 154, 68, 0.3);
+  --success-soft: rgba(54, 211, 154, 0.1);
+  --success-line: rgba(54, 211, 154, 0.4);
+  --danger-soft: rgba(229, 106, 114, 0.1);
+  --danger-line: rgba(229, 106, 114, 0.42);
   --red: #e56a72;
   --success: #36d39a;
   --danger: #e56a72;
@@ -395,6 +403,43 @@ a:hover {
   background: transparent;
   color: var(--text);
   cursor: pointer;
+}
+
+/* ── Shared theme toggle (sun/moon) — used in every page nav ── */
+.r-theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease),
+    color 160ms var(--ease),
+    transform 220ms var(--ease);
+}
+.r-theme-toggle:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.r-theme-toggle:active {
+  transform: scale(0.92);
+}
+.r-theme-toggle .ic-sun {
+  display: none;
+}
+.r-theme-toggle .ic-moon {
+  display: block;
+}
+html[data-theme="dark"] .r-theme-toggle .ic-sun {
+  display: block;
+}
+html[data-theme="dark"] .r-theme-toggle .ic-moon {
+  display: none;
 }
 
 /* ── Buttons ── */
