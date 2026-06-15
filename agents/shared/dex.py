@@ -122,7 +122,7 @@ def swap_token_for_wmnt(
         "amountIn": str(amount_in),
         "expectedOut": str(expected),
         "amountOutMin": str(amount_out_min),
-        "txHash": receipt["transactionHash"].hex(),
+        "txHash": w3.to_hex(receipt["transactionHash"]),
         "ts": int(time.time()),
     }
 
@@ -180,6 +180,6 @@ def swap_native_for_token(
         "amountIn": str(amount_in_wei),
         "expectedOut": str(expected),
         "amountOutMin": str(amount_out_min),
-        "txHash": receipt["transactionHash"].hex(),
+        "txHash": w3.to_hex(receipt["transactionHash"]),
         "ts": int(time.time()),
     }
