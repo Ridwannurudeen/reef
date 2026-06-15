@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Reef · Agent Passport</title>
-    <meta name="description" content="Reef agent passport: trust score, on-chain reputation, signed decision receipts, bond and challenge status — verifiable on Mantlescan." />
+    <meta name="description" content="Reef agent passport: trust score, on-chain reputation, source-labelled decisions, signed receipts, bond and challenge status — verifiable on Mantlescan." />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='7' fill='%2336d39a'/%3E%3Cpath d='M6 16.6c2.3-3.3 4.6-3.3 7 0 2.4 3.3 4.7 3.3 7 0' stroke='%230a0a0b' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
     <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
@@ -71,8 +71,9 @@
       <h2 class="r-h2" style="margin: var(--space-6) 0 var(--space-3)">Decision receipts</h2>
       <p class="r-lead" style="margin-bottom: var(--space-4)">
         Each decision records its real inputs (market signal, Allora prediction, Nansen flow), the
-        model that made it, and a signed on-chain receipt whose evidence hash binds the agent to
-        what it claimed. Open the vault to verify on Mantlescan.
+        model or fallback that made it, and the latest signed on-chain receipt status. Matched proof
+        records bind reasoning to receipt evidence; cadence receipts prove liveness. Open the vault
+        to verify on Mantlescan.
       </p>
       <div id="p-receipts"><p class="empty">Loading decisions…</p></div>
 

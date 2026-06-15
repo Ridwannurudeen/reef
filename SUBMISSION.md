@@ -8,7 +8,7 @@ Reef
 
 ## One-Line Description
 
-**Reef is the trust, risk, and capital-allocation layer for autonomous AI agents on Mantle.** Built on Mantle's ERC-8004 agent-identity standard, it turns identity into a live capital market: autonomous AI agents compete under public mandates, prove every decision with on-chain signed receipts, earn portable NAV-derived reputation, post slashable bonds (challengeable when they lie), and receive capital through a reputation-weighted index (rINDEX) — gated by an on-chain policy primitive (ReefGuard) that any Mantle protocol can call to ask *"can this agent touch this capital right now?"* — over a real RWA/yield substrate (USDY/mETH/FusionX).
+**Reef is the trust, risk, and capital-allocation layer for autonomous AI agents on Mantle.** Built on Mantle's ERC-8004 agent-identity standard, it turns identity into a live capital market: autonomous AI agents compete under public mandates, publish source-labelled decisions and on-chain signed receipts, earn portable NAV-derived reputation, post slashable bonds (challengeable when they lie), and receive capital through a reputation-weighted index (rINDEX) — gated by an on-chain policy primitive (ReefGuard) that any Mantle protocol can call to ask *"can this agent touch this capital right now?"* — over a real RWA/yield substrate (USDY/mETH/FusionX).
 
 ## Track
 
@@ -24,12 +24,15 @@ Reef
 
 | Contract | Address (verified on Mantlescan, chain 5003) |
 |---|---|
-| AgentIdentity (ERC-8004) | [`0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7`](https://sepolia.mantlescan.xyz/address/0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7) |
-| AgentIndex (rINDEX) | [`0xC10eCcC78492395f12a8455C8A13471990c53047`](https://sepolia.mantlescan.xyz/address/0xC10eCcC78492395f12a8455C8A13471990c53047) |
-| AdapterRegistry | [`0xc1ed73d6707701561df96abbbc37fc7e81f9cc36`](https://sepolia.mantlescan.xyz/address/0xc1ed73d6707701561df96abbbc37fc7e81f9cc36) |
-| MockYieldAdapter (agent 1, live NAV) | [`0x63bad8f71455099ebc7a01743c42f9471301edeb`](https://sepolia.mantlescan.xyz/address/0x63bad8f71455099ebc7a01743c42f9471301edeb) |
-| ReputationBond | [`0xef2f3602d5fe04487a971e5d749dac7343b8f895`](https://sepolia.mantlescan.xyz/address/0xef2f3602d5fe04487a971e5d749dac7343b8f895) |
-| Seasons | [`0xbf8f5e4434f4467cd1d9e10ea5c58fdcf67e5a80`](https://sepolia.mantlescan.xyz/address/0xbf8f5e4434f4467cd1d9e10ea5c58fdcf67e5a80) |
+| AgentIdentity (ERC-8004) | [`0xe6D6320a3647a4b21Abe1654C30E848318D161DD`](https://sepolia.mantlescan.xyz/address/0xe6D6320a3647a4b21Abe1654C30E848318D161DD) |
+| AgentIndex (rINDEX) | [`0xf847D0d2c3E4DBED7cd02eB729e48d0aAEfB8C54`](https://sepolia.mantlescan.xyz/address/0xf847D0d2c3E4DBED7cd02eB729e48d0aAEfB8C54) |
+| AdapterRegistry | [`0xa19323f17e7c28a3E88d407499595A31e0E28bE4`](https://sepolia.mantlescan.xyz/address/0xa19323f17e7c28a3E88d407499595A31e0E28bE4) |
+| TrustOracle | [`0x9C7db1eF649095d5c543aF66538a5E36A04d6598`](https://sepolia.mantlescan.xyz/address/0x9C7db1eF649095d5c543aF66538a5E36A04d6598) |
+| ReefGuard | [`0x108411e3AA1fA2D3643b86A0B52Fd5bE12FDfe3f`](https://sepolia.mantlescan.xyz/address/0x108411e3AA1fA2D3643b86A0B52Fd5bE12FDfe3f) |
+| MockProtocol | [`0x44E2324BBd1A645c776c442DCa418b791E93fbb2`](https://sepolia.mantlescan.xyz/address/0x44E2324BBd1A645c776c442DCa418b791E93fbb2) |
+| ReputationBond | [`0xccfF181441a636a63f8b5f9b6697585b54165DAe`](https://sepolia.mantlescan.xyz/address/0xccfF181441a636a63f8b5f9b6697585b54165DAe) |
+| Seasons | [`0x52EDb6943bF74328e640bcb9E76734Fe63750697`](https://sepolia.mantlescan.xyz/address/0x52EDb6943bF74328e640bcb9E76734Fe63750697) |
+| SignalMarket | [`0xCf63800B3CC47b149421E6A01b9914c3557884b4`](https://sepolia.mantlescan.xyz/address/0xCf63800B3CC47b149421E6A01b9914c3557884b4) |
 | Asset (demo MockERC20) | [`0xbc17D7F8f265d069781ed765914ED092989d92e7`](https://sepolia.mantlescan.xyz/address/0xbc17D7F8f265d069781ed765914ED092989d92e7) |
 
 Seeded with **5 AgentVaults** (all verified on Mantlescan); index holds 1,000 demo units with a reputation-weighted allocation of 526 / 1052 / 1578 / 2631 / 4210 bps. A VPS cron receipt loop (`agents/scripts/receipt_tick.py`) publishes **EIP-712-signed** strict-sequence receipts on-chain every 10 minutes (any keeper can relay them), keeping the agents live; the full per-vault address list is in `deployments/mantle-sepolia.json`.
@@ -100,13 +103,13 @@ AgentIndex
 | Hackathon deck | `slides.html` (reveal.js) |
 | nginx + cert deploy config | `deploy/` |
 
-**Total: 191 tests, all passing** (`forge test`) — unit + fuzz/invariant suites + 5 live-mainnet fork integration tests. All deployed Sepolia contracts are verified on Mantlescan. Forge 1.7.1, solc 0.8.24, evm_version paris. Internal security review in `SECURITY.md`.
+**Total: 250 tests passing, 1 skipped** (`forge test`) — unit + fuzz/invariant suites + live-mainnet fork integration tests. All deployed Sepolia contracts are verified on Mantlescan. Forge 1.7.1, solc 0.8.24, evm_version paris. Internal security review in `SECURITY.md`.
 
 ## Hackathon Feature Alignment
 
 - **Automated risk management (AI × RWA track core)** — a transparent, auditable policy maps the live ETH market signal (24h momentum) to a target exposure, and the agent executes a **real on-chain** recall (de-risk) or deploy (re-risk) on a DEX-backed vault to hit it. Proven live on Sepolia: exposure cut 80% → 20% on a risk-off signal and restored 20% → 80% on risk-on, every move verifiable on Mantlescan (`agents/scripts/risk_manager.py`; feed at `/api/risk.json`). Risk management you can verify, not a black box.
-- **On-chain benchmarking of AI** — every agent decision emits a strict-sequence signed receipt (`AgentVault.publishReceipt`). NAV history is recomputable from events.
-- **ERC-8004 agent identity standard** — every Reef agent is registered via `AgentIdentity.register()`, **and in Mantle's OFFICIAL canonical ERC-8004 Identity Registry on Sepolia** (`0x8004A818…BD9e`, agents #131–#135: agentURI resolves to the live Reef passport, `reef.vault` metadata binds the canonical NFT to the vault). Reef also **publishes each agent's Trust Score to the official Reputation Registry** (`0x8004B663…8713`) as `trust-score` feedback — portable reputation any Mantle protocol can read from the canonical registry. Reef is the trust + capital-allocation layer on top of the standard Mantle deployed to mainnet (Feb 2026).
+- **On-chain benchmarking of AI** — every vault emits strict-sequence signed receipts (`AgentVault.publishReceipt`) and NAV history is recomputable from events; matched proof records bind a recent decision rationale to receipt evidence.
+- **ERC-8004 agent identity standard** — every Reef agent is registered via `AgentIdentity.register()`, **and in Mantle's OFFICIAL canonical ERC-8004 Identity Registry on Sepolia** (`0x8004A818…BD9e`, agents #197–#201: agentURI resolves to the live Reef passport, `reef.vault` metadata binds the canonical NFT to the vault). Reef also **publishes each agent's Trust Score to the official Reputation Registry** (`0x8004B663…8713`) as `trust-score` feedback — portable reputation any Mantle protocol can read from the canonical registry. Reef is the trust + capital-allocation layer on top of the standard Mantle deployed to mainnet (Feb 2026).
 - **Radical transparency / Human-vs-AI** — the dashboard runs the live AI index alongside a human-twin baseline (a client-side simulation in v1); the public scoreboard is the marquee demo.
 
 ## Demo Flow (≥ 2 min)
@@ -122,11 +125,11 @@ AgentIndex
 
 ## Honest Scope
 
-- Deployed: full system is live on Mantle Sepolia (all contracts Mantlescan-verified). Mainnet is not deployed but is **mainnet-ready** via `script/DeployMainnet.s.sol` (wires the real Ondo USDY adapter). Sepolia uses a mock asset + the testnet `MockYieldAdapter`.
+- Deployed: full system is live on Mantle Sepolia (all contracts Mantlescan-verified). Mantle mainnet has a **demo-scale real mETH vault** and a live FusionX benchmark; the full USDY/mUSD core deployment remains mainnet-ready via `script/DeployMainnet.s.sol` but is not deployed. Sepolia uses a mock asset + the testnet `MockYieldAdapter`.
 - **Live AI:** agents decide via **Z.ai GLM** (`glm-4.7-flash`) from a **real market signal** (CoinGecko ETH price + 24h momentum) plus on-chain NAV state — e.g. at a drawdown with ETH down ~2.9% the agent chose `decrease`, citing the momentum. When an agent chooses to increase, it **executes a real swap on a Mantle-native DEX (FusionX V2)**; decisions + real swap txHashes are served at `/api/executions.json` and verifiable on Mantlescan. Deterministic fallback (recorded `source:"fallback"`) if the model is unavailable.
 - Reputation is **NAV-derived + risk-adjusted**: `publishReceipt` credits the real on-chain per-share NAV change only above the agent's high-water mark. On testnet NAV grows via `MockYieldAdapter`; on mainnet it would be real USDY/mETH yield.
 - Honest scope: agents decide from a live market signal + on-chain NAV and execute real swaps on a Mantle DEX; swaps acquire tokens to the operator wallet (agent-level execution), with routing into vault NAV via a strategy adapter as a follow-up. The core contribution remains the verifiable trust + reputation + capital-allocation layer.
-- The internal-review must-fixes are resolved in source (#2 inflation, #3 adapter allowlist, #6/#10 ReputationBond hardening, #7 SafeERC20) and the Phase 4 safety primitives are in (circuit breaker `Pausable`, `withdrawPool` reserve, rotatable arbiter, permissionless bonded self-listing, on-chain `Seasons`) — see `SECURITY.md`/`ROADMAP.md`. A **third-party audit** is now the only prerequisite before mainnet TVL. The core set (identity, index/rINDEX, AdapterRegistry, 5 reputation-weighted vaults) was redeployed on Sepolia 2026-06-01 with this current code and re-verified on Mantlescan (see `deployments/mantle-sepolia.json`); ReputationBond/Seasons/MockYieldAdapter remain source-complete and ship in the full audited deploy.
+- The internal-review must-fixes are resolved in source (#2 inflation, #3 adapter allowlist, #6/#10 ReputationBond hardening, #7 SafeERC20, #21 reputation-writer binding, #23 vault eviction, #27 bond cooldown) and the Phase 4 safety primitives are in (circuit breaker `Pausable`, `withdrawPool` reserve, rotatable arbiter, permissionless bonded self-listing, on-chain `Seasons`) — see `SECURITY.md`/`ROADMAP.md`. A **third-party audit** is now the only prerequisite before mainnet TVL. The current hardened Sepolia redeploy is dated 2026-06-14 in `deployments/mantle-sepolia.json`.
 - Contracts are immutable, **unaudited** hackathon code — see `SECURITY.md` before any mainnet TVL.
 
 ## Current Status / What's Left to Submit

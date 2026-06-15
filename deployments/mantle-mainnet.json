@@ -7,7 +7,7 @@
     "mantlescan": "https://mantlescan.xyz"
   },
   "nativeToken": "MNT",
-  "status": "NOT DEPLOYED \u2014 mainnet-ready, real-RWA micro-instance. Deploy wires the vault to mUSD (rebasing wrapper of Ondo USDY, so on-chain NAV accrues real yield). Run `DEPOSIT_AMOUNT=<mUSD wei> PRIVATE_KEY=<funded key> forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url mantle --broadcast` (omit DEPOSIT_AMOUNT to deploy wiring only). Needs a funded Mantle key: real MNT for gas + mUSD to deposit. Contracts are UNAUDITED (SECURITY.md) \u2014 keep deposits at demo scale.",
+  "status": "PARTIALLY DEPLOYED \u2014 live demo-scale mETH vault and FusionX benchmark are deployed on Mantle mainnet; the full USDY/mUSD Reef core below remains not deployed. DeployMainnet.s.sol wires the vault to mUSD (rebasing wrapper of Ondo USDY, so on-chain NAV accrues real yield). Run `DEPOSIT_AMOUNT=<mUSD wei> PRIVATE_KEY=<funded key> forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url mantle --broadcast` (omit DEPOSIT_AMOUNT to deploy wiring only). Needs a funded Mantle key: real MNT for gas + mUSD to deposit. Contracts are UNAUDITED (SECURITY.md) \u2014 keep deposits at demo scale.",
   "reef": {
     "AgentIdentity": "0x0000000000000000000000000000000000000000",
     "AgentIndex": "0x0000000000000000000000000000000000000000",

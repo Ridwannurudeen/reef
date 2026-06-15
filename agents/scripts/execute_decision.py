@@ -5,8 +5,8 @@ For each seeded vault, ask Z.ai GLM for an allocation decision from on-chain NAV
 action is "increase", execute a REAL FusionX V2 swap on Mantle Sepolia (native MNT -> USDC, no
 real funds — faucet MNT), and record the decision + the real swap txHash to
 API_OUT_DIR/executions.json. The swap txHash is independently verifiable on Mantlescan; the
-matching decision rationale is committed on-chain by the receipt loop (`receipt_tick`), so the
-pair (decision, on-chain trade) is fully auditable.
+receipt loop (`receipt_tick`) can bind the latest rationale for the same agent on-chain when it
+publishes the next receipt, and records that status in proofs.json.
 
 Scope (honest): agent-level execution proof — swaps acquire tokens to the operator wallet;
 routing trades through a vault strategy adapter into NAV is a deeper follow-up. No on-chain

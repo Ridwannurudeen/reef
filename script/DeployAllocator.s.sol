@@ -16,8 +16,8 @@ interface IMintable {
 /// LP position and rebalances so the on-chain allocation is live.
 /// Run: PRIVATE_KEY=<key> forge script script/DeployAllocator.s.sol:DeployAllocator --rpc-url <url> --broadcast --legacy
 contract DeployAllocator is Script {
-    address constant IDENTITY = 0x4eCE1853623CA801536d319cB9ddE454f5dA6dC7;
-    address constant BOND = 0xeF2F3602d5fe04487a971e5d749DAC7343b8F895;
+    address constant IDENTITY = 0xe6D6320a3647a4b21Abe1654C30E848318D161DD;
+    address constant BOND = 0xccfF181441a636a63f8b5f9b6697585b54165DAe;
     address constant ASSET = 0xbc17D7F8f265d069781ed765914ED092989d92e7;
 
     function run() external {
@@ -26,11 +26,11 @@ contract DeployAllocator is Script {
         address me = vm.addr(pk);
 
         address[5] memory vaults = [
-            0x7E4399B91bF6801d7D74E359d162065c88EA9d1B,
-            0x06e196408356D2BDa4d21301B3bbB78c931AE9E3,
-            0xBA8075d91983D15628DE99CDC510cD6C70F434EE,
-            0x7E1827697843f377761F19f6F3386D8750d75BBD,
-            0xa40AF1a30E4094b2807fDfbF6195C06245ab0822
+            0xfEB9E7903CA909cC04aF18e2CcE08211c7ef8a67,
+            0xbeb8CaDAFD213f5Cd24b5Bc36FC82C3802509A23,
+            0x5Cd85315163BBfFDB4F196F51741917aB82E83E5,
+            0x54c62c634D12286FB2895aE443F1d6d06009BdC4,
+            0xd107D0b110F60582672d28b00236acD39EB46eca
         ];
 
         vm.startBroadcast(pk);

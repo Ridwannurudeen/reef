@@ -14,7 +14,7 @@ import {MockProtocol} from "../src/MockProtocol.sol";
 /// Required env: PRIVATE_KEY. Run (broadcast): forge script script/DeployMockProtocol.s.sol \
 ///   --rpc-url <sepolia> --broadcast --legacy
 contract DeployMockProtocol is Script {
-    address constant REEFGUARD = 0xe84E84D7e2E588aa8F88d1D1ADF2bdc70365a02b;
+    address constant REEFGUARD = 0x108411e3AA1fA2D3643b86A0B52Fd5bE12FDfe3f;
     address constant ASSET = 0xbc17D7F8f265d069781ed765914ED092989d92e7; // MockAsset (allowlisted)
     uint256 constant AGENT_ID = 1;
 

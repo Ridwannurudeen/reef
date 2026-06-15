@@ -8,8 +8,8 @@
 //   import { ReefClient } from "./reef.js";
 //   const reef = new ReefClient({
 //     rpcUrl: "https://rpc.sepolia.mantle.xyz",
-//     guardAddress: "0xe84E84D7e2E588aa8F88d1D1ADF2bdc70365a02b",
-//     oracleAddress: "0x18b26f170dCA58306C2c9e20DA74e2d4531Fb3f2",
+//     guardAddress: "0x108411e3AA1fA2D3643b86A0B52Fd5bE12FDfe3f",
+//     oracleAddress: "0x9C7db1eF649095d5c543aF66538a5E36A04d6598",
 //     apiBase: "https://reef.gudman.xyz/api",
 //   });
 //   await reef.canExecute(1, "0xbc17...92e7", 1000); // { allowed: true, reason: "ok" }

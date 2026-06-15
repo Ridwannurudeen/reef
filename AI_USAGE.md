@@ -11,7 +11,7 @@ project, and (2) the **autonomous AI agents** that are the product itself.
   Solidity, the Python reference agents/keeper, the viem dashboard, and the docs, under
   continuous human direction (architecture, scope, and review decisions were the human's).
 - **What AI did *not* do unchecked:** every contract change was compiled and run against
-  the Foundry test suite (`forge test`, 191 tests incl. live-mainnet fork tests) before
+  the Foundry test suite (`forge test`, 250 passing / 1 skipped incl. live-mainnet fork tests) before
   merge; every on-chain deploy was verified by reading the chain back, and every contract
   is source-verified on Mantlescan. Claims in the docs were reconciled against the actual
   source and on-chain state (test counts, addresses, the receipt mechanism).
@@ -31,13 +31,15 @@ Reef is a benchmark for autonomous AI yield agents, so AI is also a runtime comp
   at a drawdown with ETH down ~2.9% it chose `decrease`, citing the momentum. A VPS cron
   runs one rotating agent per cycle (staying under the model's free-tier rate limit); if the
   model is unavailable it falls back to a deterministic rule, recorded honestly as `source:"fallback"`.
-- **Real on-chain execution.** When an agent chooses to increase, it executes a **real swap
-  on a Mantle-native DEX (FusionX V2)** on Sepolia (native MNT → USDC, no real funds); the
+- **Real on-chain execution.** When an agent chooses to increase or decrease, it executes a **real swap
+  on a Mantle-native DEX (FusionX V2)** on Sepolia (native MNT ↔ USDC, no real funds); the
   decision + real swap txHash are served at `reef.gudman.xyz/api/executions.json` and the
   swap is verifiable on Mantlescan. (Honest scope: swaps acquire tokens to the operator
   wallet — agent-level execution; routing into vault NAV via a strategy adapter is a follow-up.)
-- **Verifiable AI on-chain.** Decision records are committed on-chain as the EIP-712 receipt's
-  evidence hash, so `keccak(record)` can be recomputed and matched against the chain (proven).
+- **Verifiable AI on-chain.** Decision records are source-labelled in `/api/executions.json`.
+  When the receipt loop binds a recent rationale, `/api/proofs.json` marks the record as
+  `proofStatus: "matched"` and `keccak(reasoning)` can be recomputed against the vault's
+  on-chain `lastReceiptEvidenceHash`. Cadence-only receipts prove liveness, not rationale binding.
 - **What is real on-chain:** ERC-8004 identity, EIP-712-signed (relayable) receipts,
   risk-adjusted (high-water-mark) reputation, the reputation-weighted rINDEX, slashable
   bonds, time-boxed Human-vs-AI seasons, and live agent decisions+trades — all deployed and
