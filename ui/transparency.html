@@ -603,72 +603,60 @@
         </div>
       </section>
 
-      <!-- Allora accuracy benchmark -->
-      <section class="r-section" id="allora-bench">
+      <!-- Benchmarks: we measure the AI, on-chain -->
+      <section class="r-section" id="benchmarks">
         <div class="r-container">
           <div class="r-section-head">
-            <h2 class="r-h2">We benchmark the AI we consume</h2>
+            <span class="r-eyebrow">Benchmarks</span>
+            <h2 class="r-h2">We measure the AI — on-chain</h2>
             <p class="r-lead">
-              Reef scores Allora's ETH prediction against the realized price each hour —
-              public hit-rate and mean error.
+              Every signal Reef consumes and every strategy it runs is scored publicly and
+              ranked by risk-adjusted return — the hackathon's question, made measurable.
             </p>
           </div>
-          <div id="allora-bench-feed">
-            <p class="t-empty">Loading benchmark…</p>
-          </div>
-        </div>
-      </section>
 
-      <!-- Strategy track record -->
-      <!-- Financial Turing Test -->
-      <section class="r-section" id="turing">
-        <div class="r-container">
-          <div class="r-section-head">
-            <span class="r-eyebrow">The Financial Turing Test</span>
-            <h2 class="r-h2">Does the AI actually beat a human?</h2>
+          <div class="r-benchblock" id="allora-bench">
+            <h3 class="r-h3">The AI we consume</h3>
             <p class="r-lead">
-              Every strategy, Allora, and a passive human buy-and-hold baseline, scored on one
-              basis and ranked by risk-adjusted return (Sharpe) — the hackathon's question,
-              made measurable.
+              Allora's hourly ETH call scored against the realized price — public hit-rate and
+              mean error.
             </p>
+            <div id="allora-bench-feed">
+              <p class="t-empty">Loading benchmark…</p>
+            </div>
           </div>
-          <div id="turing-feed">
-            <p class="t-empty">Loading benchmark…</p>
-          </div>
-        </div>
-      </section>
 
-      <!-- Mainnet FusionX benchmark -->
-      <section class="r-section" id="mainnet-bench">
-        <div class="r-container">
-          <div class="r-section-head">
-            <span class="r-eyebrow">Live on Mantle mainnet</span>
-            <h2 class="r-h2">Real on-chain PnL from FusionX</h2>
+          <div class="r-benchblock" id="turing">
+            <h3 class="r-h3">The Financial Turing Test</h3>
+            <p class="r-lead">
+              Every strategy, Allora, and a passive human baseline ranked on one basis by Sharpe
+              — does the AI actually beat a human?
+            </p>
+            <div id="turing-feed">
+              <p class="t-empty">Loading benchmark…</p>
+            </div>
+          </div>
+
+          <div class="r-benchblock" id="mainnet-bench">
+            <h3 class="r-h3">Real on-chain PnL — Mantle mainnet</h3>
             <p class="r-lead">
               Four mainnet AgentVaults trade USDC↔WMNT on FusionX — three AI strategies vs a
-              passive HODL baseline, ranked by Sharpe with excess return over HODL. Unaudited,
-              demo-scale.
+              passive HODL baseline, ranked by Sharpe. Unaudited, demo-scale.
             </p>
+            <div id="mainnet-bench-feed">
+              <p class="t-empty">Loading benchmark…</p>
+            </div>
           </div>
-          <div id="mainnet-bench-feed">
-            <p class="t-empty">Loading benchmark…</p>
-          </div>
-        </div>
-      </section>
 
-      <section class="r-section" id="strategy-bench">
-        <div class="r-container">
-          <div class="r-section-head">
-            <h2 class="r-h2">Every strategy carries a verifiable track record</h2>
+          <div class="r-benchblock" id="strategy-bench">
+            <h3 class="r-h3">Per-strategy track record</h3>
             <p class="r-lead">
-              Each competing strategy accrues a public scoreboard: directional accuracy over many
-              rounds, plus capital performance on its on-chain vault. That covers ROI since
-              inception and worst peak-to-trough drawdown, decision quality and capital outcome
-              side by side.
+              Each strategy's public scoreboard: directional accuracy plus on-chain capital
+              outcome — ROI since inception and worst peak-to-trough drawdown, side by side.
             </p>
-          </div>
-          <div id="strategy-bench-feed">
-            <p class="t-empty">Loading track record…</p>
+            <div id="strategy-bench-feed">
+              <p class="t-empty">Loading track record…</p>
+            </div>
           </div>
         </div>
       </section>

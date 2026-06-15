@@ -203,6 +203,16 @@ a:hover {
   flex-direction: column;
   gap: var(--space-3);
 }
+.r-benchblock + .r-benchblock {
+  margin-top: var(--space-8);
+}
+.r-benchblock > .r-h3 {
+  margin-bottom: var(--space-2);
+}
+.r-benchblock > .r-lead {
+  margin-bottom: var(--space-4);
+  max-width: 60ch;
+}
 
 /* ── Top nav ── */
 .r-nav {
