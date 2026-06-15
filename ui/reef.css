@@ -27,18 +27,18 @@
   --muted: #a0a0a6;
   --subtle: #6b6b72;
 
-  /* One accent — Mantle mint-green, flat, used sparingly */
-  --accent: #36d39a;
-  --accent-deep: #20bd86;
-  --accent-2: #74e6c0;
-  --accent-soft: rgba(54, 211, 154, 0.1);
-  --accent-line: rgba(54, 211, 154, 0.3);
+  /* One accent — electric azure, flat, used sparingly */
+  --accent: #3D7FFF;
+  --accent-deep: #2563EB;
+  --accent-2: #7CA8FF;
+  --accent-soft: rgba(61, 127, 255, 0.1);
+  --accent-line: rgba(61, 127, 255, 0.3);
 
   /* Semantic (legacy names kept so the dashboard re-skins by value).
      Two-colour financial system: green = up/positive, red = down. Amber is
      a rare neutral/flat marker, kept muted so it never reads as decoration. */
-  --teal: #36d39a;
-  --blue: #74e6c0;
+  --teal: #3D7FFF;
+  --blue: #7CA8FF;
   --gold: #c69a44;
   --gold-soft: rgba(198, 154, 68, 0.12);
   --red: #e56a72;

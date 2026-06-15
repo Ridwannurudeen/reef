@@ -102,6 +102,7 @@ contract Allocator is ReentrancyGuard, Pausable {
     function addVault(address vault) external onlyGovernor {
         require(!isRegistered[vault], "registered");
         require(address(AgentVault(vault).asset()) == address(asset), "wrong asset");
+        require(address(AgentVault(vault).identity()) == address(identity), "wrong identity");
         isRegistered[vault] = true;
         vaults.push(AgentVault(vault));
         emit VaultAdded(vault);

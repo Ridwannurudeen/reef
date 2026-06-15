@@ -65,6 +65,7 @@ def _atomic_write(path: Path, doc: dict) -> None:
 def main() -> int:
     network = os.getenv("REEF_NETWORK", "mantle-sepolia")
     period = int(os.getenv("RECEIPT_PERIOD_S", "600"))
+    bind_max_age = int(os.getenv("RECEIPT_BIND_MAX_AGE_S", "21600"))
     out_dir = Path(os.getenv("API_OUT_DIR", str(REPO_ROOT / "ui" / "api")))
     chain = load_chain(network)
     data = json.loads((DEPLOYMENTS_DIR / f"{network}.json").read_text(encoding="utf-8"))
@@ -86,7 +87,12 @@ def main() -> int:
             agent_id = rpc_read(lambda vc=vc: vc.functions.agentId().call())
             seq = rpc_read(lambda vc=vc: vc.functions.nextReceiptSeq().call())
             rec = rationales.get(agent_id)
-            reasoning = (rec or {}).get("reasoning") if rec else None
+            # Only bind a FRESH rationale; a stale one falls back to a liveness
+            # receipt so proofStatus "matched" never overstates decision freshness.
+            fresh = (
+                bool(rec) and (int(time.time()) - int(rec.get("ts", 0))) <= bind_max_age
+            )
+            reasoning = rec.get("reasoning") if (rec and fresh) else None
             bound = bool(reasoning and reasoning.strip())
             if bound:
                 # Bind the on-chain evidence to the verbatim rationale.
@@ -112,8 +118,7 @@ def main() -> int:
                 period=period,
             )
             receipt = send_tx(w3, account, vc.functions.publishReceipt(*args))
-            tx_hash = receipt.get("transactionHash")
-            tx_hash = tx_hash.hex() if hasattr(tx_hash, "hex") else str(tx_hash)
+            tx_hash = w3.to_hex(receipt["transactionHash"])
             ev_hex = "0x" + evidence.hex()
             proofs[str(agent_id)] = {
                 "seq": seq,

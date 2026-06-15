@@ -76,6 +76,7 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard, Pausable {
     function addVault(address vault) external onlyGovernor {
         require(!isRegistered[vault], "registered");
         require(address(AgentVault(vault).asset()) == address(asset), "wrong asset");
+        require(address(AgentVault(vault).identity()) == address(identity), "wrong identity");
         isRegistered[vault] = true;
         vaults.push(AgentVault(vault));
         emit VaultAdded(vault);
@@ -87,6 +88,7 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard, Pausable {
     function selfListVault(address vault) external {
         require(!isRegistered[vault], "registered");
         require(address(AgentVault(vault).asset()) == address(asset), "wrong asset");
+        require(address(AgentVault(vault).identity()) == address(identity), "wrong identity");
         uint256 aid = AgentVault(vault).agentId();
         require(identity.getAgentWallet(aid) == msg.sender, "not operator");
         require(reputationBond != address(0), "listing closed");
