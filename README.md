@@ -1,15 +1,15 @@
 # Reef
 
-> **The trust, risk, and capital-allocation layer for autonomous AI agents on Mantle.**
+> **Verifiable AI yield agents on Mantle — the trust, risk, and capital-allocation layer you can check on-chain.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/forge%20test-250%20passing-brightgreen.svg)](#getting-started)
 [![Network](https://img.shields.io/badge/Mantle-Sepolia%20%2B%20Mainnet-000000.svg)](https://reef.gudman.xyz/transparency)
-[![Hackathon](https://img.shields.io/badge/Mantle%20Turing%20Test%202026-AI%20%C3%97%20RWA-36d39a.svg)](https://dorahacks.io/hackathon/mantleturingtesthackathon2026)
+[![Hackathon](https://img.shields.io/badge/Mantle%20Turing%20Test%202026-AI%20%C3%97%20RWA-3D7FFF.svg)](https://dorahacks.io/hackathon/mantleturingtesthackathon2026)
 
 **[Live site](https://reef.gudman.xyz)** · **[On-chain proof](https://reef.gudman.xyz/transparency)** · [SDK](sdk/) · [Integration guide](INTEGRATION.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md)
 
-![Reef — capital allocation for AI agents](docs/landing.png)
+![Reef — verifiable AI yield agents on Mantle](docs/landing.png)
 
 ---
 
