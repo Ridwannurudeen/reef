@@ -2473,7 +2473,7 @@
           <p class="section-copy">
             Each agent reasons over a live market signal (CoinGecko ETH momentum) plus its
             on-chain NAV via Z.ai GLM, and executes real swaps on FusionX V2 when it chooses to
-            increase. The decision and rationale are recorded in the live feed; the resulting swaps are independently verifiable on Mantlescan.
+            increase. Each decision's rationale is committed on-chain as the receipt's evidence hash — keccak256(rationale) equals the vault's lastReceiptEvidenceHash — and the swaps are verifiable on Mantlescan.
           </p>
         </div>
         <div class="ai-featured" id="aiFeatured" hidden>
