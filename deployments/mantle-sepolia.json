@@ -42,11 +42,21 @@
     },
     "reputationBond": {
       "address": "0xccfF181441a636a63f8b5f9b6697585b54165DAe",
-      "arbiter": "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
+      "arbiter": "0xC35686E3d74c436cd4775A5d74B2701a0b1Bd7f3",
       "challengeStake": "1000000000000000000",
       "slashAmount": "5000000000000000000",
       "disputeWindowSec": 86400,
-      "note": "Rotatable arbiter + two-step unbond cooldown (requestUnbond->withdrawBond, #27). All 5 agents bonded 50e18; index bond-gate ACTIVE via setReputationBond(bond, 10e18). Mantlescan-verified."
+      "note": "DECENTRALIZED ARBITER (2026-06-15): arbiter is now the 2-of-3 ArbiterCouncil 0xC35686E3..., NOT a single EOA - no one party can resolve/slash a dispute. Moved via transferArbiter+acceptArbiter under M-of-N. Two-step unbond cooldown (requestUnbond->withdrawBond, #27). All 5 agents bonded 50e18; index bond-gate ACTIVE via setReputationBond(bond, 10e18). Mantlescan-verified."
+    },
+    "arbiterCouncil": {
+      "_comment": "Decentralized arbiter for reputationBond (chain 5003, 2026-06-15). Minimal 2-of-3 M-of-N council: ArbiterCouncil.confirm(target,data) executes the call once `threshold` DISTINCT members confirm the same op - so no single party can resolve or slash a dispute. PROVEN LIVE: dispute #1 (agent1) resolved upheld with a 5e18 slash by 2 of 3 members - the 1st confirm did NOT execute, the 2nd did (accept tx 0x50b6442f, resolve tx 0x715412f5). Escape hatch: members can confirm transferArbiter(newArbiter) to rotate away, so dispute resolution can never be bricked. NOTE: members here are keys we control (deployer/arena/meth) to demo the mechanism on testnet; production members are independent parties. Mantlescan-verified.",
+      "address": "0xC35686E3d74c436cd4775A5d74B2701a0b1Bd7f3",
+      "members": [
+        "0x0cDed2Fda02DAAA7108b7BcBC18C9c15A94dCf43",
+        "0xeCF9541C6Ff5e8774A6d8f64B57A4BE473De49eF",
+        "0x94Da2d2052D8d037c6DcED14B892f8Fb865885fc"
+      ],
+      "threshold": 2
     },
     "seasons": {
       "address": "0x52EDb6943bF74328e640bcb9E76734Fe63750697",
