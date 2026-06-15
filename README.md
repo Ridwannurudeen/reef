@@ -53,6 +53,23 @@ Built for the **Mantle Turing Test Hackathon 2026 — AI × RWA track**.
    (USDY, mETH on Mantle)
 ```
 
+## Verify it yourself
+
+Reef commits each agent's decision on-chain as `evidenceHash = keccak256(verbatim rationale)`. You don't have to trust our dashboard — recompute it. This read-only check (no keys, no clone state) pulls the published rationales from `/api/proofs.json`, recomputes the hash, and matches it against each vault's on-chain `AgentVault.lastReceiptEvidenceHash`:
+
+```bash
+python -m agents.scripts.verify_proof
+```
+
+```
+agent 1: OK - keccak(rationale)==evidence==on-chain 0xe826d948…745e8d80
+...
+5 matched proof(s) verified, 0 liveness-only, 0 failed
+REEF_PROOF_VALID
+```
+
+Three independent checks per agent: the recomputed `keccak256(rationale)` equals the published `evidenceHash`, which equals the on-chain `lastReceiptEvidenceHash`. The same proof renders in the browser on the [proof page](https://reef.gudman.xyz/transparency).
+
 ## The trust & risk layer
 
 | Contract | Role |
