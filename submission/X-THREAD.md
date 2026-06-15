@@ -1,6 +1,6 @@
 # Reef — X (Twitter) Thread · Community Voting Push
 
-> 9 tweets. Each is ≤280 chars. `[media:]` notes suggest a screenshot/gif to attach.
+> 10 tweets. Each is ≤280 chars. `[media:]` notes suggest a screenshot/gif to attach.
 > Tag: **@Mantle_Official** (verified current primary handle; legacy **@0xMantle** also resolves to Mantle — glance at both before posting) · Hashtag: **#MantleAIHackathon**
 > Repo: github.com/Ridwannurudeen/reef
 
@@ -16,11 +16,11 @@
 
 2. Reef agents decide AND explain.
 
-   They read live signals (Allora, Nansen flow, momentum) and choose via an LLM — then commit the model's verbatim rationale on-chain: keccak(rationale) == the stored hash.
+   They read live signals (Allora, Nansen flow, momentum) and choose via GLM or a labelled fallback. Matched proof records let you recompute keccak(reasoning) against the receipt's on-chain evidence hash.
 
    Autonomy you can audit, not a black box.
 
-   `[media: screenshot of an agent decision card showing the LLM rationale text next to its matching on-chain hash.]`
+   `[media: screenshot of an agent decision card plus /api/proofs.json showing proofStatus: "matched".]`
 
 3. Reputation here isn't a star rating.
 
@@ -40,15 +40,23 @@
 
    `[media: gif/screenshot of the bond + dispute flow, or a Mantlescan tx of a slash/dispute being resolved.]`
 
-5. Don't want to pick a winner? Buy the whole field.
+5. A single AI vault asks you to trust one black box.
 
-   rINDEX is a single ERC-20 giving you reputation-weighted exposure to every agent at once — capital routes toward the most trusted automatically.
+   rINDEX is the whole field in one ERC-20 — reputation-weighted exposure to every agent at once, capital routing toward the most trusted automatically.
 
-   One token. The entire field.
+   One token. Every agent. Weighted by on-chain proof.
 
    `[media: simple diagram — many agent vaults funneling into one rINDEX token, weighted by trust.]`
 
-6. The yield is real.
+6. RWA without compliance is a non-starter.
+
+   Reef ships an on-chain ComplianceRegistry: KYC / accreditation / ISO-3166 jurisdiction screening any protocol can read before an agent touches capital.
+
+   Composable, on-chain, verifiable. (Testnet demo.)
+
+   `[media: screenshot of the /app compliance panel, or the ComplianceRegistry screen() verdict on Mantlescan.]`
+
+7. The yield is real.
 
    A live vault on Mantle MAINNET holds real mETH (liquid-staked ETH); its NAV reflects genuine staking yield (~1.07x observed).
 
@@ -56,15 +64,15 @@
 
    `[media: Mantlescan screenshot of the mainnet mETH AgentVault (0x76f129…cFA5) holding mETH.]`
 
-7. The Financial Turing Test:
+8. The Financial Turing Test: can AI actually beat just holding?
 
-   autonomous AI agents vs a passive human buy-and-hold baseline, scored on one basis — risk-adjusted return (Sharpe).
+   Agents vs a passive buy-and-hold baseline, scored on risk-adjusted return (Sharpe).
 
-   Can an AI actually beat just holding? We turned the hackathon's question into a number.
+   And not just testnet — a 4-agent version runs on Mantle MAINNET trading real USDC/WMNT on FusionX. Real PnL, Mantlescan-verified.
 
    `[media: chart screenshot — agent NAV curves vs the flat buy-and-hold baseline, Sharpe ranking beside it.]`
 
-8. Try it yourself 👇
+9. Try it yourself 👇
 
    1. Open reef.gudman.xyz
    2. Connect your wallet
@@ -74,17 +82,17 @@
 
    `[media: short screen-recording gif of the full faucet → deposit → rebalance flow, ending on the /transparency page.]`
 
-9. Reef = trust, risk + capital allocation for autonomous AI agents on Mantle.
+10. Reef = verifiable AI yield agents on Mantle — trust, risk + capital allocation you can check yourself.
 
-   If this resonates, we'd love your vote in Community Voting. 🪸
+    If this resonates, we'd love your vote in Community Voting. 🪸
 
-   🔗 Live: reef.gudman.xyz
-   💻 Code: github.com/Ridwannurudeen/reef
+    🔗 Live: reef.gudman.xyz
+    💻 Code: github.com/Ridwannurudeen/reef
 
-   #MantleAIHackathon @Mantle_Official
+    #MantleAIHackathon @Mantle_Official
 
-   `[media: clean closing card — Reef logo + tagline + "Vote in Community Voting".]`
+    `[media: clean closing card — Reef logo + tagline + "Vote in Community Voting".]`
 
 ---
 
-**Suggested media assets (1-line summary):** T1 hero gif (wallet → AI agents → VERIFIED stamp / landing hero), T2 decision card with rationale↔hash, T3 Trust Score leaderboard, T4 bond/dispute-slash tx, T5 vaults→rINDEX weighting diagram, T6 Mantlescan mainnet mETH vault, T7 agent-vs-baseline Sharpe chart, T8 faucet→deposit→rebalance screen-recording, T9 closing "Vote" card.
+**Suggested media assets (1-line summary):** T1 hero gif (wallet → AI agents → VERIFIED stamp / landing hero), T2 decision card + /api/proofs.json matched, T3 Trust Score leaderboard, T4 bond/dispute-slash tx, T5 vaults→rINDEX weighting diagram, T6 ComplianceRegistry panel / Mantlescan, T7 Mantlescan mainnet mETH vault, T8 agent-vs-baseline Sharpe chart (+ mainnet FusionX benchmark), T9 faucet→deposit→rebalance screen-recording, T10 closing "Vote" card.
