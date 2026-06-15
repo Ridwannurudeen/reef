@@ -1702,13 +1702,18 @@
             <h2>Deposit, withdraw, rebalance</h2>
           </div>
           <p class="section-copy">
-            Actions remain direct wallet transactions against the on-chain
-            AgentIndex.
+            Direct wallet transactions against the on-chain AgentIndex on Mantle
+            Sepolia. New here? Grab test USDY from the faucet, deposit, then
+            trigger a rebalance — every action is a real on-chain tx.
           </p>
         </div>
         <div class="arena-layout">
           <div class="panel">
             <div class="metric-grid">
+              <div class="metric">
+                <div class="metric-label">Wallet USDY</div>
+                <div class="metric-value" id="idxWalletAsset">-</div>
+              </div>
               <div class="metric">
                 <div class="metric-label">Your shares</div>
                 <div class="metric-value" id="idxYourShares">-</div>
@@ -1718,7 +1723,7 @@
                 <div class="metric-value" id="idxYourAssets">-</div>
               </div>
               <div class="metric">
-                <div class="metric-label">Rebalance</div>
+                <div class="metric-label">Rebalance · permissionless</div>
                 <div class="row" style="margin-top: 10px">
                   <button id="rebalBtn" class="ghost" type="button">
                     Run rebalance
@@ -1730,6 +1735,15 @@
           </div>
           <div class="panel">
             <div class="tool-grid">
+              <div class="tool">
+                <label>Test tokens</label>
+                <div class="row">
+                  <button id="faucetBtn" type="button">
+                    Get 1,000 test USDY
+                  </button>
+                  <span id="faucetResult" class="small"></span>
+                </div>
+              </div>
               <div class="tool">
                 <label for="depAmt">Deposit amount</label>
                 <input id="depAmt" inputmode="decimal" placeholder="100" />
@@ -1746,6 +1760,21 @@
                 <div class="row">
                   <button id="wdBtn" type="button">Withdraw</button>
                   <span id="wdResult" class="small"></span>
+                </div>
+              </div>
+              <div class="tool">
+                <label for="chalAgent">Challenge an agent</label>
+                <select id="chalAgent">
+                  <option value="1">Agent 1</option>
+                  <option value="2">Agent 2</option>
+                  <option value="3">Agent 3</option>
+                  <option value="4">Agent 4</option>
+                  <option value="5">Agent 5</option>
+                </select>
+                <input id="chalReason" placeholder="reason / evidence" />
+                <div class="row">
+                  <button id="chalBtn" type="button">Challenge agent</button>
+                  <span id="chalResult" class="small"></span>
                 </div>
               </div>
             </div>
@@ -1786,6 +1815,30 @@
             <span id="proofYield">-</span>
           </div>
         </div>
+      </section>
+
+      <section id="compliance" data-tab="overview">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Compliance gate</div>
+            <h2>On-chain eligibility — ReefGuard</h2>
+          </div>
+          <p class="section-copy">
+            Before an agent may touch capital, any Mantle protocol can call
+            <code>ReefGuard.canExecute(agentId, asset, sizeBps)</code> — a live
+            policy gate over registration, ERC-8004 reputation, posted bond, open
+            disputes, asset allowlist, and action size. The verdicts below are
+            read live from chain.
+          </p>
+        </div>
+        <div
+          id="guardPolicy"
+          class="small"
+          style="margin-bottom: var(--space-3)"
+        >
+          loading policy…
+        </div>
+        <div class="feed" id="guardOut"></div>
       </section>
 
       <section id="turing" data-tab="agents">
@@ -1856,6 +1909,16 @@
         </div>
         <div class="feed" id="allocatorOut">
           <div class="feed-row muted">loading allocator…</div>
+        </div>
+        <div class="tool" style="margin-top: var(--space-3)">
+          <label for="allocAmt">Allocate via mandate</label>
+          <input id="allocAmt" inputmode="decimal" placeholder="100" />
+          <div class="row">
+            <button id="allocBtn" class="primary" type="button">
+              Approve + allocate
+            </button>
+            <span id="allocResult" class="small"></span>
+          </div>
         </div>
       </section>
 
@@ -2049,6 +2112,8 @@
         decodeEventLog,
         getAddress,
         isAddress,
+        keccak256,
+        toHex,
       } from "https://esm.sh/viem@2.21.0?bundle";
 
       const NS = "reef.ui.v2";
@@ -2119,6 +2184,46 @@
           stateMutability: "view",
           inputs: [{ name: "owner", type: "address" }],
           outputs: [{ type: "uint256" }],
+        },
+        {
+          type: "function",
+          name: "mint",
+          stateMutability: "nonpayable",
+          inputs: [
+            { name: "to", type: "address" },
+            { name: "amount", type: "uint256" },
+          ],
+          outputs: [],
+        },
+      ];
+
+      const BOND_ABI = [
+        {
+          type: "function",
+          name: "openDispute",
+          stateMutability: "nonpayable",
+          inputs: [
+            { name: "agentId", type: "uint256" },
+            { name: "evidence", type: "bytes32" },
+          ],
+          outputs: [{ name: "id", type: "uint256" }],
+        },
+        {
+          type: "function",
+          name: "challengeStake",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ type: "uint256" }],
+        },
+        {
+          type: "event",
+          name: "DisputeOpened",
+          inputs: [
+            { name: "id", type: "uint256", indexed: true },
+            { name: "agentId", type: "uint256", indexed: true },
+            { name: "challenger", type: "address", indexed: false },
+            { name: "stake", type: "uint256", indexed: false },
+          ],
         },
       ];
 
@@ -2261,6 +2366,42 @@
           inputs: [
             { name: "totalAgents", type: "uint256", indexed: false },
             { name: "totalDeployed", type: "uint256", indexed: false },
+          ],
+        },
+      ];
+
+      const ALLOCATOR_ABI = [
+        {
+          type: "function",
+          name: "deposit",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "assets", type: "uint256" }],
+          outputs: [{ type: "uint256" }],
+        },
+        {
+          type: "event",
+          name: "Deposit",
+          inputs: [
+            { name: "lp", type: "address", indexed: true },
+            { name: "assets", type: "uint256", indexed: false },
+            { name: "shares", type: "uint256", indexed: false },
+          ],
+        },
+      ];
+
+      const REEFGUARD_ABI = [
+        {
+          type: "function",
+          name: "canExecute",
+          stateMutability: "view",
+          inputs: [
+            { name: "agentId", type: "uint256" },
+            { name: "asset", type: "address" },
+            { name: "sizeBps", type: "uint256" },
+          ],
+          outputs: [
+            { name: "allowed", type: "bool" },
+            { name: "reason", type: "string" },
           ],
         },
       ];
@@ -2755,9 +2896,25 @@
             setNumberAnimated("idxYourShares", fmt18(my));
             const myAssets = shares === 0n ? 0n : (my * nav) / 10n ** 18n;
             setNumberAnimated("idxYourAssets", fmt18(myAssets));
+            if (state.cfg.asset) {
+              const bal = await rpcRead(
+                () =>
+                  c.readContract({
+                    address: state.cfg.asset,
+                    abi: ERC20_ABI,
+                    functionName: "balanceOf",
+                    args: [state.account],
+                  }),
+                "asset balanceOf",
+              );
+              setNumberAnimated("idxWalletAsset", fmt18(bal));
+            } else {
+              setText("idxWalletAsset", "-");
+            }
           } else {
             setText("idxYourShares", "-");
             setText("idxYourAssets", "-");
+            setText("idxWalletAsset", "-");
           }
 
           await refreshLeaderboard(nav);
@@ -3551,6 +3708,20 @@
         $("feed").innerHTML = rows.join("");
       }
 
+      async function doFaucet() {
+        if (!state.cfg.asset) return toast("asset not configured", "err");
+        const r = await sendTx({
+          address: state.cfg.asset,
+          abi: ERC20_ABI,
+          functionName: "mint",
+          args: [state.account, parseEther("1000")],
+        });
+        if (!r) return;
+        $("faucetResult").innerHTML =
+          `minted <span class="badge">1,000 USDY</span> — now deposit`;
+        refreshIndex();
+      }
+
       async function doDeposit() {
         const amt = $("depAmt").value.trim();
         if (!amt) return toast("amount required", "err");
@@ -3659,6 +3830,139 @@
         }
       }
 
+      async function doAllocate() {
+        const amt = $("allocAmt").value.trim();
+        if (!amt) return toast("amount required", "err");
+        const allocator = addr(allocatorDoc?.allocator);
+        if (!allocator) return toast("allocator not configured", "err");
+        if (!state.cfg.asset) return toast("asset not configured", "err");
+        let assets;
+        try {
+          assets = parseEther(amt);
+        } catch {
+          return toast("amount: invalid decimal", "err");
+        }
+        try {
+          const allow = await rpcRead(
+            () =>
+              state.publicClient.readContract({
+                address: state.cfg.asset,
+                abi: ERC20_ABI,
+                functionName: "allowance",
+                args: [state.account, allocator],
+              }),
+            "asset allowance",
+          );
+          if (allow < assets) {
+            const ar = await sendTx({
+              address: state.cfg.asset,
+              abi: ERC20_ABI,
+              functionName: "approve",
+              args: [allocator, assets],
+            });
+            if (!ar) return;
+          }
+        } catch (e) {
+          return toast(`allowance: ${errMsg(e)}`, "err");
+        }
+        const r = await sendTx({
+          address: allocator,
+          abi: ALLOCATOR_ABI,
+          functionName: "deposit",
+          args: [assets],
+        });
+        if (!r) return;
+        let shares = null;
+        for (const log of r.logs) {
+          try {
+            const dec = decodeEventLog({
+              abi: ALLOCATOR_ABI,
+              data: log.data,
+              topics: log.topics,
+            });
+            if (dec.eventName === "Deposit") {
+              shares = dec.args.shares;
+              break;
+            }
+          } catch {}
+        }
+        $("allocResult").innerHTML =
+          `allocated ${shares !== null ? `<span class="badge">${fmt18(shares)} shares</span> ` : ""}- ${txLink(r.transactionHash)}`;
+        refreshIndex();
+        refreshAllocator();
+      }
+
+      async function doChallenge() {
+        const bond = addr(state.deployment?.seeded?.reputationBond?.address);
+        if (!bond) return toast("bond not configured", "err");
+        if (!state.cfg.asset) return toast("asset not configured", "err");
+        const agentId = BigInt($("chalAgent").value);
+        const reason = $("chalReason").value.trim() || `reef-challenge:agent${agentId}`;
+        const evidence = keccak256(toHex(reason));
+        let stake;
+        try {
+          stake = await rpcRead(
+            () =>
+              state.publicClient.readContract({
+                address: bond,
+                abi: BOND_ABI,
+                functionName: "challengeStake",
+              }),
+            "challengeStake",
+          );
+        } catch (e) {
+          return toast(`challengeStake: ${errMsg(e)}`, "err");
+        }
+        try {
+          const allow = await rpcRead(
+            () =>
+              state.publicClient.readContract({
+                address: state.cfg.asset,
+                abi: ERC20_ABI,
+                functionName: "allowance",
+                args: [state.account, bond],
+              }),
+            "asset allowance",
+          );
+          if (allow < stake) {
+            const ar = await sendTx({
+              address: state.cfg.asset,
+              abi: ERC20_ABI,
+              functionName: "approve",
+              args: [bond, stake],
+            });
+            if (!ar) return;
+          }
+        } catch (e) {
+          return toast(`allowance: ${errMsg(e)}`, "err");
+        }
+        const r = await sendTx({
+          address: bond,
+          abi: BOND_ABI,
+          functionName: "openDispute",
+          args: [agentId, evidence],
+        });
+        if (!r) return;
+        let id = null;
+        for (const log of r.logs) {
+          try {
+            const dec = decodeEventLog({
+              abi: BOND_ABI,
+              data: log.data,
+              topics: log.topics,
+            });
+            if (dec.eventName === "DisputeOpened") {
+              id = dec.args.id;
+              break;
+            }
+          } catch {}
+        }
+        $("chalResult").innerHTML =
+          `dispute ${id !== null ? `<span class="badge">#${id}</span> ` : ""}opened - ${txLink(r.transactionHash)}`;
+        refreshIndex();
+        refreshFeed();
+      }
+
       async function refreshHistory() {
         try {
           const res = await fetch(HISTORY_URL, { cache: "no-store" });
@@ -3685,6 +3989,57 @@
         return `${Math.round(seconds / 86400)}d`;
       }
 
+      async function renderGuard() {
+        const host = $("guardOut");
+        if (!host) return;
+        const guard = state.deployment?.reefGuard;
+        if (!guard?.address || !state.publicClient) {
+          setText("guardPolicy", "ReefGuard not configured.");
+          host.innerHTML = `<div class="feed-row muted">waiting for ReefGuard</div>`;
+          return;
+        }
+        const p = guard.policy || {};
+        const minRep = p.minReputationE18
+          ? fmt18(BigInt(p.minReputationE18))
+          : "-";
+        const minBond = p.minBondE18 ? fmt18(BigInt(p.minBondE18)) : "-";
+        const maxSize =
+          p.maxSizeBps != null ? (p.maxSizeBps / 100).toFixed(0) + "%" : "-";
+        $("guardPolicy").innerHTML =
+          `Policy — min reputation <span class="badge">${minRep}</span> · min bond <span class="badge">${minBond}</span> · max action <span class="badge">${maxSize}</span> · gate ${addressLink(guard.address)}`;
+        const ids = (state.deployment?.seeded?.vaults || []).map(
+          (v) => v.agentId,
+        );
+        const agentIds = ids.length ? ids : [1, 2, 3, 4, 5];
+        const rows = await Promise.all(
+          agentIds.map(async (id) => {
+            try {
+              const res = await rpcRead(
+                () =>
+                  state.publicClient.readContract({
+                    address: guard.address,
+                    abi: REEFGUARD_ABI,
+                    functionName: "canExecute",
+                    args: [BigInt(id), guard.asset, 100n],
+                  }),
+                `guard canExecute ${id}`,
+              );
+              const allowed = res[0];
+              const reason = res[1];
+              const detail = allowed
+                ? "eligible"
+                : `blocked${reason ? " — " + reason : ""}`;
+              return `<div class="feed-row ${allowed ? "ev-green" : "ev-red"}">
+      <span class="badge">agent ${id}</span> <span class="feed-detail">${detail}</span>
+    </div>`;
+            } catch {
+              return `<div class="feed-row muted">agent ${id} — gate read failed</div>`;
+            }
+          }),
+        );
+        host.innerHTML = rows.join("");
+      }
+
       async function refreshAll() {
         await refreshIndex();
         await refreshHistory();
@@ -3696,6 +4051,7 @@
         await refreshA2A();
         await refreshAlloraBench();
         await refreshTuring();
+        await renderGuard();
         if (state.account) renderConn();
       }
 
@@ -4115,8 +4471,11 @@
       $("cfgSave").addEventListener("click", saveCfg);
       $("cfgReload").addEventListener("click", refreshAll);
       $("depBtn").addEventListener("click", doDeposit);
+      $("faucetBtn").addEventListener("click", doFaucet);
       $("wdBtn").addEventListener("click", doWithdraw);
       $("rebalBtn").addEventListener("click", doRebalance);
+      $("chalBtn").addEventListener("click", doChallenge);
+      $("allocBtn").addEventListener("click", doAllocate);
 
       initGlossary();
       initBeginnerMode();

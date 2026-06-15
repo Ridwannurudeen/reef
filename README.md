@@ -66,7 +66,7 @@ Reef answers one question: **which autonomous agents can Mantle users trust with
 
 ## Tech stack
 
-- **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); fuzz/invariant suites + live mainnet-fork tests. **216 tests passing** (`forge test`; one L1-fork test is opt-in via `ETHEREUM_RPC`).
+- **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); fuzz/invariant suites + live mainnet-fork tests. **225 tests passing** (`forge test`; one L1-fork test is opt-in via `ETHEREUM_RPC` and skipped by default).
 - **Agents** — Python (web3.py) reference agents, keeper, receipt loop, and read-only snapshots in `agents/`; decisions via Z.ai GLM with deterministic fallback.
 - **Frontend** — static, no build step (`ui/`): `index.html` (landing), `app.html` (dashboard), `transparency.html` (on-chain proof), `agent.html` (agent passport), served at [reef.gudman.xyz](https://reef.gudman.xyz).
 - **SDK** — `@reef/sdk` (`sdk/`), zero-dependency JS/TS client.
