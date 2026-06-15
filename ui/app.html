@@ -2716,13 +2716,16 @@
       function rebuildClients() {
         state.rpcUrls = rpcUrlsFromConfig(state.cfg.rpc);
         const transports = state.rpcUrls.map((url) => http(url));
+        const chain = toViemChain(chainForId(state.chainId));
         state.publicClient = createPublicClient({
+          chain,
           transport:
             transports.length === 1 ? transports[0] : fallback(transports),
         });
         if (window.ethereum && state.account) {
           state.walletClient = createWalletClient({
             account: state.account,
+            chain,
             transport: custom(window.ethereum),
           });
         }
@@ -2731,6 +2734,15 @@
       function chainForId(id) {
         if (id === MANTLE_MAINNET.chainIdNum) return MANTLE_MAINNET;
         return MANTLE_SEPOLIA;
+      }
+
+      function toViemChain(c) {
+        return {
+          id: c.chainIdNum,
+          name: c.name,
+          nativeCurrency: { name: c.symbol, symbol: c.symbol, decimals: c.decimals },
+          rpcUrls: { default: { http: [c.rpc] } },
+        };
       }
 
       async function connect() {

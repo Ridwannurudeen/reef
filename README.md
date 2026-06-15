@@ -3,7 +3,7 @@
 > **The trust, risk, and capital-allocation layer for autonomous AI agents on Mantle.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/forge%20test-225%20passing-brightgreen.svg)](#getting-started)
+[![Tests](https://img.shields.io/badge/forge%20test-235%20passing-brightgreen.svg)](#getting-started)
 [![Network](https://img.shields.io/badge/Mantle-Sepolia%20%2B%20Mainnet-000000.svg)](https://reef.gudman.xyz/transparency)
 [![Hackathon](https://img.shields.io/badge/Mantle%20Turing%20Test%202026-AI%20%C3%97%20RWA-36d39a.svg)](https://dorahacks.io/hackathon/mantleturingtesthackathon2026)
 
@@ -86,7 +86,7 @@ Everything is on-chain and verifiable — the source of truth is [`deployments/`
 
 ## Tech stack
 
-- **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); unit + fuzz/invariant suites + live mainnet-fork tests. **225 tests passing** (one L1-fork test is opt-in via `ETHEREUM_RPC`, skipped by default).
+- **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); unit + fuzz/invariant suites + live mainnet-fork tests. **235 tests passing** (one L1-fork test is opt-in via `ETHEREUM_RPC`, skipped by default).
 - **Agents** — Python (web3.py) reference agents, keeper, receipt loop, and read-only snapshots in `agents/`; decisions via Z.ai GLM with a deterministic fallback.
 - **Frontend** — static, no build step (`ui/`): `index.html` (landing), `app.html` (dashboard), `transparency.html` (on-chain proof), `agent.html` (agent passport), served at [reef.gudman.xyz](https://reef.gudman.xyz).
 - **SDK** — `@reef/sdk` (`sdk/`), a zero-dependency JS/TS client.
@@ -98,7 +98,7 @@ git clone https://github.com/Ridwannurudeen/reef.git
 cd reef
 cp .env.example .env     # fill in PRIVATE_KEY + API keys (all optional for build/test)
 forge build
-forge test                # 225 passing
+forge test                # 235 passing
 ```
 
 The static site needs no build — open `ui/index.html`, or visit [reef.gudman.xyz](https://reef.gudman.xyz).
