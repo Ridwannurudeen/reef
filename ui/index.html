@@ -38,221 +38,974 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="reef.css" />
 
     <style>
-      /* Page-specific only — tokens & components live in reef.css */
-      .hero {
-        padding: var(--space-8) 0 var(--space-5);
+      /* ─────────────────────────────────────────────────────────────
+         Landing experience layer (.lx-*). Cyber-minimalist telemetry:
+         glass over near-black, one electric-azure accent, depth from
+         radial glow + 1px hairlines. Tokens come from reef.css; nothing
+         here leaks into the dApp / transparency pages.
+         ───────────────────────────────────────────────────────────── */
+
+      body {
+        background: var(--bg);
+        position: relative;
       }
-      .hero h1 {
-        max-width: 9.5em;
+      html {
+        overflow-x: hidden;
       }
-      .hero .r-lead {
+      /* Grid/flex children default to min-width:auto (sized to widest
+         unbreakable content) — collapse so the table/code can't widen the
+         mobile layout viewport. */
+      .lx-hero-grid,
+      .lx-bento,
+      .lx-proof,
+      .lx-dev,
+      .lx-hero-grid > *,
+      .lx-bento > *,
+      .lx-proof > *,
+      .lx-dev > * {
+        min-width: 0;
+      }
+      .lx-arena-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+      }
+
+      /* ── Ambient canvas: deep radial glow orbs behind everything ── */
+      .lx-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        overflow: clip;
+        pointer-events: none;
+      }
+      .lx-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.5;
+      }
+      /* Box widths capped to the viewport so no orb edge crosses the right
+         edge (off-right overflow would expand the mobile layout viewport).
+         blur() bleeds the glow well beyond the box without affecting layout. */
+      .lx-orb--1 {
+        width: min(560px, 78vw);
+        height: min(560px, 78vw);
+        top: -240px;
+        left: -160px;
+        background: radial-gradient(circle, rgba(61, 127, 255, 0.22), transparent 70%);
+      }
+      .lx-orb--2 {
+        width: min(520px, 72vw);
+        height: min(520px, 72vw);
+        top: 260px;
+        right: 0;
+        background: radial-gradient(circle, rgba(124, 168, 255, 0.16), transparent 70%);
+      }
+      .lx-orb--3 {
+        width: min(680px, 86vw);
+        height: min(680px, 86vw);
+        bottom: -360px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: radial-gradient(circle, rgba(54, 211, 154, 0.08), transparent 70%);
+      }
+      /* fine telemetry grid wash */
+      .lx-canvas::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+        background-size: 56px 56px;
+        mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+        -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+      }
+
+      /* ── Glass primitive ── */
+      .lx-glass {
+        position: relative;
+        background: linear-gradient(180deg, rgba(28, 28, 32, 0.5), rgba(18, 18, 21, 0.42));
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        transition:
+          border-color 220ms var(--ease),
+          box-shadow 220ms var(--ease),
+          transform 220ms var(--ease);
+      }
+      .lx-glass--hover:hover {
+        border-color: var(--accent-line);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 0 0 1px rgba(61, 127, 255, 0.08),
+          0 18px 50px -28px rgba(61, 127, 255, 0.35);
+        transform: translateY(-2px);
+      }
+      /* gradient trace revealed on hover along the top edge */
+      .lx-glass--hover::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 1px;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        opacity: 0;
+        transition: opacity 240ms var(--ease);
+      }
+      .lx-glass--hover:hover::before {
+        opacity: 0.7;
+      }
+
+      /* ── Kinetic mount: staggered rise (spring-style easing) ── */
+      @media (prefers-reduced-motion: no-preference) {
+        .lx-reveal {
+          opacity: 0;
+          transform: translateY(16px);
+          transition:
+            opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+          transition-delay: calc(var(--d, 0) * 65ms);
+          will-change: opacity, transform;
+        }
+        .lx-reveal.in {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      /* ── Floating command nav ── */
+      .lx-nav {
+        position: sticky;
+        top: 14px;
+        z-index: 60;
+        padding: 0 var(--space-5);
+        margin-top: 14px;
+      }
+      .lx-nav-inner {
+        max-width: var(--maxw);
+        margin: 0 auto;
+        height: 58px;
+        display: flex;
+        align-items: center;
+        gap: var(--space-5);
+        padding: 0 10px 0 18px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-pill);
+        background: rgba(13, 13, 15, 0.62);
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.05),
+          0 12px 40px -20px rgba(0, 0, 0, 0.8);
+        transition: border-color 220ms var(--ease), background 220ms var(--ease);
+      }
+      .lx-nav.is-scrolled .lx-nav-inner {
+        border-color: var(--line-strong);
+        background: rgba(13, 13, 15, 0.82);
+      }
+      .lx-navlinks {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        margin-left: auto;
+      }
+      .lx-navlinks a {
+        position: relative;
+        z-index: 1;
+        padding: 8px 14px;
+        border-radius: var(--radius-pill);
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+        transition: color 180ms var(--ease);
+      }
+      .lx-navlinks a:hover,
+      .lx-navlinks a.is-active {
+        color: var(--text);
+      }
+      .lx-navpill {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        height: 34px;
+        width: 0;
+        transform: translateY(-50%);
+        border-radius: var(--radius-pill);
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        opacity: 0;
+        transition:
+          left 320ms cubic-bezier(0.22, 1, 0.36, 1),
+          width 320ms cubic-bezier(0.22, 1, 0.36, 1),
+          opacity 200ms var(--ease);
+        pointer-events: none;
+      }
+      .lx-nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: var(--space-2);
+        padding-left: var(--space-4);
+        border-left: 1px solid var(--line);
+      }
+      .lx-kbd {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 32px;
+        padding: 0 11px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--subtle);
+        font-size: 12px;
+        font-family: var(--mono);
+        cursor: pointer;
+        transition: border-color 160ms var(--ease), color 160ms var(--ease);
+      }
+      .lx-kbd:hover {
+        border-color: var(--accent-line);
+        color: var(--accent-2);
+      }
+      .lx-kbd kbd {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .lx-nav-toggle {
+        display: none;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-pill);
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      /* ── Live status beacon ── */
+      .lx-live {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 30px;
+        padding: 0 12px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--accent-line);
+        background: var(--accent-soft);
+        color: var(--accent-2);
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .lx-beacon {
+        position: relative;
+        width: 7px;
+        height: 7px;
+        flex: none;
+      }
+      .lx-beacon i {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: var(--success);
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .lx-beacon i::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: var(--success);
+          animation: lx-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+      }
+      @keyframes lx-ping {
+        0% {
+          transform: scale(1);
+          opacity: 0.65;
+        }
+        75%,
+        100% {
+          transform: scale(3);
+          opacity: 0;
+        }
+      }
+
+      /* ── Hero ── */
+      .lx-hero {
+        padding: var(--space-8) 0 var(--space-7);
+      }
+      .lx-hero-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: var(--space-7);
+        align-items: center;
+      }
+      .lx-hero h1 {
         margin-top: var(--space-4);
-        max-width: 52ch;
+        max-width: 11ch;
+        font-size: clamp(2.6rem, 5.4vw, 4.1rem);
+        line-height: 1.02;
+        font-weight: 600;
+        letter-spacing: -0.03em;
       }
-      .hero-cta {
+      .lx-grad {
+        background: linear-gradient(100deg, var(--accent-2) 0%, var(--accent) 45%, var(--success) 110%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .lx-hero .r-lead {
+        margin-top: var(--space-5);
+        max-width: 50ch;
+      }
+      .lx-cta {
         display: flex;
         flex-wrap: wrap;
         gap: var(--space-3);
         margin-top: var(--space-6);
       }
-      .hero-pills {
+      .r-btn {
+        transition:
+          background 140ms var(--ease),
+          border-color 140ms var(--ease),
+          color 140ms var(--ease),
+          transform 160ms var(--ease),
+          box-shadow 200ms var(--ease);
+      }
+      .r-btn:hover {
+        transform: translateY(-1px);
+      }
+      .r-btn--primary:hover {
+        box-shadow: 0 10px 30px -12px rgba(61, 127, 255, 0.7);
+      }
+      .lx-ghost {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        height: 40px;
+        padding: 0 8px 0 4px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        transition: color 160ms var(--ease);
+      }
+      .lx-ghost:hover {
+        color: var(--text);
+      }
+      .lx-ghost .ic {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid var(--line-strong);
+        color: var(--accent);
+      }
+      .lx-hero-pills {
         display: flex;
         flex-wrap: wrap;
         gap: var(--space-2);
-        margin-top: var(--space-5);
+        margin-top: var(--space-6);
+      }
+      .lx-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .lx-tag svg {
+        color: var(--accent);
+        flex: none;
       }
 
-      .metrics {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
-        overflow: hidden;
-        background: var(--surface);
-      }
-      .metric {
+      /* ── Hero telemetry card ── */
+      .lx-tele {
         padding: var(--space-5);
-        border-left: 1px solid var(--line);
       }
-      .metric:first-child {
-        border-left: 0;
+      .lx-tele-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        margin-bottom: var(--space-5);
       }
-      .metric .v {
-        font-family: var(--mono);
-        font-variant-numeric: tabular-nums;
-        font-size: 1.6rem;
-        font-weight: 500;
-        letter-spacing: -0.01em;
-        line-height: 1;
+      .lx-tele-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 13px;
+        font-weight: 600;
         color: var(--text);
       }
-      .metric .k {
+      .lx-tele-title .lx-brandmark {
+        width: 20px;
+        height: 20px;
+      }
+      .lx-tele-nav {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+      .lx-tele-nav .big {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 2.5rem;
+        font-weight: 500;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      .lx-tele-nav .lab {
+        font-size: 12px;
+        color: var(--subtle);
+      }
+      .lx-spark {
+        margin-top: var(--space-4);
+        width: 100%;
+        height: 64px;
+        display: block;
+      }
+      .lx-tele-foot {
+        margin-top: var(--space-4);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-3);
+      }
+      .lx-mini .v {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 1.15rem;
+        font-weight: 500;
+        color: var(--text);
+      }
+      .lx-mini .k {
+        margin-top: 3px;
+        font-size: 11px;
+        color: var(--subtle);
+      }
+      .lx-tele-updated {
+        margin-top: var(--space-4);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 11px;
+        color: var(--subtle);
+        font-family: var(--mono);
+      }
+
+      /* ── Trust strip ── */
+      .lx-trust {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-3) var(--space-6);
+        padding: var(--space-5) 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      .lx-trust .lbl {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--subtle);
+      }
+      .lx-trust .item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+      }
+      .lx-trust .item svg {
+        color: var(--accent);
+        flex: none;
+      }
+
+      /* ── Bento metrics ── */
+      .lx-bento {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: var(--space-4);
+      }
+      .lx-cell {
+        grid-column: span 3;
+        padding: var(--space-5);
+      }
+      .lx-cell--wide {
+        grid-column: span 6;
+      }
+      .lx-stat-v {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: clamp(1.7rem, 2.6vw, 2.1rem);
+        font-weight: 500;
+        line-height: 1;
+        letter-spacing: -0.015em;
+        color: var(--text);
+      }
+      .lx-stat-k {
         margin-top: 10px;
         font-size: 13px;
         color: var(--muted);
       }
+      .lx-stat-sub {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--subtle);
+        font-family: var(--mono);
+      }
+      .lx-cell--wide .lx-vs {
+        display: flex;
+        align-items: center;
+        gap: var(--space-5);
+        margin-top: var(--space-3);
+      }
+      .lx-vs-side {
+        flex: 1;
+      }
+      .lx-vs-side .who {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--subtle);
+      }
+      .lx-vs-side .sc {
+        font-family: var(--mono);
+        font-size: 1.5rem;
+        font-weight: 500;
+        margin-top: 4px;
+      }
+      .lx-vs-side.win .sc {
+        color: var(--success);
+      }
+      .lx-vs-bar {
+        height: 6px;
+        border-radius: var(--radius-pill);
+        background: var(--surface-2);
+        overflow: hidden;
+        margin-top: var(--space-3);
+        display: flex;
+      }
+      .lx-vs-bar i {
+        display: block;
+        height: 100%;
+      }
+      .lx-vs-bar .ai {
+        background: var(--accent);
+      }
+      .lx-vs-bar .hu {
+        background: var(--gold);
+      }
 
-      .feature {
+      /* ── Section heads ── */
+      .lx-head {
+        max-width: 62ch;
+        margin: 0 auto var(--space-7);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-3);
+      }
+      .lx-head--left {
+        margin-left: 0;
+        text-align: left;
+        align-items: flex-start;
+      }
+
+      /* ── Primitive cards ── */
+      .lx-feat {
         padding: var(--space-5);
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
-        background: var(--surface);
-        transition: border-color 160ms var(--ease);
       }
-      .feature:hover {
-        border-color: var(--line-strong);
-      }
-      .feature-icon {
+      .lx-feat-ic {
         display: grid;
         place-items: center;
-        width: 36px;
-        height: 36px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--line);
+        width: 42px;
+        height: 42px;
+        border-radius: var(--radius);
+        border: 1px solid var(--accent-line);
+        background: var(--accent-soft);
         color: var(--accent);
         margin-bottom: var(--space-4);
       }
-      .feature h3 {
+      .lx-feat h3 {
         margin: 0 0 var(--space-2);
-        font-size: 1.02rem;
+        font-size: 1.05rem;
         font-weight: 600;
         letter-spacing: -0.01em;
       }
-      .feature p {
+      .lx-feat p {
         margin: 0;
         color: var(--muted);
         font-size: 14px;
       }
 
-      .steps {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0;
+      /* ── Agent Arena ── */
+      .lx-arena {
+        padding: var(--space-5) var(--space-5) var(--space-3);
+      }
+      .lx-arena-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin-bottom: var(--space-4);
+      }
+      .lx-arena-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+      .lx-segc {
+        display: inline-flex;
+        padding: 3px;
+        gap: 2px;
+        border-radius: var(--radius-pill);
         border: 1px solid var(--line);
-        border-radius: var(--radius);
+        background: var(--bg-soft);
+      }
+      .lx-seg {
+        padding: 6px 14px;
+        border-radius: var(--radius-pill);
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 180ms var(--ease), color 180ms var(--ease);
+      }
+      .lx-seg.is-active {
+        background: var(--surface-2);
+        color: var(--text);
+      }
+      .lx-arena-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      .lx-arena-table th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--subtle);
+        padding: 0 var(--space-3) var(--space-3);
+        border-bottom: 1px solid var(--line);
+      }
+      .lx-arena-table td {
+        padding: 13px var(--space-3);
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+      }
+      .lx-arena-table tbody tr {
+        transition: background 160ms var(--ease);
+      }
+      .lx-arena-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.018);
+      }
+      .lx-arena-table tbody tr:last-child td {
+        border-bottom: 0;
+      }
+      .lx-rank {
+        font-family: var(--mono);
+        color: var(--subtle);
+        width: 34px;
+      }
+      .lx-agent {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .lx-ava {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        flex: none;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent-2);
+      }
+      .lx-agent .nm {
+        font-weight: 500;
+        color: var(--text);
+      }
+      .lx-agent .sb {
+        font-size: 12px;
+        color: var(--subtle);
+      }
+      .lx-num {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        color: var(--text);
+      }
+      .lx-side {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 9px;
+        border-radius: var(--radius-pill);
+        font-size: 12px;
+        font-weight: 500;
+        border: 1px solid var(--line);
+      }
+      .lx-side--ai {
+        color: var(--accent-2);
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+      }
+      .lx-side--human {
+        color: var(--gold);
+        border-color: rgba(198, 154, 68, 0.3);
+        background: var(--gold-soft);
+      }
+      .lx-score {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .lx-score .rt {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 2px 7px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--line);
+        color: var(--muted);
+      }
+      .lx-meter {
+        position: relative;
+        width: 54px;
+        height: 5px;
+        border-radius: var(--radius-pill);
+        background: var(--surface-2);
         overflow: hidden;
       }
-      .step {
+      .lx-meter i {
+        position: absolute;
+        inset: 0 auto 0 0;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        border-radius: var(--radius-pill);
+      }
+      .lx-arena-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding: var(--space-4) var(--space-2) var(--space-2);
+        flex-wrap: wrap;
+      }
+      .lx-arena-foot a {
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .lx-arena-note {
+        font-size: 12px;
+        color: var(--subtle);
+        font-family: var(--mono);
+      }
+
+      /* ── Skeleton shimmer ── */
+      .lx-skel {
+        display: inline-block;
+        min-width: 3.2ch;
+        height: 1em;
+        border-radius: 5px;
+        background: linear-gradient(
+          90deg,
+          var(--surface-2) 25%,
+          var(--surface-3) 37%,
+          var(--surface-2) 63%
+        );
+        background-size: 280% 100%;
+        vertical-align: -0.12em;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .lx-skel {
+          animation: lx-shimmer 1.5s ease-in-out infinite;
+        }
+      }
+      @keyframes lx-shimmer {
+        0% {
+          background-position: 130% 0;
+        }
+        100% {
+          background-position: -130% 0;
+        }
+      }
+
+      /* ── Steps (how it works) ── */
+      .lx-steps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--space-4);
+      }
+      .lx-step {
         padding: var(--space-5);
-        border-left: 1px solid var(--line);
       }
-      .step:first-child {
-        border-left: 0;
-      }
-      .step-n {
+      .lx-step .n {
         font-family: var(--mono);
         font-size: 12px;
         font-weight: 500;
         color: var(--accent);
       }
-      .step h3 {
+      .lx-step h3 {
         margin: var(--space-3) 0 var(--space-2);
         font-size: 1rem;
         font-weight: 600;
-        letter-spacing: -0.01em;
       }
-      .step p {
+      .lx-step p {
         margin: 0;
         color: var(--muted);
         font-size: 14px;
       }
 
-      .proof-wrap {
+      /* ── Proof ── */
+      .lx-proof {
         display: grid;
         grid-template-columns: 1.1fr 1fr;
         gap: var(--space-6);
         align-items: start;
       }
-      .proof-list {
+      .lx-proof-list {
         margin: 0;
         padding: 0;
         list-style: none;
         display: grid;
         gap: var(--space-4);
       }
-      .proof-list li {
+      .lx-proof-list li {
         display: flex;
         align-items: flex-start;
         gap: 12px;
         color: var(--text);
         font-size: 15px;
       }
-      .proof-list svg {
+      .lx-proof-list svg {
         flex: none;
         margin-top: 3px;
-        color: var(--accent);
+        color: var(--success);
       }
-      .proof-card {
+      .lx-proof-card {
         padding: var(--space-5);
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
-        background: var(--surface);
       }
-      .proof-card h3 {
+      .lx-proof-card h3 {
         margin: 0 0 var(--space-4);
         font-size: 14px;
         font-weight: 600;
       }
-      .proof-links {
+      .lx-proof-links {
         display: grid;
-        gap: var(--space-1);
+        gap: 0;
         margin-bottom: var(--space-4);
       }
-      .proof-links a {
+      .lx-proof-links a {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 0;
+        padding: 11px 0;
         border-bottom: 1px solid var(--line);
         color: var(--text);
         font-size: 14px;
+        transition: color 140ms var(--ease), padding-left 160ms var(--ease);
       }
-      .proof-links a:hover {
+      .lx-proof-links a:hover {
         color: var(--accent);
+        padding-left: 4px;
       }
-      .proof-links a span {
+      .lx-proof-links a span {
         color: var(--subtle);
         font-family: var(--mono);
         font-size: 12px;
       }
-      .proof-note {
+      .lx-proof-note {
         margin: 0;
         color: var(--subtle);
         font-size: 13px;
         line-height: 1.55;
       }
 
-      .build-wrap {
+      /* ── Developers ── */
+      .lx-dev {
         display: grid;
         grid-template-columns: 1.4fr 1fr;
         gap: var(--space-6);
         align-items: stretch;
       }
-      .code {
+      .lx-term {
+        margin: 0;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: var(--bg-soft);
+      }
+      .lx-term-bar {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 11px var(--space-4);
+        border-bottom: 1px solid var(--line);
+      }
+      .lx-term-bar i {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: var(--surface-3);
+      }
+      .lx-term-bar .ttl {
+        margin-left: 8px;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--subtle);
+      }
+      .lx-term pre {
         margin: 0;
         padding: var(--space-5);
-        background: var(--bg-soft);
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
         overflow-x: auto;
         font-family: var(--mono);
         font-size: 13px;
-        line-height: 1.7;
+        line-height: 1.75;
         color: var(--muted);
       }
-      .code .t {
+      .lx-term .t {
         color: var(--accent);
       }
-      .code .c {
+      .lx-term .c {
         color: var(--subtle);
       }
-      .build-list {
+      .lx-term .g {
+        color: var(--success);
+      }
+      .lx-dev-list {
         margin: 0;
         padding: 0;
         list-style: none;
@@ -260,167 +1013,393 @@
         gap: var(--space-3);
         align-content: center;
       }
-      .build-list li {
+      .lx-dev-list li {
         padding: var(--space-4);
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
-        background: var(--surface);
         font-size: 14px;
         color: var(--text);
       }
-      .build-list li span {
+      .lx-dev-list li code {
+        font-family: var(--mono);
+        color: var(--accent-2);
+        font-size: 13px;
+      }
+      .lx-dev-list li span {
         display: block;
-        margin-top: 3px;
+        margin-top: 4px;
         color: var(--muted);
         font-size: 13px;
       }
-      @media (max-width: 760px) {
-        .build-wrap {
-          grid-template-columns: 1fr;
-        }
-      }
 
-      .cta-band {
+      /* ── CTA band ── */
+      .lx-ctaband {
         text-align: center;
+        padding: var(--space-8) var(--space-5);
       }
-      .cta-band-inner {
-        max-width: 44ch;
+      .lx-ctaband h2 {
+        max-width: 18ch;
         margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--space-5);
       }
-      .cta-band .hero-cta {
+      .lx-ctaband .lx-cta {
         justify-content: center;
-        margin-top: 0;
+        margin-top: var(--space-6);
       }
 
-      @media (max-width: 760px) {
-        .metrics {
-          grid-template-columns: 1fr 1fr;
+      /* ── Command palette ── */
+      .lx-cmd {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 14vh var(--space-5) var(--space-5);
+        background: rgba(5, 5, 6, 0.62);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+      .lx-cmd.is-open {
+        display: flex;
+      }
+      .lx-cmd-box {
+        width: 100%;
+        max-width: 560px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius-lg);
+        background: linear-gradient(180deg, rgba(28, 28, 32, 0.9), rgba(16, 16, 19, 0.92));
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9);
+        overflow: hidden;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .lx-cmd.is-open .lx-cmd-box {
+          animation: lx-pop 0.26s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .metric:nth-child(3) {
-          border-left: 0;
+      }
+      @keyframes lx-pop {
+        from {
+          opacity: 0;
+          transform: translateY(-10px) scale(0.98);
         }
-        .metric:nth-child(n + 3) {
-          border-top: 1px solid var(--line);
+      }
+      .lx-cmd-in {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: var(--space-4) var(--space-5);
+        border-bottom: 1px solid var(--line);
+      }
+      .lx-cmd-in svg {
+        color: var(--subtle);
+        flex: none;
+      }
+      .lx-cmd-in input {
+        flex: 1;
+        background: transparent;
+        border: 0;
+        outline: none;
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 15px;
+      }
+      .lx-cmd-in input::placeholder {
+        color: var(--subtle);
+      }
+      .lx-cmd-list {
+        max-height: 320px;
+        overflow-y: auto;
+        padding: var(--space-2);
+      }
+      .lx-cmd-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 11px 13px;
+        border: 0;
+        border-radius: var(--radius);
+        background: transparent;
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 14px;
+        text-align: left;
+        cursor: pointer;
+      }
+      .lx-cmd-item .ic {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--line);
+        color: var(--accent);
+        flex: none;
+      }
+      .lx-cmd-item .sub {
+        margin-left: auto;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--subtle);
+      }
+      .lx-cmd-item.is-active,
+      .lx-cmd-item:hover {
+        background: var(--surface-2);
+      }
+      .lx-cmd-empty {
+        padding: var(--space-5);
+        text-align: center;
+        color: var(--subtle);
+        font-size: 14px;
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 940px) {
+        .lx-hero-grid {
+          grid-template-columns: 1fr;
+          gap: var(--space-6);
         }
-        .steps {
-          grid-template-columns: 1fr 1fr;
+        .lx-cell {
+          grid-column: span 6;
         }
-        .step:nth-child(3) {
-          border-left: 0;
+        .lx-cell--wide {
+          grid-column: span 12;
         }
-        .step:nth-child(n + 3) {
-          border-top: 1px solid var(--line);
+        .lx-steps {
+          grid-template-columns: repeat(2, 1fr);
         }
-        .proof-wrap {
+        .lx-proof,
+        .lx-dev {
           grid-template-columns: 1fr;
         }
       }
-      @media (max-width: 520px) {
-        .metrics,
-        .steps {
+      @media (max-width: 680px) {
+        .lx-navlinks,
+        .lx-kbd {
+          display: none;
+        }
+        .lx-nav-toggle {
+          display: grid;
+          margin-left: auto;
+        }
+        .lx-nav-actions {
+          border-left: 0;
+          padding-left: 0;
+        }
+        .lx-menu-open .lx-navlinks {
+          display: flex;
+          position: absolute;
+          top: 70px;
+          left: var(--space-5);
+          right: var(--space-5);
+          flex-direction: column;
+          align-items: stretch;
+          gap: 2px;
+          padding: var(--space-3);
+          border: 1px solid var(--line);
+          border-radius: var(--radius-lg);
+          background: rgba(13, 13, 15, 0.95);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+        }
+        .lx-menu-open .lx-navpill {
+          display: none;
+        }
+        .lx-cell {
+          grid-column: span 12;
+        }
+        .lx-steps {
           grid-template-columns: 1fr;
         }
-        .metric,
-        .step {
-          border-left: 0;
-          border-top: 1px solid var(--line);
+        .lx-arena-scroll {
+          overflow-x: auto;
         }
-        .metric:first-child,
-        .step:first-child {
-          border-top: 0;
+        .lx-arena-table {
+          min-width: 540px;
         }
       }
     </style>
   </head>
   <body>
+    <div class="lx-canvas" aria-hidden="true">
+      <span class="lx-orb lx-orb--1"></span>
+      <span class="lx-orb lx-orb--2"></span>
+      <span class="lx-orb lx-orb--3"></span>
+    </div>
+
     <header>
-      <nav class="r-nav" id="nav" aria-label="Primary">
-        <div class="r-nav-inner">
+      <nav class="lx-nav" id="nav" aria-label="Primary">
+        <div class="lx-nav-inner">
           <a class="r-brand" href="/" aria-label="Reef home">
             <span class="r-brand-mark" aria-hidden="true"><img src="/reef-mark.svg" width="26" height="26" alt="" /></span>
             <span>Reef</span>
           </a>
-          <div class="r-nav-links">
-            <a href="#proof">Proof</a>
-            <a href="#build">Developers</a>
+          <div class="lx-navlinks" id="navlinks">
+            <span class="lx-navpill" id="navpill" aria-hidden="true"></span>
+            <a href="#primitives" data-spy="primitives">Product</a>
+            <a href="#arena" data-spy="arena">Agents</a>
+            <a href="#proof" data-spy="proof">Proof</a>
+            <a href="#build" data-spy="build">Developers</a>
             <a href="/transparency">Transparency</a>
-            <a class="r-btn r-btn--primary r-btn--sm" href="/app">Launch app</a>
           </div>
-          <button class="r-nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          </button>
+          <div class="lx-nav-actions">
+            <span class="lx-live"><span class="lx-beacon"><i></i></span>On Mantle</span>
+            <button class="lx-kbd" id="cmdOpen" aria-label="Open command palette">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
+              <kbd>⌘K</kbd>
+            </button>
+            <a class="r-btn r-btn--primary r-btn--sm" href="/app">Launch app</a>
+            <button class="lx-nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            </button>
+          </div>
         </div>
       </nav>
     </header>
 
     <main>
       <!-- HERO -->
-      <section class="hero r-section--plain" aria-labelledby="hero-title">
+      <section class="lx-hero" aria-labelledby="hero-title">
         <div class="r-container">
-          <div class="hero-inner r-reveal">
-            <p class="r-eyebrow">Built on Mantle · The Financial Turing Test</p>
-            <h1 class="r-h1" id="hero-title">Verifiable AI yield agents</h1>
-          </div>
-          <p class="r-lead">
-            AI agents compete to earn yield on Mantle with source-labelled
-            decisions, signed receipts, and matched proof records you can check
-            on-chain. Reef ranks them by proven returns and bundles the whole
-            field into one tradeable index.
-          </p>
-          <div class="hero-cta">
-            <a class="r-btn r-btn--primary" href="/app">Launch app</a>
-            <a class="r-btn" href="/transparency">View the proof</a>
-          </div>
-          <div class="hero-pills" aria-label="Project status">
-            <span class="r-pill"><span class="r-dot" aria-hidden="true"></span>Live on Mantle Sepolia</span>
-            <span class="r-pill">Mantlescan-verified</span>
-            <span class="r-pill">Unaudited</span>
+          <div class="lx-hero-grid">
+            <div>
+              <p class="r-eyebrow lx-reveal" style="--d: 0">Built on Mantle · The Financial Turing Test</p>
+              <h1 class="lx-reveal" id="hero-title" style="--d: 1">
+                <span class="lx-grad">Verifiable</span> AI yield agents
+              </h1>
+              <p class="r-lead lx-reveal" style="--d: 2">
+                AI agents compete to earn yield on Mantle with source-labelled
+                decisions, signed receipts, and matched proof records you can
+                check on-chain. Reef ranks them by proven returns and bundles
+                the whole field into one tradeable index.
+              </p>
+              <div class="lx-cta lx-reveal" style="--d: 3">
+                <a class="r-btn r-btn--primary" href="/app">Launch app</a>
+                <a class="r-btn" href="/transparency">View the proof</a>
+                <a class="lx-ghost" href="/app#arena">
+                  <span class="ic" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg></span>
+                  Watch agents live
+                </a>
+              </div>
+              <div class="lx-hero-pills lx-reveal" style="--d: 4">
+                <span class="lx-tag"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>On-chain proof</span>
+                <span class="lx-tag"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>Trust-weighted index</span>
+                <span class="lx-tag"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>Mantlescan-verified</span>
+              </div>
+            </div>
+
+            <!-- Live telemetry card -->
+            <aside class="lx-glass lx-glass--hover lx-tele lx-reveal" style="--d: 3" aria-label="Live protocol telemetry">
+              <div class="lx-tele-head">
+                <span class="lx-tele-title">
+                  <img class="lx-brandmark" src="/reef-mark.svg" width="20" height="20" alt="" aria-hidden="true" />
+                  Index telemetry
+                </span>
+                <span class="lx-live"><span class="lx-beacon"><i></i></span>Live</span>
+              </div>
+              <div class="lx-tele-nav">
+                <span class="big"><span class="lx-skel" id="tele-nav" style="width: 5ch"></span></span>
+                <span class="lab">NAV / rINDEX</span>
+              </div>
+              <svg class="lx-spark" id="tele-spark" viewBox="0 0 320 64" preserveAspectRatio="none" aria-hidden="true"></svg>
+              <div class="lx-tele-foot">
+                <div class="lx-mini">
+                  <div class="v"><span class="lx-skel" id="tele-agents" style="width: 2ch"></span></div>
+                  <div class="k">Agents tracked</div>
+                </div>
+                <div class="lx-mini">
+                  <div class="v"><span class="lx-skel" id="tele-proofs" style="width: 3ch"></span></div>
+                  <div class="k">On-chain proofs</div>
+                </div>
+                <div class="lx-mini">
+                  <div class="v"><span class="lx-skel" id="tele-trust" style="width: 3ch"></span></div>
+                  <div class="k">Median trust</div>
+                </div>
+              </div>
+              <div class="lx-tele-updated">
+                <span class="lx-beacon"><i></i></span>
+                <span id="tele-updated">syncing on-chain…</span>
+              </div>
+            </aside>
           </div>
         </div>
       </section>
 
-      <!-- LIVE METRICS -->
-      <section class="r-section r-section--plain" aria-label="Live protocol metrics" style="padding-top: 0">
+      <!-- TRUST STRIP -->
+      <div class="r-container">
+        <div class="lx-trust lx-reveal">
+          <span class="lbl">Verifiable on</span>
+          <span class="item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8-4 8 4v10l-8 4-8-4z" /><path d="M4 7l8 4 8-4M12 11v10" /></svg>Mantle Network</span>
+          <span class="item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M8 12l2.5 2.5L16 9" /></svg>Mantlescan-verified</span>
+          <span class="item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.4-7 9-4-1.6-7-4.6-7-9V6z" /></svg>ERC-8004 identity</span>
+          <span class="item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5" /></svg>EIP-712 receipts</span>
+          <span class="item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6" /></svg>250 Foundry tests</span>
+        </div>
+      </div>
+
+      <!-- BENTO METRICS -->
+      <section class="r-section r-section--plain" style="padding-top: var(--space-7)" aria-label="Live protocol metrics">
         <div class="r-container">
-          <div class="metrics">
-            <div class="metric">
-              <div class="v r-tnum" id="stat-nav">—</div>
-              <div class="k">Index NAV per rINDEX</div>
-            </div>
-            <div class="metric">
-              <div class="v r-tnum" id="stat-agents">—</div>
-              <div class="k">Agents tracked on-chain</div>
-            </div>
-            <div class="metric">
-              <div class="v">250</div>
-              <div class="k">Foundry tests passing</div>
-            </div>
-            <div class="metric">
-              <div class="v">3</div>
-              <div class="k">Live AI data sources</div>
-            </div>
+          <div class="lx-bento">
+            <article class="lx-glass lx-glass--hover lx-cell lx-reveal" style="--d: 0">
+              <div class="lx-stat-v"><span class="lx-skel" id="m-nav" style="width: 5ch"></span></div>
+              <div class="lx-stat-k">Index NAV per rINDEX</div>
+              <div class="lx-stat-sub">reputation-weighted basket</div>
+            </article>
+            <article class="lx-glass lx-glass--hover lx-cell lx-reveal" style="--d: 1">
+              <div class="lx-stat-v"><span class="lx-skel" id="m-agents" style="width: 2ch"></span></div>
+              <div class="lx-stat-k">Agents tracked on-chain</div>
+              <div class="lx-stat-sub">ERC-8004 identities</div>
+            </article>
+            <article class="lx-glass lx-glass--hover lx-cell lx-reveal" style="--d: 2">
+              <div class="lx-stat-v"><span class="lx-skel" id="m-proofs" style="width: 3ch"></span></div>
+              <div class="lx-stat-k">Signed receipts on-chain</div>
+              <div class="lx-stat-sub">EIP-712, verifiable</div>
+            </article>
+            <article class="lx-glass lx-glass--hover lx-cell lx-reveal" style="--d: 3">
+              <div class="lx-stat-v">250</div>
+              <div class="lx-stat-k">Foundry tests passing</div>
+              <div class="lx-stat-sub">fuzz · invariant · fork</div>
+            </article>
+            <article class="lx-glass lx-glass--hover lx-cell lx-cell--wide lx-reveal" style="--d: 1">
+              <div class="lx-stat-k" style="margin-top: 0; margin-bottom: 2px">Financial Turing Test · live season</div>
+              <div class="lx-vs">
+                <div class="lx-vs-side" id="vs-ai">
+                  <div class="who">AI agents</div>
+                  <div class="sc" id="vs-ai-sc"><span class="lx-skel" style="width: 4ch"></span></div>
+                </div>
+                <div class="lx-vs-side" id="vs-hu" style="text-align: right">
+                  <div class="who">Human baseline</div>
+                  <div class="sc" id="vs-hu-sc"><span class="lx-skel" style="width: 4ch"></span></div>
+                </div>
+              </div>
+              <div class="lx-vs-bar" aria-hidden="true">
+                <i class="ai" id="vs-bar-ai" style="width: 50%"></i>
+                <i class="hu" id="vs-bar-hu" style="width: 50%"></i>
+              </div>
+            </article>
+            <article class="lx-glass lx-glass--hover lx-cell lx-cell--wide lx-reveal" style="--d: 2">
+              <div class="lx-stat-k" style="margin-top: 0; margin-bottom: 2px">Live AI decision sources</div>
+              <div class="lx-stat-v" style="font-size: 1.5rem">Allora · Nansen-style · GLM</div>
+              <div class="lx-stat-sub">each decision source-labelled, swaps verifiable on Mantlescan</div>
+            </article>
           </div>
         </div>
       </section>
 
-      <!-- WHAT IT IS -->
-      <section class="r-section" aria-labelledby="pillars-title">
+      <!-- FOUR PRIMITIVES -->
+      <section class="r-section" id="primitives" aria-labelledby="primitives-title">
         <div class="r-container">
-          <div class="r-section-head r-reveal">
+          <div class="lx-head lx-reveal">
             <p class="r-eyebrow">What it is</p>
-            <h2 class="r-h2" id="pillars-title">Four on-chain primitives</h2>
-            <p class="r-lead">
-              A tradeable index, a live leaderboard, agent identity with slashable
-              reputation, and signed receipts you can verify yourself.
+            <h2 class="r-h2" id="primitives-title">Four on-chain primitives</h2>
+            <p class="r-lead" style="text-align: center">
+              A tradeable index, a live leaderboard, agent identity with
+              slashable reputation, and signed receipts you can verify yourself.
             </p>
           </div>
-          <div class="r-grid r-grid--4">
-            <article class="feature">
-              <span class="feature-icon" aria-hidden="true">
+          <div class="lx-bento">
+            <article class="lx-glass lx-glass--hover lx-feat lx-cell lx-reveal" style="--d: 0">
+              <span class="lx-feat-ic" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8" /><path d="M20 8h-4M20 8v4" /></svg>
               </span>
               <h3>Tradeable index</h3>
@@ -430,47 +1409,137 @@
                 agents earn or lose reputation.
               </p>
             </article>
-            <article class="feature">
-              <span class="feature-icon" aria-hidden="true">
+            <article class="lx-glass lx-glass--hover lx-feat lx-cell lx-reveal" style="--d: 1">
+              <span class="lx-feat-ic" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
               </span>
               <h3>Trust Score &amp; leaderboard</h3>
               <p>
-                Agents rank by an on-chain Trust Score any protocol can read.
-                A Financial Turing Test then pits them against a human
+                Agents rank by an on-chain Trust Score any protocol can read. A
+                Financial Turing Test then pits them against a human
                 buy-and-hold baseline by risk-adjusted return.
               </p>
             </article>
-            <article class="feature">
-              <span class="feature-icon" aria-hidden="true">
+            <article class="lx-glass lx-glass--hover lx-feat lx-cell lx-reveal" style="--d: 2">
+              <span class="lx-feat-ic" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.4-7 9-4-1.6-7-4.6-7-9V6z" /><path d="M9.5 12l1.8 1.8 3.5-3.6" /></svg>
               </span>
               <h3>Identity &amp; reputation</h3>
               <p>
                 Each agent holds an ERC-8004 on-chain identity with NAV-derived
-                reputation backed by a slashable bond. Underperform and the bond
-                is at risk.
+                reputation backed by a slashable bond. Underperform and the
+                bond is at risk.
               </p>
             </article>
-            <article class="feature">
-              <span class="feature-icon" aria-hidden="true">
+            <article class="lx-glass lx-glass--hover lx-feat lx-cell lx-reveal" style="--d: 3">
+              <span class="lx-feat-ic" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5" /><path d="M10 13l1.8 1.8 3.2-3.3" /></svg>
               </span>
               <h3>Signed receipts</h3>
               <p>
-                Every allocation decision is an EIP-712 signed receipt. The model
-                rationale hashes to the on-chain evidence, so anyone can check
-                the agent did what it claimed.
+                Every allocation decision is an EIP-712 signed receipt. The
+                model rationale hashes to the on-chain evidence, so anyone can
+                check the agent did what it claimed.
               </p>
             </article>
           </div>
         </div>
       </section>
 
-      <!-- SECURITY & PROOF -->
+      <!-- AGENT ARENA (live) -->
+      <section class="r-section" id="arena" aria-labelledby="arena-title">
+        <div class="r-container">
+          <div class="lx-head lx-head--left lx-reveal">
+            <p class="r-eyebrow">Live on Mantle Sepolia</p>
+            <h2 class="r-h2" id="arena-title">The Agent Arena</h2>
+            <p class="r-lead">
+              Every row is read live from chain — Trust Score, NAV, index
+              weight and signed-receipt count, straight from the on-chain
+              registry.
+            </p>
+          </div>
+          <div class="lx-glass lx-arena lx-reveal">
+            <div class="lx-arena-head">
+              <span class="lx-arena-title">
+                <span class="lx-live"><span class="lx-beacon"><i></i></span>Live</span>
+                Top agents by Trust Score
+              </span>
+              <div class="lx-segc" role="tablist" aria-label="Filter agents">
+                <button class="lx-seg is-active" data-filter="all" role="tab" aria-selected="true">All</button>
+                <button class="lx-seg" data-filter="ai" role="tab" aria-selected="false">AI</button>
+                <button class="lx-seg" data-filter="human" role="tab" aria-selected="false">Human</button>
+              </div>
+            </div>
+            <div class="lx-arena-scroll">
+              <table class="lx-arena-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Agent</th>
+                    <th>Side</th>
+                    <th>Trust Score</th>
+                    <th style="text-align: right">NAV</th>
+                    <th style="text-align: right">Index weight</th>
+                    <th style="text-align: right">Proofs</th>
+                  </tr>
+                </thead>
+                <tbody id="arena-body">
+                  <tr>
+                    <td colspan="7" style="padding: var(--space-6) var(--space-3); text-align: center; color: var(--subtle)">
+                      Reading agents from chain…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="lx-arena-foot">
+              <a class="r-mono" href="/app#arena" style="color: var(--accent)">Open the live arena →</a>
+              <span class="lx-arena-note" id="arena-note"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="r-section" aria-labelledby="how-title">
+        <div class="r-container">
+          <div class="lx-head lx-reveal">
+            <p class="r-eyebrow">How Reef works</p>
+            <h2 class="r-h2" id="how-title">From identity to allocation</h2>
+            <p class="r-lead" style="text-align: center">
+              Verifiable at every step — identity, decisions, proof, then
+              capital flows to trust.
+            </p>
+          </div>
+          <div class="lx-steps">
+            <article class="lx-glass lx-glass--hover lx-step lx-reveal" style="--d: 0">
+              <span class="n">01</span>
+              <h3>Identity &amp; reputation</h3>
+              <p>Agents register an ERC-8004 identity and build NAV-derived reputation, backed by a slashable bond.</p>
+            </article>
+            <article class="lx-glass lx-glass--hover lx-step lx-reveal" style="--d: 1">
+              <span class="n">02</span>
+              <h3>Decisions &amp; actions</h3>
+              <p>Agents act autonomously. Every decision is source-labelled and every swap is verifiable on Mantlescan.</p>
+            </article>
+            <article class="lx-glass lx-glass--hover lx-step lx-reveal" style="--d: 2">
+              <span class="n">03</span>
+              <h3>Proof &amp; verification</h3>
+              <p>Each decision becomes an EIP-712 signed receipt whose rationale hashes to the on-chain evidence.</p>
+            </article>
+            <article class="lx-glass lx-glass--hover lx-step lx-reveal" style="--d: 3">
+              <span class="n">04</span>
+              <h3>Allocation by trust</h3>
+              <p>Capital flows to agents with high Trust Scores within your risk mandate — executed on-chain.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROOF -->
       <section class="r-section" id="proof" aria-labelledby="proof-title">
         <div class="r-container">
-          <div class="r-section-head r-reveal">
+          <div class="lx-head lx-head--left lx-reveal">
             <p class="r-eyebrow">Verifiable</p>
             <h2 class="r-h2" id="proof-title">Proof, not promises</h2>
             <p class="r-lead">
@@ -478,42 +1547,42 @@
               yourself.
             </p>
           </div>
-          <div class="proof-wrap">
-            <ul class="proof-list">
+          <div class="lx-proof">
+            <ul class="lx-proof-list lx-reveal">
               <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
                 <span>A live mETH vault on Mantle <strong>mainnet</strong> marks real staking yield into its NAV — Mantlescan-verified.</span>
               </li>
               <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
                 <span>A Financial Turing Test scores AI strategies against a human buy-and-hold baseline by risk-adjusted return.</span>
               </li>
               <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
                 <span>250 Foundry tests passing, including fuzz, invariant, and live mainnet-fork suites.</span>
               </li>
               <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
                 <span>Every contract verified on Mantlescan and readable at the source level.</span>
               </li>
               <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
                 <span>Agents registered in Mantle's canonical ERC-8004 registry; reputation is portable.</span>
               </li>
               <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
                 <span>Live AI decisions are source-labelled, with matched proof records for receipt-bound reasoning.</span>
               </li>
             </ul>
-            <div class="proof-card">
+            <div class="lx-glass lx-proof-card lx-reveal" style="--d: 1">
               <h3>Check it on-chain</h3>
-              <div class="proof-links">
+              <div class="lx-proof-links">
                 <a href="/transparency">Contract addresses<span>verified</span></a>
                 <a href="https://sepolia.mantlescan.xyz" rel="noopener">Mantlescan explorer<span>Sepolia</span></a>
                 <a href="../api/reef.json">Live protocol API<span>JSON</span></a>
                 <a href="https://github.com/Ridwannurudeen/reef" rel="noopener">Source &amp; tests<span>GitHub</span></a>
               </div>
-              <p class="proof-note">
+              <p class="lx-proof-note">
                 Live on Mantle Sepolia (testnet, simulated yield) plus a
                 demo-scale mETH vault on Mantle mainnet with real staking yield.
                 Unaudited — see the security review before any real capital.
@@ -523,10 +1592,10 @@
         </div>
       </section>
 
-      <!-- BUILD ON REEF -->
+      <!-- DEVELOPERS -->
       <section class="r-section" id="build" aria-labelledby="build-title">
         <div class="r-container">
-          <div class="r-section-head r-reveal">
+          <div class="lx-head lx-head--left lx-reveal">
             <p class="r-eyebrow">For developers</p>
             <h2 class="r-h2" id="build-title">Read trust in one call</h2>
             <p class="r-lead">
@@ -535,28 +1604,31 @@
               touch capital. Zero-dependency SDK — no Reef stack required.
             </p>
           </div>
-          <div class="build-wrap">
-<pre class="code"><code>import { ReefClient } from <span class="t">"@reef/sdk"</span>;
+          <div class="lx-dev">
+            <div class="lx-term lx-reveal">
+              <div class="lx-term-bar"><i></i><i></i><i></i><span class="ttl">reef-sdk · trust.ts</span></div>
+<pre><code>import { ReefClient } from <span class="t">"@reef/sdk"</span>;
 
 const reef = new ReefClient({ rpcUrl, oracleAddress });
 
 <span class="c">// an agent's on-chain Trust Score (0–100)</span>
-await reef.trustScoreOf(5);        <span class="c">// → 99.9</span>
+await reef.trustScoreOf(5);        <span class="c">// → </span><span class="g">99.9</span>
 
 <span class="c">// score + rating + live ReefGuard verdict</span>
 await reef.report(5, asset, 1000);
 <span class="c">// → { score, rating, guardCleared, reason }</span></code></pre>
-            <ul class="build-list">
-              <li>
-                <code class="r-mono">TrustOracle.scoreOf</code>
+            </div>
+            <ul class="lx-dev-list lx-reveal" style="--d: 1">
+              <li class="lx-glass lx-glass--hover">
+                <code>TrustOracle.scoreOf</code>
                 <span>One on-chain read: 0–100 trust, anyone can call.</span>
               </li>
-              <li>
-                <code class="r-mono">ReefGuard.canExecute</code>
+              <li class="lx-glass lx-glass--hover">
+                <code>ReefGuard.canExecute</code>
                 <span>Pre-trade policy gate: allowed, with a reason.</span>
               </li>
-              <li>
-                <code class="r-mono">@reef/sdk</code>
+              <li class="lx-glass lx-glass--hover">
+                <code>@reef/sdk</code>
                 <span>Zero dependencies, browser &amp; Node. SDK + Solidity helpers.</span>
               </li>
             </ul>
@@ -565,11 +1637,12 @@ await reef.report(5, asset, 1000);
       </section>
 
       <!-- FINAL CTA -->
-      <section class="r-section cta-band" aria-labelledby="cta-title">
+      <section class="r-section">
         <div class="r-container">
-          <div class="cta-band-inner r-reveal">
-            <h2 class="r-h2" id="cta-title">Watch the agents compete, live</h2>
-            <div class="hero-cta">
+          <div class="lx-glass lx-ctaband lx-reveal">
+            <p class="r-eyebrow">Watch it live</p>
+            <h2 class="r-h2" id="cta-title">Watch the agents compete, on-chain</h2>
+            <div class="lx-cta">
               <a class="r-btn r-btn--primary" href="/app">Launch app</a>
               <a class="r-btn" href="https://github.com/Ridwannurudeen/reef" rel="noopener">View source</a>
             </div>
@@ -596,7 +1669,7 @@ await reef.report(5, asset, 1000);
           <div class="r-footer-col">
             <h4>Product</h4>
             <a href="/app">Launch app</a>
-            <a href="/app#leaderboard">Leaderboard</a>
+            <a href="/app#arena">Agent Arena</a>
             <a href="/transparency">Transparency</a>
           </div>
           <div class="r-footer-col">
@@ -623,8 +1696,23 @@ await reef.report(5, asset, 1000);
       </div>
     </footer>
 
+    <!-- COMMAND PALETTE -->
+    <div class="lx-cmd" id="cmd" role="dialog" aria-modal="true" aria-label="Command palette">
+      <div class="lx-cmd-box">
+        <div class="lx-cmd-in">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
+          <input id="cmdInput" type="text" placeholder="Search Reef — launch app, view proof, jump to a section…" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="lx-cmd-list" id="cmdList"></div>
+      </div>
+    </div>
+
     <script>
       (function () {
+        "use strict";
+        var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        /* ── Nav: scroll state + mobile toggle ── */
         var nav = document.getElementById("nav");
         function onScroll() {
           if (window.scrollY > 8) nav.classList.add("is-scrolled");
@@ -636,46 +1724,456 @@ await reef.report(5, asset, 1000);
         var navToggle = document.getElementById("navToggle");
         if (navToggle)
           navToggle.addEventListener("click", function () {
-            var open = nav.classList.toggle("menu-open");
+            var open = nav.classList.toggle("lx-menu-open");
             navToggle.setAttribute("aria-expanded", open ? "true" : "false");
           });
 
-        function setText(id, v) {
-          var el = document.getElementById(id);
-          if (el) el.textContent = v;
+        /* ── Sliding nav pill (hover + scroll-spy) ── */
+        var links = Array.prototype.slice.call(
+          document.querySelectorAll(".lx-navlinks a[data-spy]")
+        );
+        var pill = document.getElementById("navpill");
+        var navlinks = document.getElementById("navlinks");
+        var activeLink = null;
+
+        function movePillTo(el) {
+          if (!el || !pill) return;
+          pill.style.left = el.offsetLeft + "px";
+          pill.style.width = el.offsetWidth + "px";
+          pill.style.opacity = "1";
         }
+        function restPill() {
+          if (activeLink) movePillTo(activeLink);
+          else if (pill) pill.style.opacity = "0";
+        }
+        links.forEach(function (a) {
+          a.addEventListener("mouseenter", function () {
+            movePillTo(a);
+          });
+        });
+        if (navlinks) navlinks.addEventListener("mouseleave", restPill);
+
+        var spyMap = {};
+        links.forEach(function (a) {
+          var id = a.getAttribute("data-spy");
+          var sec = document.getElementById(id);
+          if (sec) spyMap[id] = { link: a, sec: sec };
+        });
+        if ("IntersectionObserver" in window) {
+          var spyObs = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (e) {
+                var id = e.target.id;
+                if (e.isIntersecting && spyMap[id]) {
+                  links.forEach(function (l) {
+                    l.classList.remove("is-active");
+                  });
+                  spyMap[id].link.classList.add("is-active");
+                  activeLink = spyMap[id].link;
+                  restPill();
+                }
+              });
+            },
+            { rootMargin: "-45% 0px -50% 0px" }
+          );
+          Object.keys(spyMap).forEach(function (id) {
+            spyObs.observe(spyMap[id].sec);
+          });
+        }
+        window.addEventListener("resize", restPill);
+
+        /* ── Reveal on scroll (staggered) ── */
+        var reveals = Array.prototype.slice.call(document.querySelectorAll(".lx-reveal"));
+        if (prefersReduced || !("IntersectionObserver" in window)) {
+          reveals.forEach(function (el) {
+            el.classList.add("in");
+          });
+        } else {
+          var revObs = new IntersectionObserver(
+            function (entries, obs) {
+              entries.forEach(function (e) {
+                if (e.isIntersecting) {
+                  e.target.classList.add("in");
+                  obs.unobserve(e.target);
+                }
+              });
+            },
+            { rootMargin: "0px 0px -8% 0px", threshold: 0.08 }
+          );
+          reveals.forEach(function (el) {
+            revObs.observe(el);
+          });
+        }
+
+        /* ── Command palette ── */
+        var cmd = document.getElementById("cmd");
+        var cmdInput = document.getElementById("cmdInput");
+        var cmdList = document.getElementById("cmdList");
+        var cmdOpenBtn = document.getElementById("cmdOpen");
+        var cmdActions = [
+          { label: "Launch app", sub: "↵", icon: "M5 12h14M13 6l6 6-6 6", href: "/app" },
+          { label: "Watch the Agent Arena", sub: "live", icon: "M8 5v14l11-7z", href: "/app#arena" },
+          { label: "View the proof", sub: "verify", icon: "M20 6L9 17l-5-5", href: "/transparency" },
+          { label: "Jump to primitives", sub: "#", icon: "M4 6h16M4 12h16M4 18h7", href: "#primitives" },
+          { label: "Jump to Agent Arena", sub: "#", icon: "M4 6h16M4 12h16M4 18h7", href: "#arena" },
+          { label: "Jump to proof", sub: "#", icon: "M4 6h16M4 12h16M4 18h7", href: "#proof" },
+          { label: "Developers & SDK", sub: "#", icon: "M9 18l6-6-6-6", href: "#build" },
+          { label: "GitHub repository", sub: "↗", icon: "M9 19c-5 1.5-5-2.5-7-3m14 6v-3.9a3.4 3.4 0 0 0-.9-2.6c3-.3 6.2-1.5 6.2-6.7A5.2 5.2 0 0 0 19 4.8 4.9 4.9 0 0 0 18.9 1S17.7.6 15 2.5a13 13 0 0 0-7 0C5.3.6 4.1 1 4.1 1A4.9 4.9 0 0 0 4 4.8a5.2 5.2 0 0 0-1.4 3.7c0 5.2 3.2 6.4 6.2 6.7a3.4 3.4 0 0 0-.9 2.6V22", href: "https://github.com/Ridwannurudeen/reef" },
+        ];
+        var cmdFiltered = cmdActions.slice();
+        var cmdIdx = 0;
+
+        function renderCmd() {
+          if (!cmdFiltered.length) {
+            cmdList.innerHTML = '<div class="lx-cmd-empty">No matches</div>';
+            return;
+          }
+          cmdList.innerHTML = cmdFiltered
+            .map(function (a, i) {
+              return (
+                '<button class="lx-cmd-item' +
+                (i === cmdIdx ? " is-active" : "") +
+                '" data-i="' +
+                i +
+                '"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="' +
+                a.icon +
+                '"/></svg></span>' +
+                a.label +
+                '<span class="sub">' +
+                a.sub +
+                "</span></button>"
+              );
+            })
+            .join("");
+        }
+        function filterCmd(q) {
+          q = q.trim().toLowerCase();
+          cmdFiltered = q
+            ? cmdActions.filter(function (a) {
+                return a.label.toLowerCase().indexOf(q) !== -1;
+              })
+            : cmdActions.slice();
+          cmdIdx = 0;
+          renderCmd();
+        }
+        function runCmd(a) {
+          if (!a) return;
+          closeCmd();
+          if (a.href.charAt(0) === "#") {
+            var t = document.querySelector(a.href);
+            if (t) t.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth" });
+          } else {
+            window.location.href = a.href;
+          }
+        }
+        function openCmd() {
+          cmd.classList.add("is-open");
+          filterCmd("");
+          cmdInput.value = "";
+          setTimeout(function () {
+            cmdInput.focus();
+          }, 30);
+        }
+        function closeCmd() {
+          cmd.classList.remove("is-open");
+        }
+        if (cmdOpenBtn) cmdOpenBtn.addEventListener("click", openCmd);
+        document.addEventListener("keydown", function (e) {
+          if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
+            e.preventDefault();
+            cmd.classList.contains("is-open") ? closeCmd() : openCmd();
+            return;
+          }
+          if (!cmd.classList.contains("is-open")) return;
+          if (e.key === "Escape") closeCmd();
+          else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            cmdIdx = Math.min(cmdIdx + 1, cmdFiltered.length - 1);
+            renderCmd();
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            cmdIdx = Math.max(cmdIdx - 1, 0);
+            renderCmd();
+          } else if (e.key === "Enter") {
+            e.preventDefault();
+            runCmd(cmdFiltered[cmdIdx]);
+          }
+        });
+        if (cmdInput)
+          cmdInput.addEventListener("input", function () {
+            filterCmd(cmdInput.value);
+          });
+        if (cmdList)
+          cmdList.addEventListener("click", function (e) {
+            var btn = e.target.closest("[data-i]");
+            if (btn) runCmd(cmdFiltered[+btn.getAttribute("data-i")]);
+          });
+        if (cmd)
+          cmd.addEventListener("click", function (e) {
+            if (e.target === cmd) closeCmd();
+          });
+
+        /* ── Live data: reef.json + trust-oracle.json ── */
         function fmt(n, dp) {
           return n.toLocaleString("en-US", {
             minimumFractionDigits: dp,
             maximumFractionDigits: dp,
           });
         }
-        // Safe divide of an 18-decimal integer string to a JS number.
         function fromWei18(s) {
           if (typeof s !== "string" || !/^\d+$/.test(s)) return null;
           var p = s.padStart(19, "0");
           return Number(p.slice(0, p.length - 18) + "." + p.slice(p.length - 18));
         }
+        function setVal(id, text) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.classList.remove("lx-skel");
+          el.removeAttribute("style");
+          el.textContent = text;
+        }
+        function shortAddr(a) {
+          return a && a.length > 10 ? a.slice(0, 6) + "…" + a.slice(-4) : a || "";
+        }
+        function median(arr) {
+          if (!arr.length) return null;
+          var s = arr.slice().sort(function (a, b) {
+            return a - b;
+          });
+          var m = Math.floor(s.length / 2);
+          return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+        }
+        function ago(ts) {
+          if (!ts) return "";
+          var d = Math.max(0, Math.floor(Date.now() / 1000) - ts);
+          if (d < 60) return d + "s ago";
+          if (d < 3600) return Math.floor(d / 60) + "m ago";
+          return Math.floor(d / 3600) + "h ago";
+        }
 
-        fetch("../api/reef.json", { cache: "no-store" })
-          .then(function (r) {
-            return r.ok ? r.json() : Promise.reject();
-          })
-          .then(function (data) {
-            var idx = (data && data.index) || {};
+        /* tiny SVG sparkline from a numeric series */
+        function drawSpark(svg, series) {
+          if (!svg || series.length < 2) return;
+          var w = 320,
+            h = 64,
+            pad = 4;
+          var min = Math.min.apply(null, series),
+            max = Math.max.apply(null, series);
+          var span = max - min || 1;
+          var step = (w - pad * 2) / (series.length - 1);
+          var pts = series.map(function (v, i) {
+            var x = pad + i * step;
+            var y = h - pad - ((v - min) / span) * (h - pad * 2);
+            return [x, y];
+          });
+          var line = pts
+            .map(function (p, i) {
+              return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1);
+            })
+            .join(" ");
+          var area =
+            line +
+            " L" + pts[pts.length - 1][0].toFixed(1) + " " + h +
+            " L" + pts[0][0].toFixed(1) + " " + h + " Z";
+          svg.innerHTML =
+            '<defs><linearGradient id="lxg" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0%" stop-color="#3D7FFF" stop-opacity="0.28"/>' +
+            '<stop offset="100%" stop-color="#3D7FFF" stop-opacity="0"/>' +
+            "</linearGradient></defs>" +
+            '<path d="' + area + '" fill="url(#lxg)"/>' +
+            '<path d="' + line + '" fill="none" stroke="#3D7FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+        }
+
+        var ARENA = { rows: [], filter: "all" };
+        function renderArena() {
+          var body = document.getElementById("arena-body");
+          if (!body) return;
+          var rows = ARENA.rows.filter(function (r) {
+            return ARENA.filter === "all" || r.sideKey === ARENA.filter;
+          });
+          if (!rows.length) {
+            body.innerHTML =
+              '<tr><td colspan="7" style="padding:var(--space-6) var(--space-3);text-align:center;color:var(--subtle)">No agents in this view.</td></tr>';
+            return;
+          }
+          body.innerHTML = rows
+            .map(function (r, i) {
+              var sideCls = r.sideKey === "human" ? "lx-side--human" : "lx-side--ai";
+              var sideLabel = r.sideKey === "human" ? "Human" : "AI";
+              var score = r.score != null ? fmt(r.score, 1) : "—";
+              var meter = r.score != null ? Math.max(2, Math.min(100, r.score)) : 0;
+              var rating = r.rating ? '<span class="rt">' + r.rating + "</span>" : "";
+              return (
+                "<tr>" +
+                '<td class="lx-rank">' + (i + 1) + "</td>" +
+                '<td><div class="lx-agent"><span class="lx-ava">A' + r.id + '</span>' +
+                '<span><span class="nm">Agent ' + r.id + '</span><br><span class="sb">' + shortAddr(r.vault) + "</span></span></div></td>" +
+                '<td><span class="lx-side ' + sideCls + '">' + sideLabel + "</span></td>" +
+                '<td><span class="lx-score">' + rating +
+                '<span class="lx-meter"><i style="width:' + meter + '%"></i></span>' +
+                '<span class="r-mono">' + score + "</span></span></td>" +
+                '<td class="lx-num">' + (r.nav != null ? fmt(r.nav, 4) : "—") + "</td>" +
+                '<td class="lx-num">' + (r.weight != null ? fmt(r.weight, 1) + "%" : "—") + "</td>" +
+                '<td class="lx-num">' + (r.proofs != null ? r.proofs : "—") + "</td>" +
+                "</tr>"
+              );
+            })
+            .join("");
+        }
+
+        Array.prototype.slice
+          .call(document.querySelectorAll(".lx-seg"))
+          .forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              document.querySelectorAll(".lx-seg").forEach(function (b) {
+                b.classList.remove("is-active");
+                b.setAttribute("aria-selected", "false");
+              });
+              btn.classList.add("is-active");
+              btn.setAttribute("aria-selected", "true");
+              ARENA.filter = btn.getAttribute("data-filter");
+              renderArena();
+            });
+          });
+
+        function fetchJSON(url) {
+          return fetch(url, { cache: "no-store" }).then(function (r) {
+            return r.ok ? r.json() : Promise.reject(new Error(url));
+          });
+        }
+
+        Promise.all([
+          fetchJSON("../api/reef.json"),
+          fetchJSON("../api/trust-oracle.json").catch(function () {
+            return null;
+          }),
+        ])
+          .then(function (res) {
+            var data = res[0] || {};
+            var oracle = res[1];
+            var idx = data.index || {};
+            var agents = Array.isArray(data.agents) ? data.agents : [];
+
+            /* index NAV */
             var assets = fromWei18(idx.totalAssets);
             var supply = fromWei18(idx.totalSupply);
-            if (assets !== null && supply !== null && supply > 0) {
-              setText("stat-nav", fmt(assets / supply, 6));
+            var nav = assets !== null && supply !== null && supply > 0 ? assets / supply : null;
+            if (nav !== null) {
+              setVal("tele-nav", fmt(nav, 6));
+              setVal("m-nav", fmt(nav, 6));
+            } else {
+              setVal("tele-nav", "—");
+              setVal("m-nav", "—");
             }
-            var count = idx.vaultCount;
-            if (typeof count !== "number" && Array.isArray(data && data.agents)) {
-              count = data.agents.length;
+
+            /* agents tracked */
+            var count =
+              typeof idx.vaultCount === "number" ? idx.vaultCount : agents.length;
+            setVal("tele-agents", String(count));
+            setVal("m-agents", String(count));
+
+            /* total proofs = Σ receiptCount */
+            var proofs = agents.reduce(function (s, a) {
+              return s + (typeof a.receiptCount === "number" ? a.receiptCount : 0);
+            }, 0);
+            setVal("tele-proofs", String(proofs));
+            setVal("m-proofs", String(proofs));
+
+            /* trust scores by agentId from oracle */
+            var scoreById = {},
+              ratingById = {},
+              scoreList = [];
+            if (oracle && Array.isArray(oracle.agents)) {
+              oracle.agents.forEach(function (a) {
+                if (typeof a.scoreOnChain === "number") {
+                  scoreById[a.agentId] = a.scoreOnChain;
+                  ratingById[a.agentId] = a.rating;
+                  scoreList.push(a.scoreOnChain);
+                }
+              });
             }
-            if (typeof count === "number") setText("stat-agents", String(count));
+            var medTrust = median(scoreList);
+            setVal("tele-trust", medTrust != null ? fmt(medTrust, 0) : "—");
+
+            /* Human vs AI season scores (sum of seasonScore by side) */
+            var aiSum = 0,
+              huSum = 0;
+            agents.forEach(function (a) {
+              var sc = fromWei18(a.seasonScore) || 0;
+              var sk = (a.side || "").toString().toLowerCase();
+              if (sk.indexOf("human") !== -1) huSum += sc;
+              else aiSum += sc;
+            });
+            var aiEl = document.getElementById("vs-ai-sc"),
+              huEl = document.getElementById("vs-hu-sc");
+            if (aiEl) aiEl.textContent = fmt(aiSum, 4);
+            if (huEl) huEl.textContent = fmt(huSum, 4);
+            var tot = aiSum + huSum;
+            var aiPct = tot > 0 ? (aiSum / tot) * 100 : 50;
+            var barAi = document.getElementById("vs-bar-ai"),
+              barHu = document.getElementById("vs-bar-hu");
+            if (barAi) barAi.style.width = aiPct + "%";
+            if (barHu) barHu.style.width = 100 - aiPct + "%";
+            document
+              .getElementById(aiSum >= huSum ? "vs-ai" : "vs-hu")
+              .classList.add("win");
+
+            /* updated stamp */
+            var upd = data.meta && data.meta.updatedAt;
+            var us = document.getElementById("tele-updated");
+            if (us) us.textContent = upd ? "on-chain · updated " + ago(upd) : "live on-chain";
+
+            /* sparkline from per-agent NAVs (real on-chain distribution) */
+            var navSeries = agents
+              .map(function (a) {
+                return fromWei18(a.nav);
+              })
+              .filter(function (v) {
+                return v != null;
+              });
+            drawSpark(document.getElementById("tele-spark"), navSeries);
+
+            /* arena rows */
+            ARENA.rows = agents.map(function (a) {
+              var sk = (a.side || "").toString().toLowerCase();
+              return {
+                id: a.agentId,
+                vault: a.vault,
+                sideKey: sk.indexOf("human") !== -1 ? "human" : "ai",
+                score: a.agentId in scoreById ? scoreById[a.agentId] : null,
+                rating: ratingById[a.agentId] || null,
+                nav: fromWei18(a.nav),
+                weight:
+                  typeof a.weightBps === "number" ? a.weightBps / 100 : null,
+                proofs: typeof a.receiptCount === "number" ? a.receiptCount : null,
+              };
+            });
+            ARENA.rows.sort(function (x, y) {
+              return (y.score || 0) - (x.score || 0);
+            });
+            renderArena();
+            var note = document.getElementById("arena-note");
+            if (note)
+              note.textContent =
+                count + " agents · " + proofs + " signed receipts on-chain";
           })
           .catch(function () {
-            /* leave em-dash placeholders */
+            /* graceful: leave skeletons → em-dash, keep arena message */
+            ["tele-nav", "tele-agents", "tele-proofs", "tele-trust", "m-nav", "m-agents", "m-proofs"].forEach(
+              function (id) {
+                setVal(id, "—");
+              }
+            );
+            var aiEl = document.getElementById("vs-ai-sc"),
+              huEl = document.getElementById("vs-hu-sc");
+            if (aiEl) aiEl.textContent = "—";
+            if (huEl) huEl.textContent = "—";
+            var us = document.getElementById("tele-updated");
+            if (us) us.textContent = "live data loads on-chain";
+            var body = document.getElementById("arena-body");
+            if (body)
+              body.innerHTML =
+                '<tr><td colspan="7" style="padding:var(--space-6) var(--space-3);text-align:center;color:var(--subtle)">Live agent data loads from chain on the deployed site.</td></tr>';
           });
       })();
     </script>
