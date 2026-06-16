@@ -41,6 +41,8 @@ Every agent in Reef has a portable **ERC-8004 identity**, a **sovereign vault**,
 
 - **SignalMarket (A2A).** Provider agents list priced signals; consumers buy them; per-provider and global sales/revenue tracked on-chain. Purchases **do not** credit ERC-8004 reputation — so the agent-to-agent economy cannot farm reputation.
 
+- **Bring-your-own-agent (open network).** Reef is open, not a curated 5-agent demo. A fork-ready scaffold (`create-reef-agent`) + the zero-dependency `@reef/sdk` let any builder register an ERC-8004 identity, post a bond, **self-list into the index** (`AgentIndex.selfListVault`), and run the same proof-bound loop. A **6th agent, deployed entirely through this path**, is registered, **indexed** (`getAllocation()` now returns 6 agents), and has published proof-bound receipts on-chain — it chose `increase` and deployed capital into its own vault. (Run on demand, not a continuous timer.)
+
 ---
 
 ## The AI — real decisions in the real workflow
@@ -49,12 +51,12 @@ Reef's agents are **not a cosmetic chatbot bolted onto a dashboard**. The AI sit
 
 1. **Grounded inputs.** Each agent reads live market signals — **Allora** ETH predictions, **Nansen** smart-money flow, and **CoinGecko** price/24h momentum — plus the vault's on-chain NAV state.
 2. **Real LLM decision.** Those inputs go to **Z.ai GLM (`glm-4.7-flash`)**, which returns an allocation action (`increase`/`hold`/`decrease`) and a plain-English rationale grounded in the data (e.g. at a drawdown with ETH down ~2.9% it chose `decrease`, citing momentum). A VPS cron runs one rotating agent per cycle under the free-tier rate limit; if the model is unavailable it falls back to a deterministic rule, recorded honestly as `source:"fallback"`.
-3. **Verifiable AI on-chain.** Decisions are source-labelled in `/api/executions.json`; rationale-bound receipts are summarized in `/api/proofs.json`. For records marked `proofStatus: "matched"`, `keccak(reasoning) == evidenceHash` can be recomputed and matched against the vault's on-chain `lastReceiptEvidenceHash`. Cadence-only receipts are labelled separately.
-4. **Real execution.** On an `increase`, the agent executes a **real swap on FusionX V2** (a Mantle-native Uniswap-V2 DEX) on Sepolia; the decision + real swap txHash are served at `/api/executions.json` and verifiable on Mantlescan.
+3. **Atomic, gated, proof-bound execution (live).** The live loop — `proofbound_rebalance`, now the **sole on-chain publisher** — does all of this in one pass per vault: the GLM action is **gated by `ReefGuard.canExecute`**, then capital moves **into the vault's NAV through an `AdapterRegistry`-vetted strategy adapter** (`deployToStrategy`/`recallFromStrategy` — *not* to an operator wallet), and the **same pass** publishes an EIP-712 receipt whose `evidenceHash == keccak256(rationale)`. The decision, the capital move, and the proof are bound together, not stitched after the fact.
+4. **Verify it yourself.** Fresh evidence is served at `/api/proofbound.json` + `/api/proofs.json`. For records marked `proofStatus: "matched"`, recompute `keccak256(rationale)` and match it against the vault's on-chain `lastReceiptEvidenceHash`. Reputation is credited only from **realized, donation-proof NAV above a high-water mark**, so a hold or a round-trip can't mint trust. (Agents can also execute real swaps on **FusionX V2**, a Mantle-native DEX — `FusionXAdapter` is mainnet-fork-tested against the live router; the live testnet loop routes through the strategy adapter for atomic NAV accounting.)
 
-This is the maximal AI×RWA shape for a hackathon prototype: an LLM or explicitly-labelled fallback making the allocation call, matched reasoning records that can be verified against on-chain receipt evidence, and the decision actually moving on-chain through a Mantle-native DEX.
+This is the maximal AI×RWA shape for a hackathon prototype: an LLM (or explicitly-labelled fallback) making the allocation call, the call **gated by on-chain policy**, capital **moving in vault NAV**, and the reasoning **atomically bound** to an on-chain receipt anyone can recompute.
 
-> Honest scope (from `AI_USAGE.md`): live execution swaps currently acquire tokens to the operator wallet (agent-level execution); routing the swap output into the vault NAV via a strategy adapter is a follow-up. The decision → matched proof record → swap loop is real and live when `proofStatus` is `matched`; full vault-routed execution is the next step.
+> Honest scope (from `AI_USAGE.md`): on testnet the live proof-bound loop routes capital into vault NAV via a (mock) strategy adapter, with the decision atomically bound to the receipt — closing the earlier "tokens land in the operator wallet" gap. Real-DEX (FusionX) execution routed *into vault NAV* on mainnet, with real TVL, remains the audit-gated follow-up. GLM runs on a free tier; when it's unavailable the agent falls back to a deterministic rule, recorded honestly as `source:"fallback"`.
 
 ---
 
@@ -125,7 +127,7 @@ All addresses below are from the repo's `deployments/*.json` and are Mantlescan-
 4. **Verify it yourself.** On `/transparency`, the Trust Score badge renders the **on-chain `TrustOracle.scoreOf`** (off-chain parity Δ in the tooltip), and the page reads NAV / reputation / receipts straight from chain. Cross-check any address on Mantlescan; for `/api/proofs.json` records marked `matched`, recompute `keccak(reasoning)` against the receipt's `evidenceHash`.
 5. **Build on it.** Read trust with `ITrustOracle(oracle).scoreOf(agentId)` (1e18 == 100/100), or gate an entrypoint with `onlyCleared(id, asset, sizeBps)` via `ReefGuarded`; JS/TS via the zero-dependency `@reef/sdk`. Reference integrations `MockProtocol` and `TrustOracleConsumer` are live and verified.
 
-**Build/test:** Solidity 0.8.24, Foundry; `forge build && forge test` — **250 tests passing, 1 skipped** (verified `forge test`), including fuzz/invariant suites and live Mantle-mainnet fork tests (one L1-fork test opt-in via `ETHEREUM_RPC`, skipped by default).
+**Build/test:** Solidity 0.8.24, Foundry; `forge build && forge test` — **253 tests passing, 1 skipped** (verified `forge test`; includes `ProofBoundRebalance.t.sol`, which proves the decide→gate→move→bound-receipt→realized-rep loop against the real contracts), plus fuzz/invariant suites and live Mantle-mainnet fork tests (one L1-fork test opt-in via `ETHEREUM_RPC`, skipped by default).
 
 ---
 
