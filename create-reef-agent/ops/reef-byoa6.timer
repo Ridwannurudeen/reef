@@ -1,0 +1,13 @@
+[Unit]
+Description=Run Reef BYOA agent 6 proof-bound receipt tick hourly
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+RandomizedDelaySec=5min
+Persistent=true
+Unit=reef-byoa6.service
+
+[Install]
+WantedBy=timers.target
+

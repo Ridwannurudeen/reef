@@ -3,11 +3,23 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
+    <meta
+      name="description"
+      content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle."
+    />
     <meta name="theme-color" content="#f7f8fa" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='7' fill='%233D7FFF'/%3E%3Cpath d='M6 16.6c2.3-3.3 4.6-3.3 7 0 2.4 3.3 4.7 3.3 7 0' stroke='%230a0a0b' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
-    <meta property="og:title" content="Reef — capital allocation for AI agents on Mantle" />
-    <meta property="og:description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='7' fill='%233D7FFF'/%3E%3Cpath d='M6 16.6c2.3-3.3 4.6-3.3 7 0 2.4 3.3 4.7 3.3 7 0' stroke='%230a0a0b' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <meta
+      property="og:title"
+      content="Reef — capital allocation for AI agents on Mantle"
+    />
+    <meta
+      property="og:description"
+      content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://reef.gudman.xyz" />
     <meta property="og:image" content="https://reef.gudman.xyz/og.png" />
@@ -15,19 +27,32 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="Reef" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Reef — capital allocation for AI agents on Mantle" />
-    <meta name="twitter:description" content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle." />
+    <meta
+      name="twitter:title"
+      content="Reef — capital allocation for AI agents on Mantle"
+    />
+    <meta
+      name="twitter:description"
+      content="Deposit once. Autonomous agents compete, rebalance, and explain every yield decision — live on Mantle."
+    />
     <meta name="twitter:image" content="https://reef.gudman.xyz/og.png" />
     <title>Reef — capital allocation for AI agents on Mantle</title>
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
     <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
-    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" />
-    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="reef.css" />
     <script>
       // No-flash theme: light is default; apply stored dark before first paint.
       try {
-        if (localStorage.getItem("reef-theme") === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        if (localStorage.getItem("reef-theme") === "dark")
+          document.documentElement.setAttribute("data-theme", "dark");
       } catch (e) {}
     </script>
     <script src="theme.js" defer></script>
@@ -557,6 +582,92 @@
         padding: 14px;
         background: var(--bg-soft);
       }
+      .byoa-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr);
+        gap: 14px;
+      }
+      .byoa-layout > * {
+        min-width: 0;
+      }
+      .byoa-status-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .byoa-status {
+        min-width: 0;
+        min-height: 82px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 12px;
+        background: var(--bg-soft);
+      }
+      .byoa-status-label {
+        color: var(--muted);
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .byoa-status-value {
+        display: block;
+        margin-top: 8px;
+        font-family: var(--mono);
+        font-size: 13px;
+        font-variant-numeric: tabular-nums;
+        word-break: break-all;
+      }
+      .byoa-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+      .byoa-steps {
+        display: grid;
+        gap: 10px;
+      }
+      .byoa-step {
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 12px 13px;
+        background: var(--surface);
+      }
+      .byoa-step strong {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text);
+        font-size: 13px;
+      }
+      .byoa-step span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .byoa-code {
+        max-width: 100%;
+        margin: 14px 0 0;
+        padding: 13px;
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.55;
+        white-space: pre;
+      }
+      .byoa-live-panel {
+        margin-top: 14px;
+      }
+      .byoa-admission-actions {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+      }
       .row {
         display: flex;
         align-items: center;
@@ -839,7 +950,10 @@
         .tool-grid,
         .hva-grid,
         .proof-grid,
-        .config-grid {
+        .config-grid,
+        .byoa-layout,
+        .byoa-status-grid,
+        .byoa-fields {
           grid-template-columns: 1fr;
         }
         .terminal-body {
@@ -1729,21 +1843,58 @@
     <header class="topbar">
       <div class="topbar-inner">
         <a class="brand" href="/" aria-label="Reef home">
-          <span class="brand-mark"><img src="/reef-mark.svg" width="28" height="28" alt="" /></span>
+          <span class="brand-mark"
+            ><img src="/reef-mark.svg" width="28" height="28" alt=""
+          /></span>
           <span>Reef</span>
         </a>
         <nav class="nav" aria-label="Primary">
           <a href="#overview" class="tab-link" data-tab="overview">Overview</a>
           <a href="#agents" class="tab-link" data-tab="agents">Agents</a>
-          <a href="#allocator" class="tab-link" data-tab="allocator">Allocator</a>
+          <a href="#launch">Launch</a>
+          <a href="#allocator" class="tab-link" data-tab="allocator"
+            >Allocator</a
+          >
           <a href="#a2a" class="tab-link" data-tab="market">Market</a>
           <a href="#activity" class="tab-link" data-tab="activity">Activity</a>
           <a href="/transparency">Transparency</a>
         </nav>
         <div class="conn">
-          <button class="r-theme-toggle" id="themeToggle" aria-label="Toggle light or dark theme" title="Toggle theme">
-            <svg class="ic-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
-            <svg class="ic-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+          <button
+            class="r-theme-toggle"
+            id="themeToggle"
+            aria-label="Toggle light or dark theme"
+            title="Toggle theme"
+          >
+            <svg
+              class="ic-sun"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+              />
+            </svg>
+            <svg
+              class="ic-moon"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+            </svg>
           </button>
           <button
             id="beginnerToggle"
@@ -1798,7 +1949,9 @@
         <div class="ck-status" role="group" aria-label="Your live status">
           <div class="ck-stat">
             <span class="ck-stat-label">Wallet</span>
-            <span id="ckWallet" class="ck-stat-value r-mono">Not connected</span>
+            <span id="ckWallet" class="ck-stat-value r-mono"
+              >Not connected</span
+            >
           </div>
           <div class="ck-stat">
             <span class="ck-stat-label">Network</span>
@@ -1845,11 +1998,7 @@
             </div>
             <div class="ck-step-actions">
               <button id="ckKycBtn" type="button">Self-attest</button>
-              <button
-                id="ckKycScrollBtn"
-                type="button"
-                class="ck-link"
-              >
+              <button id="ckKycScrollBtn" type="button" class="ck-link">
                 Details ↗
               </button>
             </div>
@@ -1878,11 +2027,7 @@
               <button id="ckDepositBtn" type="button" class="primary">
                 Approve + deposit
               </button>
-              <button
-                id="ckDepositScrollBtn"
-                type="button"
-                class="ck-link"
-              >
+              <button id="ckDepositScrollBtn" type="button" class="ck-link">
                 Set amount ↗
               </button>
             </div>
@@ -1911,11 +2056,7 @@
             </div>
             <div class="ck-step-actions">
               <button id="ckChallengeBtn" type="button">Challenge</button>
-              <button
-                id="ckChallengeScrollBtn"
-                type="button"
-                class="ck-link"
-              >
+              <button id="ckChallengeScrollBtn" type="button" class="ck-link">
                 Pick agent ↗
               </button>
             </div>
@@ -1924,11 +2065,7 @@
               <button id="ckAllocateBtn" type="button" class="primary">
                 Allocate via mandate
               </button>
-              <button
-                id="ckAllocateScrollBtn"
-                type="button"
-                class="ck-link"
-              >
+              <button id="ckAllocateScrollBtn" type="button" class="ck-link">
                 Set amount ↗
               </button>
             </div>
@@ -1938,7 +2075,9 @@
       </section>
       <section class="hero" data-tab="overview">
         <div>
-          <div class="mantle-badge"><span class="mantle-dot"></span>Mantle Sepolia</div>
+          <div class="mantle-badge">
+            <span class="mantle-dot"></span>Mantle Sepolia
+          </div>
           <h1>Overview</h1>
           <p class="lead">
             Autonomous agents compete for capital. Every decision is proven
@@ -2037,7 +2176,9 @@
         </div>
         <div class="ev-strip">
           <div class="ev-card" id="evGlm">
-            <div class="ev-label"><span class="live-dot"></span> Latest AI decision</div>
+            <div class="ev-label">
+              <span class="live-dot"></span> Latest AI decision
+            </div>
             <div id="evGlmBody"><span class="muted">loading…</span></div>
           </div>
           <div class="ev-card" id="evSwap">
@@ -2120,7 +2261,9 @@
                 <div class="metric-value" id="hvaHuman">-</div>
               </div>
               <div class="hva-card">
-                <div class="metric-label">Delta <span data-term="bps">bps</span></div>
+                <div class="metric-label">
+                  Delta <span data-term="bps">bps</span>
+                </div>
                 <div class="metric-value" id="hvaDelta">-</div>
               </div>
             </div>
@@ -2140,7 +2283,7 @@
             </p>
           </aside>
         </div>
-      <div class="reef-viz-shell" id="reefVizShell">
+        <div class="reef-viz-shell" id="reefVizShell">
           <div class="reef-viz-head">
             <span class="reef-viz-title">Living reef</span>
             <span class="reef-viz-legend"
@@ -2157,7 +2300,7 @@
             aria-label="Live map of agent vaults sized by on-chain index weight"
           ></svg>
         </div>
-        </section>
+      </section>
 
       <section id="index-actions" data-tab="overview">
         <div class="section-head">
@@ -2246,6 +2389,183 @@
         </div>
       </section>
 
+      <section id="launch" data-tab="overview">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Bring your own agent</div>
+            <h2>Launch a competing vault</h2>
+          </div>
+          <p class="section-copy">
+            Register the agent identity with your wallet, then run the local
+            scaffold to deploy the vault, adapter, bond, first receipt, and
+            self-listing on Mantle Sepolia.
+          </p>
+        </div>
+        <div class="byoa-layout">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="table-title">Operator registration</div>
+              <span id="byoaWalletState" class="badge warn"
+                >connect wallet</span
+              >
+            </div>
+            <div class="byoa-status-grid">
+              <div class="byoa-status">
+                <span class="byoa-status-label">Wallet</span>
+                <span id="byoaWallet" class="byoa-status-value">-</span>
+              </div>
+              <div class="byoa-status">
+                <span class="byoa-status-label">Next on-chain ID</span>
+                <span id="byoaNextId" class="byoa-status-value">-</span>
+              </div>
+              <div class="byoa-status">
+                <span class="byoa-status-label">Registered ID</span>
+                <span id="byoaAgentState" class="byoa-status-value">-</span>
+              </div>
+              <div class="byoa-status">
+                <span class="byoa-status-label">Bond gate</span>
+                <span id="byoaBondGate" class="byoa-status-value">-</span>
+              </div>
+            </div>
+            <div class="byoa-fields">
+              <div>
+                <label for="byoaAgentId">Agent ID</label>
+                <input
+                  id="byoaAgentId"
+                  inputmode="numeric"
+                  placeholder="registered id"
+                />
+              </div>
+              <div>
+                <label for="byoaVault">Vault address</label>
+                <input
+                  id="byoaVault"
+                  placeholder="0x... after deploy_agent.py"
+                />
+              </div>
+            </div>
+            <div class="row">
+              <button id="byoaRegisterBtn" class="primary" type="button">
+                Register agent
+              </button>
+              <button id="byoaCheckBtn" class="ghost" type="button">
+                Check status
+              </button>
+              <span id="byoaResult" class="small"></span>
+            </div>
+            <p id="byoaListingState" class="small" style="margin-top: 12px">
+              Paste the vault after deployment to verify that it is listed in
+              the live arena.
+            </p>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div class="table-title">Local runtime path</div>
+              <span class="badge">create-reef-agent</span>
+            </div>
+            <div class="byoa-steps">
+              <div class="byoa-step">
+                <strong>1. Edit the strategy</strong>
+                <span>Change <code>create-reef-agent/strategy.py</code>.</span>
+              </div>
+              <div class="byoa-step">
+                <strong>2. Deploy the agent stack</strong>
+                <span
+                  >One script registers or reuses the agent ID, deploys the
+                  vault and adapter, posts bond, and self-lists.</span
+                >
+              </div>
+              <div class="byoa-step">
+                <strong>3. Keep exactly one runtime live</strong>
+                <span
+                  >The loop publishes strict-sequence proof-bound receipts for
+                  that vault.</span
+                >
+              </div>
+            </div>
+            <pre
+              id="byoaCommand"
+              class="byoa-code"
+              aria-label="BYOA launch commands"
+            ></pre>
+          </div>
+        </div>
+        <div class="panel byoa-live-panel">
+          <div class="panel-head">
+            <div class="table-title">Live BYOA proof</div>
+            <span id="byoaLiveBadge" class="badge">waiting</span>
+          </div>
+          <div class="byoa-status-grid">
+            <div class="byoa-status">
+              <span class="byoa-status-label">Vault</span>
+              <span id="byoaLiveVault" class="byoa-status-value">-</span>
+            </div>
+            <div class="byoa-status">
+              <span class="byoa-status-label">ReefGuard</span>
+              <span id="byoaLiveGuard" class="byoa-status-value">-</span>
+            </div>
+            <div class="byoa-status">
+              <span class="byoa-status-label">Trust score</span>
+              <span id="byoaLiveTrust" class="byoa-status-value">-</span>
+            </div>
+            <div class="byoa-status">
+              <span class="byoa-status-label">Latest receipt</span>
+              <span id="byoaLiveReceipt" class="byoa-status-value">-</span>
+            </div>
+          </div>
+          <p id="byoaLiveDetail" class="small" style="margin-top: 12px">
+            Waiting for a self-listed BYOA vault.
+          </p>
+        </div>
+        <div class="panel byoa-live-panel">
+          <div class="panel-head">
+            <div class="table-title">Runtime + admission</div>
+            <span id="byoaHealthBadge" class="badge">waiting</span>
+          </div>
+          <div class="byoa-status-grid">
+            <div class="byoa-status">
+              <span class="byoa-status-label">Runtime</span>
+              <span id="byoaRuntimeState" class="byoa-status-value">-</span>
+            </div>
+            <div class="byoa-status">
+              <span class="byoa-status-label">Timer</span>
+              <span id="byoaTimerState" class="byoa-status-value">-</span>
+            </div>
+            <div class="byoa-status">
+              <span class="byoa-status-label">Strategy</span>
+              <span id="byoaStrategyState" class="byoa-status-value">-</span>
+            </div>
+            <div class="byoa-status">
+              <span class="byoa-status-label">Operator gas</span>
+              <span id="byoaGasState" class="byoa-status-value">-</span>
+            </div>
+            <div class="byoa-status">
+              <span class="byoa-status-label">Season</span>
+              <span id="byoaSeasonState" class="byoa-status-value">-</span>
+            </div>
+            <div class="byoa-status">
+              <span class="byoa-status-label">Allocator</span>
+              <span id="byoaAllocatorState" class="byoa-status-value">-</span>
+            </div>
+            <div class="byoa-status">
+              <span class="byoa-status-label">TrustOracle</span>
+              <span id="byoaOracleState" class="byoa-status-value">-</span>
+            </div>
+            <div class="byoa-status">
+              <span class="byoa-status-label">Signer</span>
+              <span id="byoaSignerState" class="byoa-status-value">-</span>
+            </div>
+          </div>
+          <div class="byoa-admission-actions">
+            <button id="byoaEnrollBtn" type="button">Enroll season</button>
+            <button id="byoaAllocatorBtn" type="button">Admit allocator</button>
+            <button id="byoaOracleBtn" type="button">Register oracle</button>
+            <span id="byoaAdmissionResult" class="small"></span>
+          </div>
+        </div>
+      </section>
+
       <section id="proof" data-tab="overview">
         <div class="section-head">
           <div>
@@ -2288,13 +2608,16 @@
             <h2>The agent's last decision — bound to chain</h2>
           </div>
           <p class="section-copy">
-            Each rebalance is ReefGuard-gated, moves real vault capital through an
-            approved strategy, and commits the verbatim rationale on-chain as the
-            receipt evidence. Recompute <code>keccak256(rationale)</code> yourself and
-            match it against the vault's on-chain hash — no trust required.
+            Each rebalance is ReefGuard-gated, moves real vault capital through
+            an approved strategy, and commits the verbatim rationale on-chain as
+            the receipt evidence. Recompute
+            <code>keccak256(rationale)</code> yourself and match it against the
+            vault's on-chain hash — no trust required.
           </p>
         </div>
-        <div id="pbBody" class="small">loading the latest proof-bound decision…</div>
+        <div id="pbBody" class="small">
+          loading the latest proof-bound decision…
+        </div>
       </section>
 
       <section id="compliance" data-tab="overview">
@@ -2306,9 +2629,9 @@
           <p class="section-copy">
             Before an agent may touch capital, any Mantle protocol can call
             <code>ReefGuard.canExecute(agentId, asset, sizeBps)</code> — a live
-            policy gate over registration, ERC-8004 reputation, posted bond, open
-            disputes, asset allowlist, and action size. The verdicts below are
-            read live from chain.
+            policy gate over registration, ERC-8004 reputation, posted bond,
+            open disputes, asset allowlist, and action size. The verdicts below
+            are read live from chain.
           </p>
         </div>
         <div
@@ -2331,8 +2654,8 @@
             <code>ComplianceRegistry</code> is an on-chain KYC / accreditation /
             jurisdiction registry. Deposits and allocations are gated on a live
             <code>screen(address)</code> verdict. This is a testnet demo you can
-            self-attest in one click; in production the attestation is written by
-            a licensed issuer.
+            self-attest in one click; in production the attestation is written
+            by a licensed issuer.
           </p>
         </div>
         <div class="tool">
@@ -2359,13 +2682,21 @@
             <h2>Can the AI beat a human?</h2>
           </div>
           <p class="section-copy">
-            Every strategy, Allora's prediction, and a Human baseline that just buys and holds ETH
-            take a directional position each round; we mark each to the realised ETH move and score
-            them on the same basis. Ranked by risk-adjusted return (Sharpe) — the hackathon's
-            question made measurable: which autonomous agents actually beat passively holding?
+            Every strategy, Allora's prediction, and a Human baseline that just
+            buys and holds ETH take a directional position each round; we mark
+            each to the realised ETH move and score them on the same basis.
+            Ranked by risk-adjusted return (Sharpe) — the hackathon's question
+            made measurable: which autonomous agents actually beat passively
+            holding?
           </p>
         </div>
-        <div id="turingHead" class="feed-row muted" style="margin-bottom: var(--space-3)">loading benchmark…</div>
+        <div
+          id="turingHead"
+          class="feed-row muted"
+          style="margin-bottom: var(--space-3)"
+        >
+          loading benchmark…
+        </div>
         <div class="feed" id="turingOut">
           <div class="feed-row muted">loading competitors…</div>
         </div>
@@ -2378,13 +2709,20 @@
             <h2>Real multi-agent PnL — mainnet</h2>
           </div>
           <p class="section-copy">
-            Four real AgentVaults on Mantle mainnet (chain 5000) trade USDC↔WMNT via FusionX:
-            three AI strategies against a passive HODL baseline, each marked to live on-chain NAV
-            and ranked by risk-adjusted return (Sharpe). Unaudited and demo-scale — this panel
-            fills once the mainnet benchmark is deployed and the keeper runs.
+            Four real AgentVaults on Mantle mainnet (chain 5000) trade USDC↔WMNT
+            via FusionX: three AI strategies against a passive HODL baseline,
+            each marked to live on-chain NAV and ranked by risk-adjusted return
+            (Sharpe). Unaudited and demo-scale — this panel fills once the
+            mainnet benchmark is deployed and the keeper runs.
           </p>
         </div>
-        <div id="mainnetBenchHead" class="feed-row muted" style="margin-bottom: var(--space-3)">loading benchmark…</div>
+        <div
+          id="mainnetBenchHead"
+          class="feed-row muted"
+          style="margin-bottom: var(--space-3)"
+        >
+          loading benchmark…
+        </div>
         <div class="feed" id="mainnetBenchOut">
           <div class="feed-row muted">loading competitors…</div>
         </div>
@@ -2397,22 +2735,26 @@
             <h2>Strategy arena</h2>
           </div>
           <p class="section-copy">
-            Five agents see the same live inputs — CoinGecko momentum, Allora's ETH
-            prediction, Nansen smart-money flow — but each trades a different edge. Every round
-            their calls are scored against the realised ETH move, so the ranking is a live
-            benchmark of which on-chain AI strategy is right most often.
+            Five agents see the same live inputs — CoinGecko momentum, Allora's
+            ETH prediction, Nansen smart-money flow — but each trades a
+            different edge. Every round their calls are scored against the
+            realised ETH move, so the ranking is a live benchmark of which
+            on-chain AI strategy is right most often.
           </p>
         </div>
         <div class="feed" id="strategyArena">
           <div class="feed-row muted">loading strategies…</div>
         </div>
         <h3 class="aif-headline" style="margin: 22px 0 8px">
-          Live on-chain duel <span class="muted" style="font-weight: 400">— real NAV &amp; reputation</span>
+          Live on-chain duel
+          <span class="muted" style="font-weight: 400"
+            >— real NAV &amp; reputation</span
+          >
         </h3>
         <p class="section-copy" style="margin-bottom: 10px">
-          Two of these strategies run real AgentVaults that deploy into a FusionX position
-          pegged to live ETH. Their NAV and ERC-8004 reputation move with real exposure timing —
-          on-chain, verifiable on Mantlescan.
+          Two of these strategies run real AgentVaults that deploy into a
+          FusionX position pegged to live ETH. Their NAV and ERC-8004 reputation
+          move with real exposure timing — on-chain, verifiable on Mantlescan.
         </p>
         <div class="feed" id="arenaOnchain">
           <div class="feed-row muted">loading on-chain duel…</div>
@@ -2426,16 +2768,35 @@
             <h2>Allocator</h2>
           </div>
           <p class="section-copy">
-            Don't pick agents — pick a <em>mandate</em>. The on-chain Allocator deposits capital and
-            allocates it across the agents that <em>qualify</em>, weighted by each agent's on-chain
-            Trust Score and capped per-agent for concentration risk. The active mandate runs live on
-            Mantle Sepolia; switch the menu to preview how capital would flow under another mandate.
+            Don't pick agents — pick a <em>mandate</em>. The on-chain Allocator
+            deposits capital and allocates it across the agents that
+            <em>qualify</em>, weighted by each agent's on-chain Trust Score and
+            capped per-agent for concentration risk. The active mandate runs
+            live on Mantle Sepolia; switch the menu to preview how capital would
+            flow under another mandate.
           </p>
         </div>
-        <div id="allocatorHead" class="feed-row muted" style="margin-bottom: var(--space-3)">loading allocator…</div>
+        <div
+          id="allocatorHead"
+          class="feed-row muted"
+          style="margin-bottom: var(--space-3)"
+        >
+          loading allocator…
+        </div>
         <div style="margin-bottom: var(--space-3)">
           <label class="meta" for="mandateSel">Mandate</label>
-          <select id="mandateSel" style="margin-left: 8px; background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 6px 10px; font-family: var(--mono)"></select>
+          <select
+            id="mandateSel"
+            style="
+              margin-left: 8px;
+              background: var(--surface-2);
+              color: var(--text);
+              border: 1px solid var(--line-strong);
+              border-radius: var(--radius-sm);
+              padding: 6px 10px;
+              font-family: var(--mono);
+            "
+          ></select>
         </div>
         <div class="feed" id="allocatorOut">
           <div class="feed-row muted">loading allocator…</div>
@@ -2459,14 +2820,22 @@
             <h2>Signal market</h2>
           </div>
           <p class="section-copy">
-            Agents don't just allocate capital — they <em>trade</em> with each other. Providers list
-            priced signals under a category; consumers buy them and payment routes peer-to-peer. Every
-            sale and the lifetime revenue per provider is tracked <em>on-chain</em> (no log scanning),
-            so the marketplace volume is verifiable. Buying a signal never credits reputation — that
-            stays vault-only, so the A2A market can't be used to farm trust.
+            Agents don't just allocate capital — they <em>trade</em> with each
+            other. Providers list priced signals under a category; consumers buy
+            them and payment routes peer-to-peer. Every sale and the lifetime
+            revenue per provider is tracked <em>on-chain</em> (no log scanning),
+            so the marketplace volume is verifiable. Buying a signal never
+            credits reputation — that stays vault-only, so the A2A market can't
+            be used to farm trust.
           </p>
         </div>
-        <div id="a2aHead" class="feed-row muted" style="margin-bottom: var(--space-3)">loading market…</div>
+        <div
+          id="a2aHead"
+          class="feed-row muted"
+          style="margin-bottom: var(--space-3)"
+        >
+          loading market…
+        </div>
         <div class="feed" id="a2aOut">
           <div class="feed-row muted">loading market…</div>
         </div>
@@ -2479,14 +2848,21 @@
             <h2>Allora accuracy</h2>
           </div>
           <p class="section-copy">
-            Reef benchmarks the AI it consumes. Each round we record Allora's ETH/USD prediction
-            (topic 13, on the decentralized inference network) and the live spot, then score that
-            prediction against the realized price one hour later — absolute error and whether it
-            called the direction. Hit-rate and error accumulate in public, so you can see how
-            good the signal actually is — not just that we use it.
+            Reef benchmarks the AI it consumes. Each round we record Allora's
+            ETH/USD prediction (topic 13, on the decentralized inference
+            network) and the live spot, then score that prediction against the
+            realized price one hour later — absolute error and whether it called
+            the direction. Hit-rate and error accumulate in public, so you can
+            see how good the signal actually is — not just that we use it.
           </p>
         </div>
-        <div id="alloraBenchHead" class="feed-row muted" style="margin-bottom: var(--space-3)">loading benchmark…</div>
+        <div
+          id="alloraBenchHead"
+          class="feed-row muted"
+          style="margin-bottom: var(--space-3)"
+        >
+          loading benchmark…
+        </div>
         <div class="feed" id="alloraBenchOut">
           <div class="feed-row muted">loading benchmark…</div>
         </div>
@@ -2499,11 +2875,12 @@
             <h2>Agent decisions &amp; trades</h2>
           </div>
           <p class="section-copy">
-            Each agent reasons over a live market signal (CoinGecko ETH momentum) plus its
-            on-chain NAV via Z.ai GLM or a deterministic fallback, and executes real swaps on
-            FusionX V2 when it chooses to increase or decrease. Decision source, model, rationale,
-            and swap transaction hashes are published in the feed; cadence receipts and swaps are
-            verifiable on Mantlescan.
+            Each agent reasons over a live market signal (CoinGecko ETH
+            momentum) plus its on-chain NAV via Z.ai GLM or a deterministic
+            fallback, and executes real swaps on FusionX V2 when it chooses to
+            increase or decrease. Decision source, model, rationale, and swap
+            transaction hashes are published in the feed; cadence receipts and
+            swaps are verifiable on Mantlescan.
           </p>
         </div>
         <div class="ai-featured" id="aiFeatured" hidden>
@@ -2560,7 +2937,12 @@
       </details>
     </main>
 
-    <span id="reef-tip" class="reef-tip" role="tooltip" aria-hidden="true"></span>
+    <span
+      id="reef-tip"
+      class="reef-tip"
+      role="tooltip"
+      aria-hidden="true"
+    ></span>
 
     <div
       id="agentModal"
@@ -2592,12 +2974,19 @@
       /* Tab shell controller — additive only; the data layer below never reads
          section visibility, so hidden panes keep receiving live updates. */
       (function () {
-        var TABS = { overview: 1, agents: 1, allocator: 1, market: 1, activity: 1 };
+        var TABS = {
+          overview: 1,
+          agents: 1,
+          allocator: 1,
+          market: 1,
+          activity: 1,
+        };
         // Legacy deep-links (#arena, #ai, …) map to the tab that contains them.
         var ALIAS = {
           arena: "overview",
           leaderboard: "overview",
           "index-actions": "overview",
+          launch: "overview",
           proof: "overview",
           top: "overview",
           strategies: "agents",
@@ -2614,16 +3003,19 @@
         function apply() {
           var h = location.hash.replace("#", "");
           var tab = tabFor(h);
-          document.querySelectorAll("main section[data-tab]").forEach(function (s) {
-            s.classList.toggle("tab-off", s.getAttribute("data-tab") !== tab);
-          });
+          document
+            .querySelectorAll("main section[data-tab]")
+            .forEach(function (s) {
+              s.classList.toggle("tab-off", s.getAttribute("data-tab") !== tab);
+            });
           document.querySelectorAll(".nav .tab-link").forEach(function (a) {
             var on = a.getAttribute("data-tab") === tab;
             a.classList.toggle("is-active", on);
             if (on) a.setAttribute("aria-current", "page");
             else a.removeAttribute("aria-current");
           });
-          var target = h && !TABS[h] && ALIAS[h] ? document.getElementById(h) : null;
+          var target =
+            h && !TABS[h] && ALIAS[h] ? document.getElementById(h) : null;
           if (target) target.scrollIntoView();
           else window.scrollTo(0, 0);
         }
@@ -2651,6 +3043,8 @@
       const NS = "reef.ui.v2";
       const ZERO = "0x0000000000000000000000000000000000000000";
       const DEPLOYMENTS_URL = "../deployments/mantle-sepolia.json";
+      const REEF_URL = "../api/reef.json";
+      const ACTIVITY_URL = "../api/activity.json";
       const AI_FEED_URL = "../api/executions.json";
       const STRATEGY_URL = "../api/agents.json";
       const ARENA_URL = "../api/arena.json";
@@ -2661,6 +3055,7 @@
       const MAINNET_TURING_URL = "../api/mainnet-turing-bench.json";
       const HISTORY_URL = "../api/history.json";
       const PROOFBOUND_URL = "../api/proofbound.json";
+      const BYOA_STATUS_URL = "../api/byoa/status.json";
       // Minimal view for the "verify it yourself" on-chain read.
       const VAULT_RECEIPT_ABI = [
         {
@@ -2686,8 +3081,8 @@
         explorer: "https://explorer.sepolia.mantle.xyz",
       };
       const MANTLE_SEPOLIA_FALLBACK_RPCS = [
-        "https://mantle-sepolia.drpc.org",
         MANTLE_SEPOLIA.rpc,
+        "https://mantle-sepolia.drpc.org",
       ];
       const LOG_WINDOW_BLOCKS = 2500n;
 
@@ -2772,6 +3167,27 @@
       ];
 
       const IDENTITY_ABI = [
+        {
+          type: "function",
+          name: "register",
+          stateMutability: "nonpayable",
+          inputs: [],
+          outputs: [{ name: "agentId", type: "uint256" }],
+        },
+        {
+          type: "function",
+          name: "nextAgentId",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ type: "uint256" }],
+        },
+        {
+          type: "function",
+          name: "getAgentWallet",
+          stateMutability: "view",
+          inputs: [{ name: "agentId", type: "uint256" }],
+          outputs: [{ type: "address" }],
+        },
         {
           type: "function",
           name: "getSummary",
@@ -2867,6 +3283,27 @@
         },
         {
           type: "function",
+          name: "isRegistered",
+          stateMutability: "view",
+          inputs: [{ name: "vault", type: "address" }],
+          outputs: [{ type: "bool" }],
+        },
+        {
+          type: "function",
+          name: "reputationBond",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ type: "address" }],
+        },
+        {
+          type: "function",
+          name: "minBond",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ type: "uint256" }],
+        },
+        {
+          type: "function",
           name: "deposit",
           stateMutability: "nonpayable",
           inputs: [{ name: "assets", type: "uint256" }],
@@ -2917,6 +3354,27 @@
       const ALLOCATOR_ABI = [
         {
           type: "function",
+          name: "addVault",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "vault", type: "address" }],
+          outputs: [],
+        },
+        {
+          type: "function",
+          name: "governor",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ type: "address" }],
+        },
+        {
+          type: "function",
+          name: "isRegistered",
+          stateMutability: "view",
+          inputs: [{ name: "vault", type: "address" }],
+          outputs: [{ type: "bool" }],
+        },
+        {
+          type: "function",
           name: "deposit",
           stateMutability: "nonpayable",
           inputs: [{ name: "assets", type: "uint256" }],
@@ -2930,6 +3388,82 @@
             { name: "assets", type: "uint256", indexed: false },
             { name: "shares", type: "uint256", indexed: false },
           ],
+        },
+      ];
+
+      const TRUST_ORACLE_ABI = [
+        {
+          type: "function",
+          name: "registerVault",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "vault", type: "address" }],
+          outputs: [],
+        },
+        {
+          type: "function",
+          name: "governor",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ type: "address" }],
+        },
+        {
+          type: "function",
+          name: "vaultOf",
+          stateMutability: "view",
+          inputs: [{ name: "agentId", type: "uint256" }],
+          outputs: [{ type: "address" }],
+        },
+      ];
+
+      const SEASONS_ABI = [
+        {
+          type: "function",
+          name: "enroll",
+          stateMutability: "nonpayable",
+          inputs: [
+            { name: "id", type: "uint256" },
+            { name: "agentId", type: "uint256" },
+            { name: "side", type: "uint8" },
+          ],
+          outputs: [],
+        },
+        {
+          type: "function",
+          name: "seasonCount",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ type: "uint256" }],
+        },
+        {
+          type: "function",
+          name: "seasons",
+          stateMutability: "view",
+          inputs: [{ name: "", type: "uint256" }],
+          outputs: [
+            { name: "start", type: "uint64" },
+            { name: "end", type: "uint64" },
+            { name: "finalized", type: "bool" },
+          ],
+        },
+        {
+          type: "function",
+          name: "enrolled",
+          stateMutability: "view",
+          inputs: [
+            { name: "", type: "uint256" },
+            { name: "", type: "uint256" },
+          ],
+          outputs: [{ type: "bool" }],
+        },
+        {
+          type: "function",
+          name: "sideOf",
+          stateMutability: "view",
+          inputs: [
+            { name: "", type: "uint256" },
+            { name: "", type: "uint256" },
+          ],
+          outputs: [{ type: "uint8" }],
         },
       ];
 
@@ -2997,8 +3531,12 @@
         allocation: [],
         navHistory: [],
         history: null,
+        reefDoc: null,
+        activityDoc: null,
         hvaMode: "ai",
         hvaWinner: null,
+        byoaStatus: null,
+        byoaAdmission: null,
         pollIndex: null,
         pollFeed: null,
       };
@@ -3085,7 +3623,7 @@
             .filter(Boolean),
         );
         if (urls.length === 0 || urls.includes(MANTLE_SEPOLIA.rpc)) {
-          return unique([...MANTLE_SEPOLIA_FALLBACK_RPCS, ...urls]);
+          return unique([...urls, ...MANTLE_SEPOLIA_FALLBACK_RPCS]);
         }
         return urls;
       }
@@ -3167,6 +3705,15 @@
         return { label: `${Math.floor(age / 86400)}d`, cls: "bad" };
       }
 
+      async function grabJson(url) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          return res.ok ? await res.json() : null;
+        } catch {
+          return null;
+        }
+      }
+
       function renderProofRail() {
         const reef = state.deployment?.reef || {};
         const seeded = state.deployment?.seeded || {};
@@ -3223,7 +3770,9 @@
           `<div class="proof-card"><div class="proof-label">Reputation</div><span>${rec.reputation != null ? navStr(rec.reputation) : "—"}</span></div>` +
           "</div>" +
           `<p class="muted" style="margin:0 0 6px">Rationale</p><p style="margin:0 0 var(--space-3)">“${pbEsc(rec.rationale)}”</p>` +
-          (txs ? `<p class="small" style="margin:0 0 var(--space-3)">${txs}</p>` : "") +
+          (txs
+            ? `<p class="small" style="margin:0 0 var(--space-3)">${txs}</p>`
+            : "") +
           `<p class="small mono" style="word-break:break-all;margin:0 0 6px">evidence: ${pbEsc(rec.evidenceHash || "—")}</p>` +
           '<button id="pbVerifyBtn" class="ghost" type="button">Verify it yourself</button>' +
           '<div id="pbVerifyOut" class="small" style="margin-top:8px"></div>';
@@ -3348,7 +3897,11 @@
         return {
           id: c.chainIdNum,
           name: c.name,
-          nativeCurrency: { name: c.symbol, symbol: c.symbol, decimals: c.decimals },
+          nativeCurrency: {
+            name: c.symbol,
+            symbol: c.symbol,
+            decimals: c.decimals,
+          },
           rpcUrls: { default: { http: [c.rpc] } },
         };
       }
@@ -3510,8 +4063,98 @@
         }
       }
 
+      function snapshotAgent(row) {
+        return {
+          agentId: BigInt(row.agentId),
+          vault: row.vault,
+          weightBps: BigInt(row.weightBps || 0),
+          deployed: BigInt(row.deployed || 0),
+          nav: BigInt(row.nav || 0),
+          reputation: BigInt(row.reputation || 0),
+          count: BigInt(row.receiptCount || row.count || 0),
+          lastReceiptAt: BigInt(row.lastReceiptAt || 0),
+          seasonScore: row.seasonScore,
+          side: row.side,
+        };
+      }
+
+      async function renderLeaderboardRows(enriched, indexNav) {
+        enriched.sort((x, y) =>
+          y.reputation > x.reputation
+            ? 1
+            : y.reputation < x.reputation
+              ? -1
+              : 0,
+        );
+        state.allocation = enriched;
+        const stale = enriched.filter(
+          (a) => formatAge(a.lastReceiptAt).cls !== "good",
+        ).length;
+        setText("leaderboardStatus", `${enriched.length} agents`);
+        const freshBadge = $("freshnessSummary");
+        freshBadge.className = `badge ${stale ? "warn" : "good"}`;
+        freshBadge.textContent = stale
+          ? `${stale}/${enriched.length} receipts stale`
+          : "receipts live";
+
+        const scoresByAgent = {};
+        const scores = await grabJson("../api/scores.json");
+        for (const s of scores?.agents || [])
+          scoresByAgent[String(s.agentId)] = s;
+
+        const oracleByAgent = {};
+        const oracle = await grabJson("../api/trust-oracle.json");
+        for (const o of oracle?.agents || [])
+          oracleByAgent[String(o.agentId)] = o;
+
+        $("lbBody").innerHTML = enriched
+          .map((a, i) => {
+            const repClass =
+              a.reputation > 0n ? "pos" : a.reputation < 0n ? "neg" : "";
+            const sc = scoresByAgent[a.agentId.toString()];
+            const oc = oracleByAgent[a.agentId.toString()];
+            const tScore = oc ? oc.scoreOnChain : sc ? sc.trustScore : null;
+            const tRating = oc ? oc.rating : sc ? sc.rating : "";
+            const trustTitle = oc
+              ? `On-chain Trust Oracle${oc.deltaPct != null ? ` - off-chain parity delta ${oc.deltaPct}` : ""}`
+              : "Reef Trust Score (off-chain)";
+            const trust =
+              tScore != null
+                ? `<span class="badge ${tScore >= 70 ? "good" : tScore >= 55 ? "" : "warn"}" title="${trustTitle}">${tScore} ${tRating}</span>`
+                : "";
+            const lead =
+              i === 0 && a.reputation > 0n
+                ? `<span class="badge good">leader</span>`
+                : "";
+            const rank =
+              i < 3
+                ? `<span class="rank rank-${i + 1}">${i + 1}</span>`
+                : `${i + 1}`;
+            const rowClass = i === 0 && a.reputation > 0n ? "leader-row" : "";
+            const wpct = Math.min(100, Number(a.weightBps) / 100);
+            const age = formatAge(a.lastReceiptAt);
+            return `<tr class="lb-row ${rowClass}" data-agent-id="${a.agentId.toString()}" tabindex="0" role="button" aria-label="Open details for agent ${a.agentId.toString()}">
+      <td data-label="#">${rank} ${lead}</td>
+      <td data-label="Agent"><a href="agent?id=${a.agentId.toString()}" style="color: var(--accent)" title="Open agent passport">agent ${a.agentId.toString()} -></a> ${trust}</td>
+      <td data-label="Vault"><a href="${explorerFor(state.chainId)}/address/${a.vault}" target="_blank" rel="noopener">${shortAddr(a.vault)}</a></td>
+      <td data-label="Reputation" class="num ${repClass}">${fmtSigned18(a.reputation)}</td>
+      <td data-label="NAV" class="num">${fmt18(a.nav, 6)}</td>
+      <td data-label="Weight" class="num weight-cell">
+        <span>${fmtBps(a.weightBps)}</span>
+        <span class="wbar"><span class="wbar-fill" style="width:${wpct}%"></span></span>
+      </td>
+      <td data-label="Deployed" class="num">${fmt18(a.deployed)}</td>
+      <td data-label="Receipt"><span class="badge ${age.cls}">${age.label}</span></td>
+    </tr>`;
+          })
+          .join("");
+
+        drawSparkline();
+        renderReef();
+        refreshHumanVsAi(indexNav);
+      }
+
       async function refreshIndex() {
-        if (!state.publicClient) return;
         if (!state.cfg.index) {
           setNotice(
             "Contracts are not configured. Open Network and contract config below to set AgentIndex, AgentIdentity, and Asset addresses.",
@@ -3521,6 +4164,80 @@
           refreshLeaderboard(undefined);
           return;
         }
+        const reefDoc = await grabJson(REEF_URL);
+        if (reefDoc?.index && Array.isArray(reefDoc.agents)) {
+          state.reefDoc = reefDoc;
+          const total = BigInt(reefDoc.index.totalAssets || 0);
+          const shares = BigInt(reefDoc.index.totalSupply || 0);
+          const vCount = BigInt(
+            reefDoc.index.vaultCount || reefDoc.agents.length || 0,
+          );
+          const nav =
+            shares === 0n ? 10n ** 18n : (total * 10n ** 18n) / shares;
+          setNotice("");
+          setNumberAnimated("idxTotalAssets", fmt18(total));
+          setNumberAnimated("idxTotalShares", fmt18(shares));
+          setNumberAnimated("idxNav", fmt18(nav, 6));
+          setText("idxVaultCount", vCount.toString());
+          setText(
+            "lastUpdated",
+            reefDoc.meta?.updatedAt
+              ? new Date(
+                  Number(reefDoc.meta.updatedAt) * 1000,
+                ).toLocaleTimeString()
+              : new Date().toLocaleTimeString(),
+          );
+          $("rebalBtn").disabled = vCount === 0n;
+          if (vCount === 0n) setText("rebalResult", "no vaults registered");
+          else if ($("rebalResult").textContent === "no vaults registered")
+            setText("rebalResult", "");
+
+          if (state.account && state.publicClient) {
+            try {
+              const my = await rpcRead(
+                () =>
+                  state.publicClient.readContract({
+                    address: state.cfg.index,
+                    abi: INDEX_ABI,
+                    functionName: "balanceOf",
+                    args: [state.account],
+                  }),
+                "index balanceOf",
+              );
+              setNumberAnimated("idxYourShares", fmt18(my));
+              const myAssets = shares === 0n ? 0n : (my * nav) / 10n ** 18n;
+              setNumberAnimated("idxYourAssets", fmt18(myAssets));
+            } catch {
+              setText("idxYourShares", "-");
+              setText("idxYourAssets", "-");
+            }
+            if (state.cfg.asset) {
+              try {
+                const bal = await rpcRead(
+                  () =>
+                    state.publicClient.readContract({
+                      address: state.cfg.asset,
+                      abi: ERC20_ABI,
+                      functionName: "balanceOf",
+                      args: [state.account],
+                    }),
+                  "asset balanceOf",
+                );
+                setNumberAnimated("idxWalletAsset", fmt18(bal));
+              } catch {
+                setText("idxWalletAsset", "-");
+              }
+            }
+          } else {
+            setText("idxYourShares", "-");
+            setText("idxYourAssets", "-");
+            setText("idxWalletAsset", "-");
+          }
+
+          await renderLeaderboardRows(reefDoc.agents.map(snapshotAgent), nav);
+          return;
+        }
+        if (!state.publicClient) return;
         try {
           const c = state.publicClient;
           const idx = state.cfg.index;
@@ -3928,11 +4645,14 @@
         const agents = (data && data.agents) || [];
         const board = (data && data.scoreboard) || {};
         if (!agents.length) {
-          $("strategyArena").innerHTML = `<div class="feed-row muted">no strategy round yet</div>`;
+          $("strategyArena").innerHTML =
+            `<div class="feed-row muted">no strategy round yet</div>`;
           return;
         }
         const acc = (s) => (board[s] && board[s].accuracyPct) || 0;
-        const ranked = agents.slice().sort((a, b) => acc(b.strategy) - acc(a.strategy));
+        const ranked = agents
+          .slice()
+          .sort((a, b) => acc(b.strategy) - acc(a.strategy));
         const inp = data.inputs || {};
         const head = `<div class="feed-row muted">round ${data.round || 1} · ETH $${Number(inp.spot || 0).toFixed(0)} · Allora $${Number(inp.alloraPred || 0).toFixed(0)} · smart money ${inp.nansen || "-"}</div>`;
         $("strategyArena").innerHTML =
@@ -3940,8 +4660,15 @@
           ranked
             .map((a, i) => {
               const sc = board[a.strategy] || {};
-              const accTxt = sc.rounds ? `${sc.accuracyPct}% (${sc.correct}/${sc.rounds})` : "—";
-              const dir = a.action === "increase" ? "up" : a.action === "decrease" ? "down" : "flat";
+              const accTxt = sc.rounds
+                ? `${sc.accuracyPct}% (${sc.correct}/${sc.rounds})`
+                : "—";
+              const dir =
+                a.action === "increase"
+                  ? "up"
+                  : a.action === "decrease"
+                    ? "down"
+                    : "flat";
               const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "■";
               const cls = dir === "up" ? "pos" : dir === "down" ? "neg" : "";
               return `<div class="feed-row feed-${dir}">
@@ -3998,7 +4725,7 @@
         sel.innerHTML = doc.mandates
           .map(
             (m) =>
-              `<option value="${m.id}"${m.id === doc.activeMandate ? " selected" : ""}>${m.name} — min Trust ${m.minTrustScorePct}${m.id === doc.activeMandate ? " (active on-chain)" : ""}</option>`
+              `<option value="${m.id}"${m.id === doc.activeMandate ? " selected" : ""}>${m.name} — min Trust ${m.minTrustScorePct}${m.id === doc.activeMandate ? " (active on-chain)" : ""}</option>`,
           )
           .join("");
         sel.dataset.filled = "1";
@@ -4011,9 +4738,18 @@
           host.innerHTML = `<div class="feed-row muted">allocator feed unavailable</div>`;
           return;
         }
-        const id = mandateId == null || mandateId === "" ? doc.activeMandate : Number(mandateId);
-        const m = (doc.mandates || []).find((x) => x.id === id) || doc.mandates[doc.activeMandate];
-        const rows = _allocCompute(doc.agents, m.minTrustScorePct, m.maxWeightBps);
+        const id =
+          mandateId == null || mandateId === ""
+            ? doc.activeMandate
+            : Number(mandateId);
+        const m =
+          (doc.mandates || []).find((x) => x.id === id) ||
+          doc.mandates[doc.activeMandate];
+        const rows = _allocCompute(
+          doc.agents,
+          m.minTrustScorePct,
+          m.maxWeightBps,
+        );
         const excluded = doc.agents
           .filter((a) => (a.trustScorePct || 0) < m.minTrustScorePct)
           .sort((x, y) => (y.trustScorePct || 0) - (x.trustScorePct || 0));
@@ -4024,7 +4760,7 @@
               <span class="badge">agent ${r.a.agentId} · Trust ${r.a.trustScorePct}${r.capped ? " · capped" : ""}</span>
               <span class="feed-when">${r.pct.toFixed(1)}%</span></div>
               <span class="wbar" style="display:block;margin-top:6px"><span class="wbar-fill" style="width:${r.pct.toFixed(1)}%"></span></span>
-            </div>`
+            </div>`,
               )
               .join("")
           : `<div class="feed-row muted">no agents qualify for this mandate</div>`;
@@ -4032,7 +4768,7 @@
           .map(
             (a) => `<div class="feed-row muted"><div class="feed-line">
               <span class="badge">agent ${a.agentId} · Trust ${a.trustScorePct}</span>
-              <span class="feed-when">excluded · below ${m.minTrustScorePct}</span></div></div>`
+              <span class="feed-when">excluded · below ${m.minTrustScorePct}</span></div></div>`,
           )
           .join("");
         host.innerHTML = html;
@@ -4074,7 +4810,7 @@
               <span class="badge">${l.provider} · ${l.category}</span>
               <span class="feed-when">${l.priceMnt.toFixed(4)} MNT</span></div>
               <span class="meta">${l.sales} ${l.sales === 1 ? "sale" : "sales"} · ${l.revenueMnt.toFixed(4)} MNT earned</span>
-            </div>`
+            </div>`,
           )
           .join("");
         const head = $("a2aHead");
@@ -4110,7 +4846,7 @@
               <span class="badge ${r.dirCorrect ? "pos" : "neg"}">direction ${r.dirCorrect ? "✓" : "✗"}</span>
               <span class="feed-when">${r.errBps.toFixed(1)} bps error</span></div>
               <span class="meta">predicted $${r.predictedPrice.toLocaleString()} → realized $${r.realizedSpot.toLocaleString()}</span>
-            </div>`
+            </div>`,
               )
               .join("")
           : `<div class="feed-row muted">accumulating — the first prediction is awaiting its evaluation window</div>`;
@@ -4149,22 +4885,35 @@
         const head = $("turingHead");
         if (head) {
           const inp = (data && data.inputs) || {};
-          const spot = inp.spot != null ? `ETH $${Number(inp.spot).toLocaleString()}` : "ETH —";
+          const spot =
+            inp.spot != null
+              ? `ETH $${Number(inp.spot).toLocaleString()}`
+              : "ETH —";
           head.innerHTML = `<span class="badge">${comp.length} competitors</span> <span class="feed-when">${spot} · round ${inp.round || 0} · ranked by risk-adjusted return</span>`;
         }
         if (!comp.length) {
-          $("turingOut").innerHTML = `<div class="feed-row muted">benchmark initialising…</div>`;
+          $("turingOut").innerHTML =
+            `<div class="feed-row muted">benchmark initialising…</div>`;
           return;
         }
         $("turingOut").innerHTML = comp
           .map((c, i) => {
             const human = c.kind === "human";
-            const roi = c.paperRoiBps == null ? "—" : `${c.paperRoiBps > 0 ? "+" : ""}${(c.paperRoiBps / 100).toFixed(2)}%`;
+            const roi =
+              c.paperRoiBps == null
+                ? "—"
+                : `${c.paperRoiBps > 0 ? "+" : ""}${(c.paperRoiBps / 100).toFixed(2)}%`;
             const sharpe = c.sharpe == null ? "—" : c.sharpe.toFixed(2);
-            const dd = c.maxDrawdownBps == null ? "—" : `${(c.maxDrawdownBps / 100).toFixed(2)}%`;
+            const dd =
+              c.maxDrawdownBps == null
+                ? "—"
+                : `${(c.maxDrawdownBps / 100).toFixed(2)}%`;
             const hit = c.hitRatePct == null ? "—" : `${c.hitRatePct}%`;
-            const cls = c.paperRoiBps > 0 ? "pos" : c.paperRoiBps < 0 ? "neg" : "";
-            const tag = human ? ' <span class="muted" style="font-weight:400">· human baseline</span>' : "";
+            const cls =
+              c.paperRoiBps > 0 ? "pos" : c.paperRoiBps < 0 ? "neg" : "";
+            const tag = human
+              ? ' <span class="muted" style="font-weight:400">· human baseline</span>'
+              : "";
             return `<div class="feed-row">
               <div class="feed-line">
                 <span class="badge">#${i + 1} ${c.name}${tag}</span>
@@ -4192,22 +4941,36 @@
           head.innerHTML = `<span class="badge">${comp.length} competitors</span> <span class="feed-when">mainnet · chain 5000 · ranked by Sharpe${tail}</span>`;
         }
         if (!comp.length) {
-          $("mainnetBenchOut").innerHTML = `<div class="feed-row muted">benchmark initialising — deploy the mainnet vaults to populate</div>`;
+          $("mainnetBenchOut").innerHTML =
+            `<div class="feed-row muted">benchmark initialising — deploy the mainnet vaults to populate</div>`;
           return;
         }
         $("mainnetBenchOut").innerHTML = comp
           .map((c, i) => {
             const human = c.kind === "human";
-            const roi = c.paperRoiBps == null ? "—" : `${c.paperRoiBps > 0 ? "+" : ""}${(c.paperRoiBps / 100).toFixed(2)}%`;
+            const roi =
+              c.paperRoiBps == null
+                ? "—"
+                : `${c.paperRoiBps > 0 ? "+" : ""}${(c.paperRoiBps / 100).toFixed(2)}%`;
             const sharpe = c.sharpe == null ? "—" : c.sharpe.toFixed(2);
-            const dd = c.maxDrawdownBps == null ? "—" : `${(c.maxDrawdownBps / 100).toFixed(2)}%`;
-            const excess = c.excessRoiBps == null ? "—" : `${c.excessRoiBps > 0 ? "+" : ""}${(c.excessRoiBps / 100).toFixed(2)}%`;
-            const ir = c.informationRatio == null ? "—" : c.informationRatio.toFixed(2);
+            const dd =
+              c.maxDrawdownBps == null
+                ? "—"
+                : `${(c.maxDrawdownBps / 100).toFixed(2)}%`;
+            const excess =
+              c.excessRoiBps == null
+                ? "—"
+                : `${c.excessRoiBps > 0 ? "+" : ""}${(c.excessRoiBps / 100).toFixed(2)}%`;
+            const ir =
+              c.informationRatio == null ? "—" : c.informationRatio.toFixed(2);
             const stance = c.stance == null ? "—" : c.stance;
             const samples = c.samples == null ? "—" : c.samples;
             const edge = c.edge == null ? "—" : c.edge;
-            const cls = c.paperRoiBps > 0 ? "pos" : c.paperRoiBps < 0 ? "neg" : "";
-            const tag = human ? ' <span class="muted" style="font-weight:400">· human baseline</span>' : "";
+            const cls =
+              c.paperRoiBps > 0 ? "pos" : c.paperRoiBps < 0 ? "neg" : "";
+            const tag = human
+              ? ' <span class="muted" style="font-weight:400">· human baseline</span>'
+              : "";
             return `<div class="feed-row">
               <div class="feed-line">
                 <span class="badge">#${i + 1} ${c.name}${tag}</span>
@@ -4230,7 +4993,8 @@
         }
         const agents = (data && data.agents) || [];
         if (!agents.length) {
-          $("arenaOnchain").innerHTML = `<div class="feed-row muted">on-chain duel initialising…</div>`;
+          $("arenaOnchain").innerHTML =
+            `<div class="feed-row muted">on-chain duel initialising…</div>`;
           return;
         }
         const base = explorerFor(state.chainId);
@@ -4265,7 +5029,8 @@
         const xs = (data && data.executions) || [];
         renderAiFeatured(xs);
         if (!xs.length) {
-          $("aiFeed").innerHTML = `<div class="feed-row muted">no agent decisions yet</div>`;
+          $("aiFeed").innerHTML =
+            `<div class="feed-row muted">no agent decisions yet</div>`;
           return;
         }
         $("aiFeed").innerHTML = xs
@@ -4310,6 +5075,39 @@
       }
 
       async function refreshFeed() {
+        const activity = await grabJson(ACTIVITY_URL);
+        if (activity?.events) {
+          state.activityDoc = activity;
+          state.navHistory = (activity.navHistory || []).map((n) => BigInt(n));
+          drawSparkline();
+          if (activity.events.length === 0) {
+            $("feed").innerHTML =
+              `<div class="feed-row muted">no recent activity</div>`;
+            return;
+          }
+          const clsByEvent = {
+            AgentRegistered: "ev-blue",
+            IndexDeposit: "ev-green",
+            IndexWithdraw: "ev-red",
+            Rebalanced: "ev-gold",
+            ReceiptPublished: "ev-green",
+          };
+          $("feed").innerHTML = activity.events
+            .slice(0, 20)
+            .map((e) => {
+              const ts = e.timestamp
+                ? new Date(Number(e.timestamp) * 1000).toLocaleTimeString()
+                : "";
+              const hash = tx0x(e.transactionHash || "");
+              const cls = clsByEvent[e.eventName] || "";
+              return `<div class="feed-row ${cls}">
+      <span class="badge">${aifEscape(e.eventName || "Event")}</span> <span class="feed-detail">${aifEscape(e.detail || "")}</span>
+      <div class="meta">${aifEscape(ts)} / block ${aifEscape(e.blockNumber || "-")} / <a href="${explorerFor(state.chainId)}/tx/${aifEscape(hash)}" target="_blank" rel="noopener">${aifEscape(hash.slice(0, 10))}...</a></div>
+    </div>`;
+            })
+            .join("");
+          return;
+        }
         if (!state.publicClient) return;
         const c = state.publicClient;
         let head;
@@ -4665,7 +5463,8 @@
         if (!bond) return toast("bond not configured", "err");
         if (!state.cfg.asset) return toast("asset not configured", "err");
         const agentId = BigInt($("chalAgent").value);
-        const reason = $("chalReason").value.trim() || `reef-challenge:agent${agentId}`;
+        const reason =
+          $("chalReason").value.trim() || `reef-challenge:agent${agentId}`;
         const evidence = keccak256(toHex(reason));
         let stake;
         try {
@@ -4761,12 +5560,13 @@
         const host = $("guardOut");
         if (!host) return;
         const guard = state.deployment?.reefGuard;
-        if (!guard?.address || !state.publicClient) {
+        if (!guard?.address) {
           setText("guardPolicy", "ReefGuard not configured.");
           host.innerHTML = `<div class="feed-row muted">waiting for ReefGuard</div>`;
           return;
         }
-        const p = guard.policy || {};
+        const guardDoc = await grabJson("../api/guard.json");
+        const p = guardDoc?.policy || guard.policy || {};
         const minRep = p.minReputationE18
           ? fmt18(BigInt(p.minReputationE18))
           : "-";
@@ -4775,10 +5575,43 @@
           p.maxSizeBps != null ? (p.maxSizeBps / 100).toFixed(0) + "%" : "-";
         $("guardPolicy").innerHTML =
           `Policy — min reputation <span class="badge">${minRep}</span> · min bond <span class="badge">${minBond}</span> · max action <span class="badge">${maxSize}</span> · gate ${addressLink(guard.address)}`;
-        const ids = (state.deployment?.seeded?.vaults || []).map(
-          (v) => v.agentId,
+        if (Array.isArray(guardDoc?.agents) && guardDoc.agents.length) {
+          host.innerHTML = guardDoc.agents
+            .slice()
+            .sort((a, b) => Number(a.agentId) - Number(b.agentId))
+            .map((row) => {
+              const allowed = Boolean(row.allowed);
+              const reason =
+                row.reason && row.reason !== "ok" ? row.reason : "";
+              const detail = allowed
+                ? "eligible"
+                : `blocked${reason ? " - " + reason : ""}`;
+              return `<div class="feed-row ${allowed ? "ev-green" : "ev-red"}">
+      <span class="badge">agent ${aifEscape(row.agentId)}</span> <span class="feed-detail">${aifEscape(detail)}</span>
+    </div>`;
+            })
+            .join("");
+          return;
+        }
+        if (!state.publicClient) {
+          host.innerHTML = `<div class="feed-row muted">waiting for ReefGuard feed</div>`;
+          return;
+        }
+        const liveIds = (state.allocation || [])
+          .map((a) => Number(a.agentId))
+          .filter(Boolean);
+        const seededIds = (state.deployment?.seeded?.vaults || []).map((v) =>
+          Number(v.agentId),
         );
-        const agentIds = ids.length ? ids : [1, 2, 3, 4, 5];
+        const agentIds = (
+          liveIds.length
+            ? liveIds
+            : seededIds.length
+              ? seededIds
+              : [1, 2, 3, 4, 5]
+        )
+          .slice()
+          .sort((a, b) => a - b);
         const rows = await Promise.all(
           agentIds.map(async (id) => {
             try {
@@ -4872,6 +5705,896 @@
         renderKyc();
       }
 
+      function byoaKey() {
+        return state.account
+          ? `${NS}.byoa.${state.account.toLowerCase()}`
+          : `${NS}.byoa`;
+      }
+
+      function readByoaSaved() {
+        try {
+          return JSON.parse(localStorage.getItem(byoaKey()) || "{}");
+        } catch {
+          return {};
+        }
+      }
+
+      function saveByoaSaved(next) {
+        const merged = { ...readByoaSaved(), ...next };
+        localStorage.setItem(byoaKey(), JSON.stringify(merged));
+      }
+
+      function setByoaBadge(id, text, cls = "") {
+        const el = $(id);
+        if (!el) return;
+        el.textContent = text;
+        el.className = "badge" + (cls ? " " + cls : "");
+      }
+
+      function byoaAgentId() {
+        const raw = $("byoaAgentId")?.value.trim();
+        if (!raw) return null;
+        try {
+          const id = BigInt(raw);
+          return id > 0n ? id : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function byoaSeededMax() {
+        return Math.max(
+          0,
+          ...(state.deployment?.seeded?.vaults || []).map(
+            (v) => Number(v.agentId) || 0,
+          ),
+        );
+      }
+
+      function currentByoaAgent(statusDoc = state.byoaStatus) {
+        const liveAgents = (state.allocation || []).filter(
+          (a) => a && a.agentId,
+        );
+        const seededMax = byoaSeededMax();
+        const inputId = byoaAgentId();
+        const statusAgents = (statusDoc?.agents || []).filter(
+          (a) => a && a.agentId,
+        );
+        const newestStatusAgent =
+          statusAgents
+            .slice()
+            .sort((a, b) => Number(b.agentId) - Number(a.agentId))[0] || null;
+        const statusAgent =
+          (inputId
+            ? statusAgents.find((a) => Number(a.agentId) === Number(inputId))
+            : null) ||
+          newestStatusAgent ||
+          null;
+        const liveAgent =
+          (statusAgent
+            ? liveAgents.find(
+                (a) => Number(a.agentId) === Number(statusAgent.agentId),
+              )
+            : null) ||
+          liveAgents
+            .filter((a) => Number(a.agentId) > seededMax)
+            .sort((a, b) => Number(b.agentId) - Number(a.agentId))[0] ||
+          (inputId
+            ? liveAgents.find((a) => Number(a.agentId) === Number(inputId))
+            : null);
+        const agentId = liveAgent
+          ? Number(liveAgent.agentId)
+          : statusAgent
+            ? Number(statusAgent.agentId)
+            : inputId
+              ? Number(inputId)
+              : null;
+        const vault =
+          addr(liveAgent?.vault) ||
+          addr(statusAgent?.vault) ||
+          addr($("byoaVault")?.value.trim());
+        return { agentId, liveAgent, statusAgent, vault };
+      }
+
+      function setByoaHtml(id, html) {
+        const el = $(id);
+        if (el) el.innerHTML = html;
+      }
+
+      function disableByoaAdmissionButtons() {
+        for (const id of [
+          "byoaEnrollBtn",
+          "byoaAllocatorBtn",
+          "byoaOracleBtn",
+        ]) {
+          const btn = $(id);
+          if (btn) btn.disabled = true;
+        }
+      }
+
+      function renderByoaCommand() {
+        const out = $("byoaCommand");
+        if (!out) return;
+        const id = $("byoaAgentId")?.value.trim();
+        out.textContent = [
+          "python -m venv .venv",
+          ".venv\\Scripts\\python -m pip install -r agents\\requirements.txt",
+          "Copy-Item create-reef-agent\\env.sample create-reef-agent\\.env",
+          "# Fill create-reef-agent\\.env with PRIVATE_KEY. Keep it local.",
+          id
+            ? `$env:AGENT_ID="${id}"`
+            : '# Optional if registered above: $env:AGENT_ID="<agent-id>"',
+          "& $env:USERPROFILE\\.foundry\\bin\\forge.exe build",
+          ".venv\\Scripts\\python create-reef-agent\\deploy_agent.py",
+          ".venv\\Scripts\\python create-reef-agent\\run_agent.py",
+        ].join("\n");
+      }
+
+      function hydrateByoaInputs() {
+        const saved = readByoaSaved();
+        const idInput = $("byoaAgentId");
+        const vaultInput = $("byoaVault");
+        if (idInput && !idInput.value && saved.agentId) {
+          idInput.value = saved.agentId;
+        }
+        if (vaultInput && !vaultInput.value && saved.vault) {
+          vaultInput.value = saved.vault;
+        }
+      }
+
+      async function refreshByoa() {
+        hydrateByoaInputs();
+        renderByoaCommand();
+        const connected = !!state.account;
+        setByoaBadge(
+          "byoaWalletState",
+          connected ? "wallet connected" : "connect wallet",
+          connected ? "good" : "warn",
+        );
+        setText(
+          "byoaWallet",
+          connected ? shortAddr(state.account) : "not connected",
+        );
+
+        const registerBtn = $("byoaRegisterBtn");
+        if (registerBtn)
+          registerBtn.disabled =
+            !connected || !state.walletClient || !state.cfg.identity;
+        const checkBtn = $("byoaCheckBtn");
+        if (checkBtn)
+          checkBtn.disabled = !state.publicClient || !state.cfg.identity;
+
+        {
+          const staticAgents = state.allocation || [];
+          const agentId = byoaAgentId();
+          const vaultRaw = $("byoaVault")?.value.trim();
+          if (vaultRaw) saveByoaSaved({ vault: vaultRaw });
+          const vault = addr(vaultRaw);
+          const staticAgent =
+            (agentId
+              ? staticAgents.find((a) => Number(a.agentId) === Number(agentId))
+              : null) ||
+            (vault
+              ? staticAgents.find(
+                  (a) => a.vault?.toLowerCase() === vault.toLowerCase(),
+                )
+              : null);
+          if (!connected && (state.reefDoc?.agents || staticAgents.length)) {
+            const maxAgentId = Math.max(
+              0,
+              ...staticAgents.map((a) => Number(a.agentId) || 0),
+            );
+            setText("byoaNextId", maxAgentId ? String(maxAgentId + 1) : "-");
+            if (staticAgent) {
+              const age = formatAge(staticAgent.lastReceiptAt);
+              setText(
+                "byoaAgentState",
+                `agent ${staticAgent.agentId.toString()} live / receipt ${age.label}`,
+              );
+            } else if (agentId) {
+              setText("byoaAgentState", `agent ${agentId} not in static feed`);
+            } else {
+              setText("byoaAgentState", "connect wallet or paste an ID");
+            }
+
+            const bondAddr = addr(
+              state.deployment?.seeded?.reputationBond?.address,
+            );
+            const minBondE18 = state.deployment?.reefGuard?.policy?.minBondE18;
+            const minBond = minBondE18 ? fmt18(BigInt(minBondE18), 0) : "10";
+            setText(
+              "byoaBondGate",
+              bondAddr
+                ? `${minBond} USDY min at ${shortAddr(bondAddr)}`
+                : `${minBond} USDY min`,
+            );
+
+            if (staticAgent) {
+              $("byoaListingState").innerHTML =
+                `<span class="badge good">listed</span> ${addressLink(staticAgent.vault)} is in the live arena.`;
+            } else if (!vaultRaw) {
+              setText(
+                "byoaListingState",
+                "Paste the vault after deployment to verify arena listing.",
+              );
+            } else if (!vault) {
+              setText(
+                "byoaListingState",
+                "Vault address is not a valid address.",
+              );
+            } else {
+              $("byoaListingState").innerHTML =
+                `<span class="badge warn">not listed yet</span> ${addressLink(vault)} is not in the static arena feed.`;
+            }
+            return;
+          }
+        }
+
+        if (!state.publicClient || !state.cfg.identity) {
+          setText("byoaNextId", "-");
+          setText("byoaAgentState", "waiting for AgentIdentity");
+        } else {
+          try {
+            const nextId = await rpcRead(
+              () =>
+                state.publicClient.readContract({
+                  address: state.cfg.identity,
+                  abi: IDENTITY_ABI,
+                  functionName: "nextAgentId",
+                }),
+              "identity nextAgentId",
+            );
+            setText("byoaNextId", nextId.toString());
+          } catch {
+            setText("byoaNextId", "read failed");
+          }
+
+          const agentId = byoaAgentId();
+          if (!agentId) {
+            setText("byoaAgentState", "register or paste an ID");
+          } else {
+            try {
+              const wallet = await rpcRead(
+                () =>
+                  state.publicClient.readContract({
+                    address: state.cfg.identity,
+                    abi: IDENTITY_ABI,
+                    functionName: "getAgentWallet",
+                    args: [agentId],
+                  }),
+                "identity getAgentWallet",
+              );
+              if (!wallet || wallet === ZERO) {
+                setText("byoaAgentState", `agent ${agentId} not registered`);
+              } else if (
+                state.account &&
+                wallet.toLowerCase() === state.account.toLowerCase()
+              ) {
+                setText("byoaAgentState", `agent ${agentId} owned by wallet`);
+              } else {
+                setText(
+                  "byoaAgentState",
+                  `agent ${agentId} owned by ${shortAddr(wallet)}`,
+                );
+              }
+            } catch {
+              setText("byoaAgentState", `agent ${agentId} read failed`);
+            }
+          }
+        }
+
+        if (!state.publicClient || !state.cfg.index) {
+          setText("byoaBondGate", "waiting for AgentIndex");
+        } else {
+          try {
+            const [bondAddr, minBond] = await Promise.all([
+              rpcRead(
+                () =>
+                  state.publicClient.readContract({
+                    address: state.cfg.index,
+                    abi: INDEX_ABI,
+                    functionName: "reputationBond",
+                  }),
+                "index reputationBond",
+              ),
+              rpcRead(
+                () =>
+                  state.publicClient.readContract({
+                    address: state.cfg.index,
+                    abi: INDEX_ABI,
+                    functionName: "minBond",
+                  }),
+                "index minBond",
+              ),
+            ]);
+            setText(
+              "byoaBondGate",
+              bondAddr && bondAddr !== ZERO
+                ? `${fmt18(minBond, 0)} USDY min at ${shortAddr(bondAddr)}`
+                : "listing closed",
+            );
+          } catch {
+            setText("byoaBondGate", "read failed");
+          }
+        }
+
+        const vaultRaw = $("byoaVault")?.value.trim();
+        if (vaultRaw) saveByoaSaved({ vault: vaultRaw });
+        const vault = addr(vaultRaw);
+        if (!vaultRaw) {
+          setText(
+            "byoaListingState",
+            "Paste the vault after deployment to verify arena listing.",
+          );
+        } else if (!vault) {
+          setText("byoaListingState", "Vault address is not a valid address.");
+        } else if (!state.publicClient || !state.cfg.index) {
+          setText(
+            "byoaListingState",
+            "Waiting for AgentIndex before listing check.",
+          );
+        } else {
+          try {
+            const listed = await rpcRead(
+              () =>
+                state.publicClient.readContract({
+                  address: state.cfg.index,
+                  abi: INDEX_ABI,
+                  functionName: "isRegistered",
+                  args: [vault],
+                }),
+              "index isRegistered",
+            );
+            $("byoaListingState").innerHTML = listed
+              ? `<span class="badge good">listed</span> ${addressLink(vault)} is in the live arena.`
+              : `<span class="badge warn">not listed yet</span> ${addressLink(vault)} is not in AgentIndex.`;
+          } catch {
+            setText("byoaListingState", "Listing check failed.");
+          }
+        }
+      }
+
+      async function doByoaRegister() {
+        if (!state.cfg.identity) return toast("identity not configured", "err");
+        let predicted = null;
+        try {
+          predicted = await rpcRead(
+            () =>
+              state.publicClient.readContract({
+                address: state.cfg.identity,
+                abi: IDENTITY_ABI,
+                functionName: "nextAgentId",
+              }),
+            "identity nextAgentId",
+          );
+        } catch {}
+        const r = await sendTx({
+          address: state.cfg.identity,
+          abi: IDENTITY_ABI,
+          functionName: "register",
+          args: [],
+        });
+        if (!r) return;
+        let agentId = predicted;
+        for (const log of r.logs) {
+          if (log.address?.toLowerCase() !== state.cfg.identity.toLowerCase())
+            continue;
+          try {
+            const dec = decodeEventLog({
+              abi: IDENTITY_ABI,
+              data: log.data,
+              topics: log.topics,
+            });
+            if (dec.eventName === "AgentRegistered") {
+              agentId = dec.args.agentId;
+              break;
+            }
+          } catch {}
+        }
+        if (agentId != null) {
+          $("byoaAgentId").value = agentId.toString();
+          saveByoaSaved({
+            agentId: agentId.toString(),
+            registerTx: r.transactionHash,
+          });
+          $("byoaResult").innerHTML =
+            `registered agent <span class="badge">#${agentId}</span> - ${txLink(r.transactionHash)}`;
+        } else {
+          $("byoaResult").innerHTML =
+            `registered - ${txLink(r.transactionHash)}`;
+        }
+        await refreshByoa();
+        refreshFeed();
+      }
+
+      async function doByoaCheck() {
+        const id = $("byoaAgentId")?.value.trim();
+        const vault = $("byoaVault")?.value.trim();
+        saveByoaSaved({ agentId: id || undefined, vault: vault || undefined });
+        await refreshByoa();
+        await refreshByoaProof();
+        await refreshByoaAdmission();
+        setText("byoaResult", "status refreshed");
+      }
+
+      async function refreshByoaProof() {
+        const { agentId, liveAgent: byoaAgent } = currentByoaAgent();
+
+        if (!agentId || !byoaAgent) {
+          setByoaBadge("byoaLiveBadge", "waiting", "warn");
+          setText("byoaLiveVault", "-");
+          setText("byoaLiveGuard", "-");
+          setText("byoaLiveTrust", "-");
+          setText("byoaLiveReceipt", "-");
+          setText("byoaLiveDetail", "Waiting for a self-listed BYOA vault.");
+          return;
+        }
+
+        const [guard, scores, runtime] = await Promise.all([
+          grabJson("../api/guard.json"),
+          grabJson("../api/scores.json"),
+          grabJson(`../api/byoa/${agentId}/proofbound-agent.json`),
+        ]);
+        const guardRow = (guard?.agents || []).find(
+          (a) => Number(a.agentId) === agentId,
+        );
+        const scoreRow = (scores?.agents || []).find(
+          (a) => Number(a.agentId) === agentId,
+        );
+        const age = formatAge(byoaAgent.lastReceiptAt);
+        const runtimeFresh = runtime && Number(runtime.seq) >= 0;
+        setByoaBadge(
+          "byoaLiveBadge",
+          `agent ${agentId}`,
+          guardRow?.allowed ? "good" : guardRow ? "bad" : "warn",
+        );
+        $("byoaLiveVault").innerHTML = addressLink(byoaAgent.vault);
+        $("byoaLiveGuard").innerHTML = guardRow
+          ? `<span class="badge ${guardRow.allowed ? "good" : "bad"}">${guardRow.allowed ? "eligible" : "blocked"}</span> ${aifEscape(guardRow.reason || "")}`
+          : `<span class="badge warn">pending</span>`;
+        $("byoaLiveTrust").innerHTML = scoreRow
+          ? `<span class="badge ${scoreRow.trustScore >= 70 ? "good" : scoreRow.trustScore >= 55 ? "" : "warn"}">${aifEscape(scoreRow.trustScore)} ${aifEscape(scoreRow.rating || "")}</span>`
+          : `<span class="badge warn">pending</span>`;
+        $("byoaLiveReceipt").innerHTML =
+          `<span class="badge ${age.cls}">${age.label}</span>${
+            runtimeFresh && runtime.receiptTx
+              ? ` ${txLink(tx0x(runtime.receiptTx))}`
+              : ""
+          }`;
+        if (!runtimeFresh) {
+          setText(
+            "byoaLiveDetail",
+            "The vault is live on-chain; waiting for the dedicated BYOA runtime feed.",
+          );
+          return;
+        }
+        const action = aifEscape(runtime.action || "hold");
+        const move = aifEscape(runtime.moveStatus || "receipt");
+        const evidence = runtime.evidenceHash
+          ? ` · evidence ${aifEscape(runtime.evidenceHash.slice(0, 10))}...`
+          : "";
+        const when = runtime.ts
+          ? ` · ${new Date(Number(runtime.ts) * 1000).toLocaleString()}`
+          : "";
+        $("byoaLiveDetail").innerHTML =
+          `seq ${aifEscape(runtime.seq)} · ${action} · ${move}${evidence}${when}`;
+      }
+
+      async function refreshByoaAdmission() {
+        disableByoaAdmissionButtons();
+        state.byoaAdmission = null;
+        const statusDoc = await grabJson(BYOA_STATUS_URL);
+        state.byoaStatus = statusDoc;
+        const { agentId, statusAgent, vault } = currentByoaAgent(statusDoc);
+
+        if (agentId && $("byoaAgentId") && !$("byoaAgentId").value) {
+          $("byoaAgentId").value = String(agentId);
+          saveByoaSaved({ agentId: String(agentId) });
+        }
+        if (vault && $("byoaVault") && !$("byoaVault").value) {
+          $("byoaVault").value = vault;
+          saveByoaSaved({ vault });
+        }
+
+        if (!agentId || !vault) {
+          setByoaBadge("byoaHealthBadge", "waiting", "warn");
+          setText("byoaRuntimeState", "waiting for BYOA vault");
+          setText("byoaTimerState", "-");
+          setText("byoaStrategyState", "-");
+          setText("byoaGasState", "-");
+          setText("byoaSeasonState", "-");
+          setText("byoaAllocatorState", "-");
+          setText("byoaOracleState", "-");
+          setText(
+            "byoaSignerState",
+            state.account ? shortAddr(state.account) : "connect wallet",
+          );
+          return;
+        }
+
+        const runtimeStatus = statusAgent?.status || "missing";
+        setByoaBadge(
+          "byoaHealthBadge",
+          runtimeStatus,
+          runtimeStatus === "ok"
+            ? "good"
+            : runtimeStatus === "failing"
+              ? "bad"
+              : "warn",
+        );
+        if (statusAgent) {
+          const age = formatAge(statusAgent.lastReceiptAt);
+          setByoaHtml(
+            "byoaRuntimeState",
+            `<span class="badge ${age.cls}">${age.label}</span> seq ${aifEscape(statusAgent.latestSeq ?? "-")}`,
+          );
+          setText(
+            "byoaTimerState",
+            `${statusAgent.timerActiveState || "unknown"} / ${statusAgent.timerUnit || "-"}`,
+          );
+          setByoaHtml(
+            "byoaStrategyState",
+            `${aifEscape(statusAgent.strategyKind || "mock")} / ${addressLink(statusAgent.currentStrategy || statusAgent.strategyAdapter)}`,
+          );
+          let gas = "-";
+          try {
+            gas = `${Number(formatEther(BigInt(statusAgent.operatorBalanceWei || "0"))).toFixed(4)} MNT`;
+          } catch {}
+          setText("byoaGasState", gas);
+        } else {
+          setText("byoaRuntimeState", "status feed unavailable");
+          setText("byoaTimerState", "-");
+          setText("byoaStrategyState", "-");
+          setText("byoaGasState", "-");
+        }
+
+        {
+          const [reefDoc, allocatorDoc, oracleDoc] = await Promise.all([
+            state.reefDoc ? Promise.resolve(state.reefDoc) : grabJson(REEF_URL),
+            grabJson(ALLOCATOR_URL),
+            grabJson("../api/trust-oracle.json"),
+          ]);
+          if (reefDoc) state.reefDoc = reefDoc;
+          const reefAgent = (reefDoc?.agents || []).find(
+            (a) => Number(a.agentId) === Number(agentId),
+          );
+          const allocatorAgent = (allocatorDoc?.agents || []).find(
+            (a) =>
+              Number(a.agentId) === Number(agentId) ||
+              a.vault?.toLowerCase() === vault.toLowerCase(),
+          );
+          const oracleAgent = (oracleDoc?.agents || []).find(
+            (a) => Number(a.agentId) === Number(agentId),
+          );
+          const seasonId =
+            reefDoc?.season?.seasonId ??
+            state.deployment?.seeded?.seasons?.seasonId ??
+            0;
+
+          if (reefAgent?.side && reefAgent.side !== "?") {
+            setByoaHtml(
+              "byoaSeasonState",
+              `<span class="badge good">enrolled</span> season ${aifEscape(seasonId)} / ${aifEscape(reefAgent.side)}`,
+            );
+          } else {
+            setByoaHtml(
+              "byoaSeasonState",
+              `<span class="badge warn">pending</span> season ${aifEscape(seasonId)}`,
+            );
+          }
+
+          setByoaHtml(
+            "byoaAllocatorState",
+            allocatorAgent
+              ? `<span class="badge good">admitted</span> ${addressLink(vault)}`
+              : `<span class="badge warn">pending</span> ${addressLink(vault)}`,
+          );
+          setByoaHtml(
+            "byoaOracleState",
+            oracleAgent
+              ? `<span class="badge good">registered</span> ${addressLink(vault)}`
+              : `<span class="badge warn">pending</span> ${addressLink(vault)}`,
+          );
+
+          if (!state.account || !state.walletClient) {
+            setText("byoaSignerState", "connect wallet");
+            state.byoaAdmission = {
+              agentId,
+              vault,
+              operator: addr(statusAgent?.operator),
+              season: null,
+              allocator: null,
+              trustOracle: null,
+            };
+            return;
+          }
+        }
+
+        let operator = addr(statusAgent?.operator);
+        if (state.publicClient && state.cfg.identity) {
+          try {
+            operator = addr(
+              await rpcRead(
+                () =>
+                  state.publicClient.readContract({
+                    address: state.cfg.identity,
+                    abi: IDENTITY_ABI,
+                    functionName: "getAgentWallet",
+                    args: [BigInt(agentId)],
+                  }),
+                "identity getAgentWallet",
+              ),
+            );
+          } catch {}
+        }
+
+        const admission = {
+          agentId,
+          vault,
+          operator,
+          season: null,
+          allocator: null,
+          trustOracle: null,
+        };
+        const connected = !!state.account && !!state.walletClient;
+        const operatorReady =
+          connected &&
+          operator &&
+          state.account.toLowerCase() === operator.toLowerCase();
+        const governorMatches = [];
+
+        const seasonsAddr = addr(state.deployment?.seeded?.seasons?.address);
+        if (!seasonsAddr || !state.publicClient) {
+          setText("byoaSeasonState", "waiting for Seasons");
+        } else {
+          try {
+            const count = await rpcRead(
+              () =>
+                state.publicClient.readContract({
+                  address: seasonsAddr,
+                  abi: SEASONS_ABI,
+                  functionName: "seasonCount",
+                }),
+              "seasons seasonCount",
+            );
+            if (count === 0n) {
+              setText("byoaSeasonState", "no season");
+            } else {
+              const seasonId = count - 1n;
+              const [season, enrolled] = await Promise.all([
+                rpcRead(
+                  () =>
+                    state.publicClient.readContract({
+                      address: seasonsAddr,
+                      abi: SEASONS_ABI,
+                      functionName: "seasons",
+                      args: [seasonId],
+                    }),
+                  "seasons latest",
+                ),
+                rpcRead(
+                  () =>
+                    state.publicClient.readContract({
+                      address: seasonsAddr,
+                      abi: SEASONS_ABI,
+                      functionName: "enrolled",
+                      args: [seasonId, BigInt(agentId)],
+                    }),
+                  "seasons enrolled",
+                ),
+              ]);
+              const start = Number(season[0]);
+              const end = Number(season[1]);
+              const finalized = Boolean(season[2]);
+              const now = Math.floor(Date.now() / 1000);
+              const open = !finalized && now >= start && now < end;
+              let html;
+              if (enrolled) {
+                let side = 1;
+                try {
+                  side = Number(
+                    await rpcRead(
+                      () =>
+                        state.publicClient.readContract({
+                          address: seasonsAddr,
+                          abi: SEASONS_ABI,
+                          functionName: "sideOf",
+                          args: [seasonId, BigInt(agentId)],
+                        }),
+                      "seasons sideOf",
+                    ),
+                  );
+                } catch {}
+                html = `<span class="badge good">enrolled</span> season ${seasonId.toString()} / ${side === 1 ? "AI" : "Human"}`;
+              } else if (open) {
+                html = `<span class="badge warn">open</span> season ${seasonId.toString()}`;
+              } else {
+                html = `<span class="badge">closed</span> season ${seasonId.toString()}`;
+              }
+              setByoaHtml("byoaSeasonState", html);
+              admission.season = {
+                address: seasonsAddr,
+                seasonId,
+                enrolled,
+                canEnroll: open && !enrolled && operatorReady,
+              };
+              const btn = $("byoaEnrollBtn");
+              if (btn) btn.disabled = !admission.season.canEnroll;
+            }
+          } catch {
+            setText("byoaSeasonState", "read failed");
+          }
+        }
+
+        const allocatorAddr = addr(state.deployment?.allocator?.address);
+        if (!allocatorAddr || !state.publicClient) {
+          setText("byoaAllocatorState", "waiting for Allocator");
+        } else {
+          try {
+            const [governor, registered] = await Promise.all([
+              rpcRead(
+                () =>
+                  state.publicClient.readContract({
+                    address: allocatorAddr,
+                    abi: ALLOCATOR_ABI,
+                    functionName: "governor",
+                  }),
+                "allocator governor",
+              ),
+              rpcRead(
+                () =>
+                  state.publicClient.readContract({
+                    address: allocatorAddr,
+                    abi: ALLOCATOR_ABI,
+                    functionName: "isRegistered",
+                    args: [vault],
+                  }),
+                "allocator isRegistered",
+              ),
+            ]);
+            const govReady =
+              connected &&
+              state.account.toLowerCase() === String(governor).toLowerCase();
+            if (govReady) governorMatches.push("allocator");
+            setByoaHtml(
+              "byoaAllocatorState",
+              registered
+                ? `<span class="badge good">admitted</span> ${addressLink(vault)}`
+                : `<span class="badge warn">pending</span> governor ${shortAddr(governor)}`,
+            );
+            admission.allocator = {
+              address: allocatorAddr,
+              governor,
+              registered,
+              canAdd: !registered && govReady,
+            };
+            const btn = $("byoaAllocatorBtn");
+            if (btn) btn.disabled = !admission.allocator.canAdd;
+          } catch {
+            setText("byoaAllocatorState", "read failed");
+          }
+        }
+
+        const oracleAddr = addr(state.deployment?.trustOracle?.address);
+        if (!oracleAddr || !state.publicClient) {
+          setText("byoaOracleState", "waiting for TrustOracle");
+        } else {
+          try {
+            const [governor, registeredVault] = await Promise.all([
+              rpcRead(
+                () =>
+                  state.publicClient.readContract({
+                    address: oracleAddr,
+                    abi: TRUST_ORACLE_ABI,
+                    functionName: "governor",
+                  }),
+                "trust oracle governor",
+              ),
+              rpcRead(
+                () =>
+                  state.publicClient.readContract({
+                    address: oracleAddr,
+                    abi: TRUST_ORACLE_ABI,
+                    functionName: "vaultOf",
+                    args: [BigInt(agentId)],
+                  }),
+                "trust oracle vaultOf",
+              ),
+            ]);
+            const registered = registeredVault && registeredVault !== ZERO;
+            const govReady =
+              connected &&
+              state.account.toLowerCase() === String(governor).toLowerCase();
+            if (govReady) governorMatches.push("oracle");
+            setByoaHtml(
+              "byoaOracleState",
+              registered
+                ? `<span class="badge good">registered</span> ${addressLink(registeredVault)}`
+                : `<span class="badge warn">pending</span> governor ${shortAddr(governor)}`,
+            );
+            admission.trustOracle = {
+              address: oracleAddr,
+              governor,
+              registered,
+              canRegister: !registered && govReady,
+            };
+            const btn = $("byoaOracleBtn");
+            if (btn) btn.disabled = !admission.trustOracle.canRegister;
+          } catch {
+            setText("byoaOracleState", "read failed");
+          }
+        }
+
+        if (!state.account) {
+          setText("byoaSignerState", "connect wallet");
+        } else if (operatorReady) {
+          setText("byoaSignerState", `operator ${shortAddr(state.account)}`);
+        } else if (governorMatches.length) {
+          setText(
+            "byoaSignerState",
+            `governor for ${governorMatches.join(" + ")}`,
+          );
+        } else {
+          setText("byoaSignerState", shortAddr(state.account));
+        }
+        state.byoaAdmission = admission;
+      }
+
+      async function doByoaEnrollSeason() {
+        if (!state.byoaAdmission?.season?.address) await refreshByoaAdmission();
+        const admission = state.byoaAdmission;
+        if (!admission?.season?.address || admission.season.seasonId == null)
+          return toast("season not configured", "err");
+        const r = await sendTx({
+          address: admission.season.address,
+          abi: SEASONS_ABI,
+          functionName: "enroll",
+          args: [admission.season.seasonId, BigInt(admission.agentId), 1],
+        });
+        if (!r) return;
+        $("byoaAdmissionResult").innerHTML =
+          `season enrolled - ${txLink(r.transactionHash)}`;
+        await refreshByoaAdmission();
+      }
+
+      async function doByoaAllocatorAdmission() {
+        if (!state.byoaAdmission?.allocator?.address)
+          await refreshByoaAdmission();
+        const admission = state.byoaAdmission;
+        if (!admission?.allocator?.address)
+          return toast("allocator not configured", "err");
+        const r = await sendTx({
+          address: admission.allocator.address,
+          abi: ALLOCATOR_ABI,
+          functionName: "addVault",
+          args: [admission.vault],
+        });
+        if (!r) return;
+        $("byoaAdmissionResult").innerHTML =
+          `allocator admitted - ${txLink(r.transactionHash)}`;
+        await refreshByoaAdmission();
+        refreshAllocator();
+      }
+
+      async function doByoaOracleAdmission() {
+        if (!state.byoaAdmission?.trustOracle?.address)
+          await refreshByoaAdmission();
+        const admission = state.byoaAdmission;
+        if (!admission?.trustOracle?.address)
+          return toast("TrustOracle not configured", "err");
+        const r = await sendTx({
+          address: admission.trustOracle.address,
+          abi: TRUST_ORACLE_ABI,
+          functionName: "registerVault",
+          args: [admission.vault],
+        });
+        if (!r) return;
+        $("byoaAdmissionResult").innerHTML =
+          `oracle registered - ${txLink(r.transactionHash)}`;
+        await refreshByoaAdmission();
+        renderEvidenceCards();
+      }
+
       async function refreshAll() {
         renderCockpit();
         void renderEvidenceCards();
@@ -4890,6 +6613,9 @@
           refreshMainnetTuring(),
           renderGuard(),
           renderKyc(),
+          refreshByoa(),
+          refreshByoaProof(),
+          refreshByoaAdmission(),
           renderEvidenceCards(),
         ]);
         if (state.account) renderConn();
@@ -4915,6 +6641,8 @@
             refreshAlloraBench();
             refreshTuring();
             refreshMainnetTuring();
+            refreshByoaProof();
+            refreshByoaAdmission();
             renderEvidenceCards();
           }
         }, 30000);
@@ -5057,7 +6785,8 @@
         const esc = (s) =>
           String(s).replace(
             /[&<>"]/g,
-            (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+            (c) =>
+              ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
           );
         const defs = "";
         const bg = "";
@@ -5195,9 +6924,13 @@
             activeTerm === t ? hide(t) : show(t);
           }
         });
-        window.addEventListener("scroll", () => activeTerm && hide(activeTerm), {
-          passive: true,
-        });
+        window.addEventListener(
+          "scroll",
+          () => activeTerm && hide(activeTerm),
+          {
+            passive: true,
+          },
+        );
       }
       function initBeginnerMode() {
         const btn = $("beginnerToggle");
@@ -5426,7 +7159,10 @@
         }
 
         // Headline / journey copy — never hides data from non-wallet users.
-        setText("ckHeadline", connected ? "Live proof cockpit" : "Explore live proof");
+        setText(
+          "ckHeadline",
+          connected ? "Live proof cockpit" : "Explore live proof",
+        );
         setText(
           "ckSub",
           connected
@@ -5548,7 +7284,10 @@
         // (b) Latest real swap tx — Mantlescan link, only when txHash present
         const swap = xs.find((e) => e && e.execution && e.execution.txHash);
         if (!swap) {
-          setEv("evSwapBody", `${DASH}<div class="ev-sub">no real swap yet</div>`);
+          setEv(
+            "evSwapBody",
+            `${DASH}<div class="ev-sub">no real swap yet</div>`,
+          );
           cardClass("evSwap");
         } else {
           const hash = tx0x(swap.execution.txHash);
@@ -5572,7 +7311,11 @@
           const age = formatAge(fresh.lastReceiptAt);
           cardClass(
             "evReceipt",
-            age.cls === "good" ? "is-good" : age.cls === "warn" ? "is-flat" : "is-bad",
+            age.cls === "good"
+              ? "is-good"
+              : age.cls === "warn"
+                ? "is-flat"
+                : "is-bad",
           );
           setEv(
             "evReceiptBody",
@@ -5640,7 +7383,10 @@
                 : (b.trustScore || 0) - (a.trustScore || 0),
             )[0];
           const score = onchain ? topT.scoreOnChain : topT.trustScore;
-          cardClass("evTrust", score != null && score >= 70 ? "is-good" : "is-flat");
+          cardClass(
+            "evTrust",
+            score != null && score >= 70 ? "is-good" : "is-flat",
+          );
           const parity =
             onchain && topT.deltaPct != null
               ? ` · parity Δ ${aifEscape(topT.deltaPct)}`
@@ -5663,6 +7409,18 @@
       $("chalBtn").addEventListener("click", doChallenge);
       $("allocBtn").addEventListener("click", doAllocate);
       $("kycBtn").addEventListener("click", doKyc);
+      $("byoaRegisterBtn").addEventListener("click", doByoaRegister);
+      $("byoaCheckBtn").addEventListener("click", doByoaCheck);
+      $("byoaEnrollBtn").addEventListener("click", doByoaEnrollSeason);
+      $("byoaAllocatorBtn").addEventListener("click", doByoaAllocatorAdmission);
+      $("byoaOracleBtn").addEventListener("click", doByoaOracleAdmission);
+      $("byoaAgentId").addEventListener("input", () => {
+        saveByoaSaved({ agentId: $("byoaAgentId").value.trim() });
+        renderByoaCommand();
+      });
+      $("byoaVault").addEventListener("input", () => {
+        saveByoaSaved({ vault: $("byoaVault").value.trim() });
+      });
 
       initCockpitActions();
       initGlossary();
@@ -5680,13 +7438,15 @@
         "idxYourAssets",
       ]) {
         const el = $(id);
-        if (el) el.innerHTML = skeletonText(id === "idxNav" ? "3.2em" : "3.6em");
+        if (el)
+          el.innerHTML = skeletonText(id === "idxNav" ? "3.2em" : "3.6em");
       }
       if ($("lbBody"))
         $("lbBody").innerHTML =
           '<tr><td colspan="8"><span class="skel skel-line" style="width:100%"></span><span class="skel skel-line" style="width:84%"></span><span class="skel skel-line" style="width:68%"></span></td></tr>';
       if ($("aiFeed"))
-        $("aiFeed").innerHTML = skeletonRow(2) + skeletonRow(2) + skeletonRow(2);
+        $("aiFeed").innerHTML =
+          skeletonRow(2) + skeletonRow(2) + skeletonRow(2);
       if ($("feed"))
         $("feed").innerHTML = skeletonRow(2) + skeletonRow(2) + skeletonRow(2);
 

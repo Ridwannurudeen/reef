@@ -117,10 +117,13 @@ def main() -> int:
     agents = []
     for addr, score, ok, target in zip(vaddrs, scores, qualified, targets):
         vc = vault_contract(w3, addr)
+        agent_id = by_vault.get(addr.lower())
+        if agent_id is None:
+            agent_id = int(rpc_read(lambda vc=vc: vc.functions.agentId().call()))
         nav = int(rpc_read(lambda vc=vc: vc.functions.nav().call()))
         agents.append(
             {
-                "agentId": by_vault.get(addr.lower()),
+                "agentId": agent_id,
                 "vault": addr,
                 "trustScorePct": _pct(int(score)),
                 "qualified": bool(ok),

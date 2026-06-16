@@ -23,7 +23,13 @@ import sys
 import time
 from pathlib import Path
 
-from agents.shared.client import get_w3, identity_contract, rpc_read, vault_contract
+from agents.shared.client import (
+    get_w3,
+    identity_contract,
+    index_contract,
+    rpc_read,
+    vault_contract,
+)
 from agents.shared.config import DEPLOYMENTS_DIR, REPO_ROOT, load_chain
 
 _BOND_ABI = [
@@ -75,14 +81,18 @@ def main() -> int:
     out_dir = Path(os.getenv("API_OUT_DIR", str(REPO_ROOT / "ui" / "api")))
     chain = load_chain(network)
     data = json.loads((DEPLOYMENTS_DIR / f"{network}.json").read_text(encoding="utf-8"))
-    vaults = data.get("seeded", {}).get("vaults", [])
-    if not vaults:
-        print("no seeded vaults", file=sys.stderr)
-        return 2
     bond_addr = (data.get("seeded", {}).get("reputationBond") or {}).get("address")
 
     w3 = get_w3(chain.rpc_url)
     identity = identity_contract(w3, data["reef"]["AgentIdentity"])
+    index = index_contract(w3, data["reef"]["AgentIndex"])
+    alloc = rpc_read(lambda: index.functions.getAllocation().call())
+    vaults = [{"agentId": int(a[0]), "vault": a[1]} for a in alloc]
+    if not vaults:
+        vaults = data.get("seeded", {}).get("vaults", [])
+    if not vaults:
+        print("no live or seeded vaults", file=sys.stderr)
+        return 2
     bond = (
         w3.eth.contract(address=w3.to_checksum_address(bond_addr), abi=_BOND_ABI)
         if bond_addr

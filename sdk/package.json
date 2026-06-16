@@ -5,6 +5,9 @@
   "type": "module",
   "main": "reef.js",
   "types": "reef.d.ts",
+  "scripts": {
+    "test": "node --test reef.test.js"
+  },
   "exports": {
     ".": "./reef.js"
   },

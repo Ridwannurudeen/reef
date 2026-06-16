@@ -2,8 +2,9 @@
 //
 // Works in the browser and in Node (>=18, for global fetch/TextDecoder). No build step, no
 // dependencies: canExecute() is a raw eth_call against ReefGuard; passport()/score()/
-// latestReceipt() fetch the public Agent Passport JSON. This is the read side of the SDK;
-// the Solidity side is `src/ReefGuarded.sol` (inherit + the `onlyCleared` modifier).
+// latestReceipt() fetch the public Agent Passport JSON. Write helpers return/send raw
+// transaction data through an injected EIP-1193 wallet; the SDK never owns private keys.
+// The Solidity side is `src/ReefGuarded.sol` (inherit + the `onlyCleared` modifier).
 //
 //   import { ReefClient } from "./reef.js";
 //   const reef = new ReefClient({
@@ -20,15 +21,68 @@
 const CAN_EXECUTE_SELECTOR = "0x1907e986"; // canExecute(uint256,address,uint256)
 const SCORE_OF_SELECTOR = "0x752821e9"; // scoreOf(uint256)
 const REPORT_SELECTOR = "0x282470f5"; // report(uint256,address,uint256)
+const REGISTER_SELECTOR = "0x1aa3a008"; // register()
+const SET_REPUTATION_SOURCE_SELECTOR = "0xaf2a5652"; // setReputationSource(uint256,address)
+const APPROVE_ADAPTER_SELECTOR = "0xc0e2ffc4"; // approveAdapter(address)
+const APPROVE_STRATEGY_SELECTOR = "0x3b8ae397"; // approveStrategy(address)
+const POST_BOND_SELECTOR = "0x184fed04"; // postBond(uint256,uint256)
+const SELF_LIST_VAULT_SELECTOR = "0xaefca159"; // selfListVault(address)
+const PUBLISH_RECEIPT_SELECTOR = "0xcda9e6ad"; // publishReceipt(uint256,bytes32,int256,uint64,bytes)
+const ERC20_APPROVE_SELECTOR = "0x095ea7b3"; // approve(address,uint256)
 
 function pad32(hexNo0x) {
   return hexNo0x.padStart(64, "0");
 }
 function uintWord(n) {
-  return pad32(BigInt(n).toString(16));
+  const x = BigInt(n);
+  if (x < 0n || x >= 1n << 256n) throw new Error("uint256 out of range");
+  return pad32(x.toString(16));
+}
+function intWord(n) {
+  let x = BigInt(n);
+  if (x < -(1n << 255n) || x >= 1n << 255n)
+    throw new Error("int256 out of range");
+  if (x < 0n) x = (1n << 256n) + x;
+  return pad32(x.toString(16));
 }
 function addrWord(addr) {
-  return pad32(String(addr).toLowerCase().replace(/^0x/, ""));
+  const h = String(addr).toLowerCase().replace(/^0x/, "");
+  if (!/^[0-9a-f]{40}$/.test(h)) throw new Error("invalid address");
+  return pad32(h);
+}
+function bytes32Word(value) {
+  const h = String(value).toLowerCase().replace(/^0x/, "");
+  if (!/^[0-9a-f]{64}$/.test(h)) throw new Error("invalid bytes32");
+  return h;
+}
+function hexBytes(value) {
+  const h = String(value || "")
+    .toLowerCase()
+    .replace(/^0x/, "");
+  if (h.length % 2 !== 0 || !/^[0-9a-f]*$/.test(h))
+    throw new Error("invalid bytes");
+  return h;
+}
+function bytesTail(value) {
+  const h = hexBytes(value);
+  const paddedLen = Math.ceil(h.length / 64) * 64;
+  return uintWord(h.length / 2) + h.padEnd(paddedLen, "0");
+}
+function normalizeBytecode(bytecode) {
+  const h = hexBytes(bytecode);
+  if (!h) throw new Error("bytecode required");
+  return "0x" + h;
+}
+function quantityHex(value) {
+  if (typeof value === "bigint") return "0x" + value.toString(16);
+  if (typeof value === "number") return "0x" + BigInt(value).toString(16);
+  const s = String(value);
+  return s.startsWith("0x") ? s : "0x" + BigInt(s).toString(16);
+}
+function requiredAddress(value, label) {
+  if (!value) throw new Error(`${label} required`);
+  addrWord(value);
+  return value;
 }
 
 /** ABI-encode calldata for canExecute(uint256 agentId, address asset, uint256 sizeBps). */
@@ -84,6 +138,77 @@ export function encodeReport(agentId, asset, sizeBps) {
   );
 }
 
+/** ABI-encode calldata for AgentIdentity.register(). */
+export function encodeRegisterAgent() {
+  return REGISTER_SELECTOR;
+}
+
+/** ABI-encode calldata for AgentIdentity.setReputationSource(uint256,address). */
+export function encodeSetReputationSource(agentId, source) {
+  return SET_REPUTATION_SOURCE_SELECTOR + uintWord(agentId) + addrWord(source);
+}
+
+/** ABI-encode calldata for AdapterRegistry.approveAdapter(address). */
+export function encodeApproveAdapter(adapter) {
+  return APPROVE_ADAPTER_SELECTOR + addrWord(adapter);
+}
+
+/** ABI-encode calldata for AgentVault.approveStrategy(address). */
+export function encodeApproveStrategy(adapter) {
+  return APPROVE_STRATEGY_SELECTOR + addrWord(adapter);
+}
+
+/** ABI-encode calldata for ERC20.approve(address,uint256). */
+export function encodeErc20Approve(spender, amount) {
+  return ERC20_APPROVE_SELECTOR + addrWord(spender) + uintWord(amount);
+}
+
+/** ABI-encode calldata for ReputationBond.postBond(uint256,uint256). */
+export function encodePostBond(agentId, amount) {
+  return POST_BOND_SELECTOR + uintWord(agentId) + uintWord(amount);
+}
+
+/** ABI-encode calldata for AgentIndex.selfListVault(address). */
+export function encodeSelfListVault(vault) {
+  return SELF_LIST_VAULT_SELECTOR + addrWord(vault);
+}
+
+/** ABI-encode calldata for AgentVault.publishReceipt(uint256,bytes32,int256,uint64,bytes). */
+export function encodePublishReceipt(
+  seq,
+  evidenceHash,
+  claimedDelta,
+  period,
+  signature,
+) {
+  return (
+    PUBLISH_RECEIPT_SELECTOR +
+    uintWord(seq) +
+    bytes32Word(evidenceHash) +
+    intWord(claimedDelta) +
+    uintWord(period) +
+    uintWord(160) +
+    bytesTail(signature)
+  );
+}
+
+/** Build AgentVault deployment data from Foundry bytecode + constructor args. */
+export function encodeDeployVault(
+  bytecode,
+  asset,
+  agentId,
+  identity,
+  registry,
+) {
+  return (
+    normalizeBytecode(bytecode) +
+    addrWord(asset) +
+    uintWord(agentId) +
+    addrWord(identity) +
+    addrWord(registry)
+  );
+}
+
 /** Decode report() return (uint256 score, string rating, bool guardCleared, string guardReason). */
 export function decodeReport(hex) {
   const h = String(hex).replace(/^0x/, "");
@@ -95,11 +220,28 @@ export function decodeReport(hex) {
 }
 
 export class ReefClient {
-  constructor({ rpcUrl, guardAddress, oracleAddress, apiBase } = {}) {
+  constructor({
+    rpcUrl,
+    guardAddress,
+    oracleAddress,
+    identityAddress,
+    indexAddress,
+    bondAddress,
+    registryAddress,
+    apiBase,
+    provider,
+    account,
+  } = {}) {
     this.rpcUrl = rpcUrl;
     this.guardAddress = guardAddress;
     this.oracleAddress = oracleAddress;
+    this.identityAddress = identityAddress;
+    this.indexAddress = indexAddress;
+    this.bondAddress = bondAddress;
+    this.registryAddress = registryAddress;
     this.apiBase = (apiBase || "").replace(/\/$/, "");
+    this.provider = provider;
+    this.account = account;
   }
 
   /** Raw eth_call against `to` with `data`, returns the result hex (throws on RPC error). */
@@ -166,6 +308,151 @@ export class ReefClient {
   /** The agent's latest recorded decision/receipt. */
   async latestReceipt(agentId) {
     return (await this.passport(agentId)).latestDecision;
+  }
+
+  /** Send one EIP-1193 eth_sendTransaction request. Returns the wallet's tx hash. */
+  async requestTransaction({ to, data, value, from, provider, gas } = {}) {
+    const wallet = provider || this.provider;
+    if (!wallet || typeof wallet.request !== "function")
+      throw new Error("provider required");
+    const sender = from || this.account;
+    if (!sender) throw new Error("from required");
+    if (!data) throw new Error("data required");
+    const tx = { from: sender, data };
+    if (to) tx.to = to;
+    if (value != null) tx.value = quantityHex(value);
+    if (gas != null) tx.gas = quantityHex(gas);
+    return wallet.request({ method: "eth_sendTransaction", params: [tx] });
+  }
+
+  async registerAgent({ identityAddress, from, provider } = {}) {
+    return this.requestTransaction({
+      to: requiredAddress(
+        identityAddress || this.identityAddress,
+        "identityAddress",
+      ),
+      data: encodeRegisterAgent(),
+      from,
+      provider,
+    });
+  }
+
+  async setReputationSource({
+    identityAddress,
+    agentId,
+    source,
+    from,
+    provider,
+  }) {
+    return this.requestTransaction({
+      to: requiredAddress(
+        identityAddress || this.identityAddress,
+        "identityAddress",
+      ),
+      data: encodeSetReputationSource(agentId, source),
+      from,
+      provider,
+    });
+  }
+
+  async deployVault({
+    bytecode,
+    asset,
+    agentId,
+    identityAddress,
+    registryAddress,
+    from,
+    provider,
+  }) {
+    return this.requestTransaction({
+      data: encodeDeployVault(
+        bytecode,
+        asset,
+        agentId,
+        requiredAddress(
+          identityAddress || this.identityAddress,
+          "identityAddress",
+        ),
+        requiredAddress(
+          registryAddress || this.registryAddress,
+          "registryAddress",
+        ),
+      ),
+      from,
+      provider,
+    });
+  }
+
+  async approveAdapter({ registryAddress, adapter, from, provider }) {
+    return this.requestTransaction({
+      to: requiredAddress(
+        registryAddress || this.registryAddress,
+        "registryAddress",
+      ),
+      data: encodeApproveAdapter(adapter),
+      from,
+      provider,
+    });
+  }
+
+  async approveStrategy({ vaultAddress, adapter, from, provider }) {
+    return this.requestTransaction({
+      to: requiredAddress(vaultAddress, "vaultAddress"),
+      data: encodeApproveStrategy(adapter),
+      from,
+      provider,
+    });
+  }
+
+  async approveToken({ tokenAddress, spender, amount, from, provider }) {
+    return this.requestTransaction({
+      to: requiredAddress(tokenAddress, "tokenAddress"),
+      data: encodeErc20Approve(spender, amount),
+      from,
+      provider,
+    });
+  }
+
+  async postBond({ bondAddress, agentId, amount, from, provider }) {
+    return this.requestTransaction({
+      to: requiredAddress(bondAddress || this.bondAddress, "bondAddress"),
+      data: encodePostBond(agentId, amount),
+      from,
+      provider,
+    });
+  }
+
+  async selfListVault({ indexAddress, vault, from, provider }) {
+    return this.requestTransaction({
+      to: requiredAddress(indexAddress || this.indexAddress, "indexAddress"),
+      data: encodeSelfListVault(vault),
+      from,
+      provider,
+    });
+  }
+
+  async publishReceipt({
+    vaultAddress,
+    seq,
+    evidenceHash,
+    claimedDelta,
+    period,
+    signature,
+    from,
+    provider,
+  }) {
+    return this.requestTransaction({
+      to: requiredAddress(vaultAddress, "vaultAddress"),
+      data: encodePublishReceipt(
+        seq,
+        evidenceHash,
+        claimedDelta,
+        period,
+        signature,
+      ),
+      from,
+      provider,
+    });
   }
 }
 
