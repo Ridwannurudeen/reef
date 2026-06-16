@@ -46,6 +46,9 @@
         font-size: 14px;
         line-height: 1.55;
       }
+      .mono {
+        font-family: var(--mono);
+      }
       body::before {
         content: "";
         position: fixed;
@@ -2278,6 +2281,22 @@
         </div>
       </section>
 
+      <section id="proofbound" data-tab="overview">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Proof-bound rebalance</div>
+            <h2>The agent's last decision — bound to chain</h2>
+          </div>
+          <p class="section-copy">
+            Each rebalance is ReefGuard-gated, moves real vault capital through an
+            approved strategy, and commits the verbatim rationale on-chain as the
+            receipt evidence. Recompute <code>keccak256(rationale)</code> yourself and
+            match it against the vault's on-chain hash — no trust required.
+          </p>
+        </div>
+        <div id="pbBody" class="small">loading the latest proof-bound decision…</div>
+      </section>
+
       <section id="compliance" data-tab="overview">
         <div class="section-head">
           <div>
@@ -2641,6 +2660,17 @@
       const TURING_URL = "../api/turing-bench.json";
       const MAINNET_TURING_URL = "../api/mainnet-turing-bench.json";
       const HISTORY_URL = "../api/history.json";
+      const PROOFBOUND_URL = "../api/proofbound.json";
+      // Minimal view for the "verify it yourself" on-chain read.
+      const VAULT_RECEIPT_ABI = [
+        {
+          type: "function",
+          name: "lastReceiptEvidenceHash",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ type: "bytes32" }],
+        },
+      ];
 
       function addr(a) {
         return a && a !== ZERO && isAddress(a) ? a : "";
@@ -3148,6 +3178,97 @@
         $("proofYield").innerHTML = addressLink(seeded.yieldAdapter?.address);
       }
 
+      function pbEsc(s) {
+        return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+        });
+      }
+
+      let pbRecord = null;
+      async function renderProofBound() {
+        const host = $("pbBody");
+        if (!host) return;
+        let rec = null;
+        try {
+          const res = await fetch(PROOFBOUND_URL, { cache: "no-store" });
+          if (res.ok) {
+            const doc = await res.json();
+            const recs = Object.values(doc.agents || {});
+            recs.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+            rec = recs[0] || null;
+          }
+        } catch {}
+        if (!rec) {
+          host.innerHTML =
+            '<p class="muted">No proof-bound rebalance recorded yet. The agent publishes one each cycle.</p>';
+          return;
+        }
+        pbRecord = rec;
+        const g = rec.guard || {};
+        const gBadge = g.allowed
+          ? '<span class="badge ok">guard ✓ ok</span>'
+          : `<span class="badge bad">guard ✗ ${pbEsc(g.reason)}</span>`;
+        const txs = [
+          rec.deployTx && `deploy ${txLink(rec.deployTx)}`,
+          rec.recallTx && `recall ${txLink(rec.recallTx)}`,
+          rec.receiptTx && `receipt ${txLink(rec.receiptTx)}`,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        host.innerHTML =
+          '<div class="proof-grid" style="margin-bottom:var(--space-3)">' +
+          `<div class="proof-card"><div class="proof-label">Agent</div><span>#${pbEsc(rec.agentId)} · ${pbEsc(rec.action)} <span class="muted">[${pbEsc(rec.source)}]</span></span></div>` +
+          `<div class="proof-card"><div class="proof-label">ReefGuard</div><span>${gBadge}</span></div>` +
+          `<div class="proof-card"><div class="proof-label">NAV / share</div><span>${navStr(rec.navBefore)} → ${navStr(rec.navAfter)}</span></div>` +
+          `<div class="proof-card"><div class="proof-label">Reputation</div><span>${rec.reputation != null ? navStr(rec.reputation) : "—"}</span></div>` +
+          "</div>" +
+          `<p class="muted" style="margin:0 0 6px">Rationale</p><p style="margin:0 0 var(--space-3)">“${pbEsc(rec.rationale)}”</p>` +
+          (txs ? `<p class="small" style="margin:0 0 var(--space-3)">${txs}</p>` : "") +
+          `<p class="small mono" style="word-break:break-all;margin:0 0 6px">evidence: ${pbEsc(rec.evidenceHash || "—")}</p>` +
+          '<button id="pbVerifyBtn" class="ghost" type="button">Verify it yourself</button>' +
+          '<div id="pbVerifyOut" class="small" style="margin-top:8px"></div>';
+        const btn = $("pbVerifyBtn");
+        if (btn) btn.addEventListener("click", () => verifyProofBound());
+      }
+
+      function navStr(wei) {
+        if (wei == null) return "—";
+        try {
+          return (Number(BigInt(wei)) / 1e18).toFixed(4);
+        } catch {
+          return "—";
+        }
+      }
+
+      async function verifyProofBound() {
+        const out = $("pbVerifyOut");
+        const rec = pbRecord;
+        if (!out || !rec) return;
+        out.textContent = "recomputing keccak256(rationale)…";
+        const computed = keccak256(toHex(rec.rationale)).toLowerCase();
+        let onchain = (rec.evidenceHash || "").toLowerCase();
+        let src = "published proof";
+        try {
+          if (state.publicClient && rec.vault) {
+            onchain = String(
+              await state.publicClient.readContract({
+                address: rec.vault,
+                abi: VAULT_RECEIPT_ABI,
+                functionName: "lastReceiptEvidenceHash",
+              }),
+            ).toLowerCase();
+            src = "on-chain vault";
+          }
+        } catch {}
+        const match = computed === onchain && onchain.length > 2;
+        out.innerHTML =
+          `<div class="mono" style="word-break:break-all">keccak256(rationale) = ${pbEsc(computed)}</div>` +
+          `<div class="mono" style="word-break:break-all">${pbEsc(src)} = ${pbEsc(onchain)}</div>` +
+          (match
+            ? '<div class="badge ok" style="margin-top:6px">✓ match — the agent did what it said</div>'
+            : '<div class="badge bad" style="margin-top:6px">✗ no match</div>');
+      }
+
       async function loadCfg() {
         let saved = null;
         try {
@@ -3175,6 +3296,7 @@
         $("cfgIndex").value = state.cfg.index;
         $("cfgAsset").value = state.cfg.asset;
         renderProofRail();
+        renderProofBound();
       }
 
       function saveCfg() {
