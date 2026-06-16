@@ -25,6 +25,7 @@ Built for the **Mantle Turing Test Hackathon 2026 — AI × RWA track**.
 
 - **Composable trust** — `TrustOracle.scoreOf(agentId)` returns a 0–100 Trust Score (reputation 40% / receipt freshness 20% / drawdown 20% / bond 20%) in one on-chain call any Mantle protocol can read. The dashboard renders this exact on-chain number (verifiable parity ≈ 0.1%).
 - **Policy + capital gating** — `ReefGuard.canExecute(agentId, asset, sizeBps)` is a pure-view policy gate (registration, reputation, bond, disputes, asset allowlist, size). `Allocator` routes capital across agents trust-weighted, gated by named risk **mandates** (qualification bar + per-agent concentration cap).
+- **On-chain RWA compliance** — `ComplianceRegistry.screen(address)` is a standalone KYC / accreditation / ISO-3166 jurisdiction attestation registry any RWA protocol can read. The app soft-gates deposits on it, and an AI screener attests verdicts on-chain with `evidenceHash = keccak256(rationale)` — so the compliance call is itself verifiable.
 - **Real, autonomous AI** — reference agents read live **Allora** predictions, **Nansen** smart-money flow, and **CoinGecko** momentum, decide via **Z.ai GLM** (`glm-4.7-flash`) or a deterministic fallback, and execute **real swaps on FusionX V2**. Decision source, model, rationale, and swap tx hashes are published at `/api/executions.json`; rationale-bound receipts are summarized at `/api/proofs.json`.
 - **Automated risk management** — a transparent exposure-band policy maps live ETH momentum to a target exposure and executes a **real on-chain** de-risk/re-risk on a DEX-backed vault (proven: 60% → 20% → 80%, each move a verifiable Mantlescan tx).
 - **The Financial Turing Test** — strategies, Allora, and a passive **human buy-and-hold baseline** are scored on one basis and ranked by **risk-adjusted return (Sharpe)** — the hackathon's question made measurable.
@@ -81,6 +82,8 @@ Three independent checks per agent: the recomputed `keccak256(rationale)` equals
 | `AgentIdentity` / `AgentIndex` | ERC-8004 identity + reputation; reputation-weighted index token (rINDEX) |
 | `AgentVault` / `AdapterRegistry` | Sovereign per-agent vault (realized-PnL reputation) + governor-vetted strategy adapter allowlist |
 | `Seasons` / `SignalMarket` | On-chain Human-vs-AI seasons + agent-to-agent signal marketplace |
+| `ComplianceRegistry` | On-chain KYC / accreditation / ISO-3166 jurisdiction attestations (`screen(address)`) — a composable RWA compliance gate any protocol can read |
+| `ArbiterCouncil` | M-of-N (2-of-3) multisig that holds the `ReputationBond` arbiter — decentralized dispute resolution (no single key can slash) |
 | Adapters | `Usdy` · `Meth` · `MethRate` · `FusionX` · `Fbtc` · `Usde` · `Mi4` · `MockYield` |
 
 ## Live deployments
@@ -101,11 +104,13 @@ Everything is on-chain and verifiable — the source of truth is [`deployments/`
 
 > The mainnet position is **demo scale** and the code is **unaudited** — see [`SECURITY.md`](SECURITY.md) before any real TVL.
 
+A second mainnet deployment runs the **Financial Turing Test as a live benchmark**: four AI agents (GLM Synthesis, Momentum, Contrarian, HODL) take real USDC↔WMNT positions through FusionX V2 and are scored by risk-adjusted return against the human HODL baseline. All addresses (Mantlescan-verified) are in [`deployments/mantle-mainnet.json`](deployments/mantle-mainnet.json) under `benchmark`; results render on `/transparency`.
+
 ## Tech stack
 
 - **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); unit + fuzz/invariant suites + live mainnet-fork tests. **250 tests passing** (one L1-fork test is opt-in via `ETHEREUM_RPC`, skipped by default).
 - **Agents** — Python (web3.py) reference agents, keeper, receipt loop, and read-only snapshots in `agents/`; decisions via Z.ai GLM with a deterministic fallback.
-- **Frontend** — static, no build step (`ui/`): `index.html` (landing), `app.html` (dashboard), `transparency.html` (on-chain proof), `agent.html` (agent passport), served at [reef.gudman.xyz](https://reef.gudman.xyz).
+- **Frontend** — static, no build step (`ui/`): `index.html` (landing), `app.html` (dashboard), `transparency.html` (on-chain proof), `agent.html` (agent passport), with a site-wide light/dark theme (light default), served at [reef.gudman.xyz](https://reef.gudman.xyz).
 - **SDK** — `@reef/sdk` (`sdk/`), a zero-dependency JS/TS client.
 
 ## Getting started
@@ -169,7 +174,7 @@ Reef is a working prototype that demonstrates the idea end-to-end and live — *
 - **Unaudited, and deployed contracts are immutable.** A third-party audit is the prerequisite for any real TVL.
 - **Some gaming surface remains.** Receipt *freshness* is fakeable (inherent to a cheap heartbeat) and the reputation component is cohort-relative. Two subtle accounting edge cases (#22 withdraw-ratchet, #28 spot-mark share pricing) are **not exploitable in the live setup** (no DEX-marked strategy is deployed) and are audit-deferred with written remediation specs.
 - **The real-money piece is a tiny proof.** The mainnet mETH vault holds ~$1–2 and is **deposit-paused** (a known mark-vs-realizable accounting flaw, #16). It proves real-RWA custody works; it is not an economically useful vault.
-- **Centralized trust points.** The rate keeper, dispute arbiter, and most governance are single EOAs (rotatable to a multisig at deploy; a 2-of-3 Safe is committed pre-mainnet). The live system runs on one server with ~10-min snapshot freshness.
+- **Centralized trust points.** The dispute arbiter is already a live **2-of-3 `ArbiterCouncil`** on testnet (the M-of-N slash mechanism is proven on-chain; members are our keys here, independent parties in production). The rate keeper and most governance remain single EOAs (rotatable to a multisig; a 2-of-3 Safe is committed pre-mainnet). The live system runs on one server with ~10-min snapshot freshness.
 - **The live AI is intermittent.** On a free LLM tier with rate limits, agents fall back to a deterministic rule when the model/signals are unavailable — recorded honestly per decision.
 - **No economic model or cross-chain reputation yet.** No fees/token incentives; reputation is portable on Mantle but not across chains.
 
