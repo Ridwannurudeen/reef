@@ -70,6 +70,17 @@ def main() -> int:
         agent_id, vault_addr, weight_bps, deployed = a[0], a[1], a[2], a[3]
         vc = vault_contract(w3, vault_addr)
         cum, count = rpc_read(lambda: idn.functions.getSummary(agent_id).call())
+        season_score = "0"
+        side = "?"
+        if seasons:
+            enrolled = rpc_read(lambda: seasons.functions.enrolled(0, agent_id).call())
+            if enrolled:
+                season_score = str(
+                    rpc_read(lambda: seasons.functions.scoreOf(0, agent_id).call())
+                )
+                side = _SIDE.get(
+                    rpc_read(lambda: seasons.functions.sideOf(0, agent_id).call()), "?"
+                )
         agents.append(
             {
                 "agentId": agent_id,
@@ -86,16 +97,8 @@ def main() -> int:
                 "bond": str(rpc_read(lambda: bond.functions.bondOf(agent_id).call()))
                 if bond
                 else "0",
-                "seasonScore": str(
-                    rpc_read(lambda: seasons.functions.scoreOf(0, agent_id).call())
-                )
-                if seasons
-                else "0",
-                "side": _SIDE.get(
-                    rpc_read(lambda: seasons.functions.sideOf(0, agent_id).call()), "?"
-                )
-                if seasons
-                else "?",
+                "seasonScore": season_score,
+                "side": side,
             }
         )
     agents.sort(key=lambda x: int(x["reputation"]), reverse=True)

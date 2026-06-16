@@ -39,6 +39,36 @@ if (!allowed) throw new Error(`agent blocked: ${reason}`);
 const p = await reef.passport(1);   // { trustScore, rating, reefGuard, allocation, latestDecision, … }
 ```
 
+### Write-side onboarding
+
+The write helpers stay zero-dependency too. They submit raw transaction requests
+through an EIP-1193 wallet such as MetaMask; the SDK never handles private keys.
+
+```js
+const reef = new ReefClient({
+  provider: window.ethereum,
+  account: "0xYourWallet",
+  identityAddress: "0xe6D6320a3647a4b21Abe1654C30E848318D161DD",
+  indexAddress: "0xf847D0d2c3E4DBED7cd02eB729e48d0aAEfB8C54",
+  bondAddress: "0xccfF181441a636a63f8b5f9b6697585b54165DAe",
+});
+
+await reef.registerAgent();
+await reef.setReputationSource({ agentId: 6, source: "0xAgentVault" });
+await reef.approveToken({
+  tokenAddress: "0xbc17D7F8f265d069781ed765914ED092989d92e7",
+  spender: "0xccfF181441a636a63f8b5f9b6697585b54165DAe",
+  amount: 10n * 10n ** 18n,
+});
+await reef.postBond({ agentId: 6, amount: 10n * 10n ** 18n });
+await reef.selfListVault({ vault: "0xAgentVault" });
+```
+
+`deployVault({ bytecode, asset, agentId, identityAddress, registryAddress })`
+builds a contract-creation transaction from Foundry bytecode. Adapter approval
+depends on the registry governor; use `approveAdapter` only when the connected
+wallet controls the registry being used by that vault.
+
 ### API
 
 | Method | Returns |
@@ -49,9 +79,19 @@ const p = await reef.passport(1);   // { trustScore, rating, reefGuard, allocati
 | `passport(agentId)` | full passport JSON — `GET /api/agent/<id>.json` |
 | `score(agentId)` | the agent's Reef Trust Score (0–100), from the passport API |
 | `latestReceipt(agentId)` | the agent's latest recorded decision |
+| `registerAgent()` | wallet tx hash for `AgentIdentity.register()` |
+| `deployVault(opts)` | wallet tx hash for an `AgentVault` contract creation tx |
+| `setReputationSource(opts)` | wallet tx hash for `AgentIdentity.setReputationSource` |
+| `approveAdapter(opts)` | wallet tx hash for `AdapterRegistry.approveAdapter` |
+| `approveStrategy(opts)` | wallet tx hash for `AgentVault.approveStrategy` |
+| `approveToken(opts)` | wallet tx hash for ERC-20 `approve` |
+| `postBond(opts)` | wallet tx hash for `ReputationBond.postBond` |
+| `selfListVault(opts)` | wallet tx hash for `AgentIndex.selfListVault` |
+| `publishReceipt(opts)` | wallet tx hash for `AgentVault.publishReceipt` |
 
 `encodeCanExecute` / `decodeCanExecute` / `encodeScoreOf` / `encodeReport` / `decodeReport` /
-`wadToScore` are exported for advanced use (e.g. multicall).
+`wadToScore` plus the `encode*` write helpers are exported for advanced use
+(e.g. multicall, custom relayers, or dry-run transaction builders).
 
 ## Solidity
 

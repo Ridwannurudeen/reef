@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ReefGuard snapshot — query the on-chain policy gate for each agent.
 
-Calls ReefGuard.canExecute(agentId, asset, sizeBps) for each seeded agent and writes
+Calls ReefGuard.canExecute(agentId, asset, sizeBps) for each live indexed agent and writes
 API_OUT_DIR/guard.json {guard, policy, agents:[{agentId, allowed, reason}]}. Read-only;
 powers the "ReefGuard verdict" shown on each Agent Passport so anyone can see whether a
 given agent is currently cleared to act, and why.
@@ -17,7 +17,7 @@ import sys
 import time
 from pathlib import Path
 
-from agents.shared.client import get_w3, rpc_read
+from agents.shared.client import get_w3, index_contract, rpc_read
 from agents.shared.config import DEPLOYMENTS_DIR, REPO_ROOT, load_chain
 
 _GUARD_ABI = [
@@ -55,17 +55,22 @@ def main() -> int:
     if not rg:
         print("no reefGuard in deployments", file=sys.stderr)
         return 2
-    vaults = data.get("seeded", {}).get("vaults", [])
 
     w3 = get_w3(chain.rpc_url)
     guard = w3.eth.contract(
         address=w3.to_checksum_address(rg["address"]), abi=_GUARD_ABI
     )
     asset = w3.to_checksum_address(rg["asset"])
+    idx = index_contract(w3, data["reef"]["AgentIndex"])
+    alloc = rpc_read(lambda: idx.functions.getAllocation().call())
+    agent_ids = sorted({int(a[0]) for a in alloc})
+    if not agent_ids:
+        agent_ids = [
+            int(v["agentId"]) for v in data.get("seeded", {}).get("vaults", [])
+        ]
 
     agents = []
-    for v in vaults:
-        aid = int(v["agentId"])
+    for aid in agent_ids:
         ok, reason = rpc_read(
             lambda aid=aid: guard.functions.canExecute(
                 aid, asset, CHECK_SIZE_BPS

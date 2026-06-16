@@ -1,0 +1,20 @@
+[Unit]
+Description=Reef BYOA agent %i proof-bound receipt tick
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/reef/app
+LoadCredentialEncrypted=private_key:/etc/credstore.encrypted/reef-byoa-%i-private-key
+Environment=REEF_ROOT=/opt/reef/app
+Environment=AGENT_CONFIG=/opt/reef/app/create-reef-agent/agents/%i/agent.json
+Environment=AGENT_OUT_DIR=/opt/reef/web/api/byoa/%i
+Environment=RUN_ONCE=1
+Environment=RECEIPT_PERIOD_S=3600
+Environment=ACTION_BPS=2000
+Environment=MANTLE_SEPOLIA_RPC=https://rpc.sepolia.mantle.xyz,https://mantle-sepolia.drpc.org
+ExecStart=/bin/sh -c 'PRIVATE_KEY="$(cat "$CREDENTIALS_DIRECTORY/private_key")"; export PRIVATE_KEY; exec /usr/bin/python3 /opt/reef/app/create-reef-agent/run_agent.py'
+TimeoutStartSec=900
+SyslogIdentifier=reef-byoa-%i
+
