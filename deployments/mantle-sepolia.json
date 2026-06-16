@@ -67,26 +67,31 @@
       {
         "agentId": 1,
         "vault": "0xfEB9E7903CA909cC04aF18e2CcE08211c7ef8a67",
+        "strategyAdapter": "0x70bd05dbca17ED16f204226fCF99A065005524Bd",
         "weightBps": 526
       },
       {
         "agentId": 2,
         "vault": "0xbeb8CaDAFD213f5Cd24b5Bc36FC82C3802509A23",
+        "strategyAdapter": "0x52bd08F64EE9c6B2f22190eA5E0660C806eB713B",
         "weightBps": 1052
       },
       {
         "agentId": 3,
         "vault": "0x5Cd85315163BBfFDB4F196F51741917aB82E83E5",
+        "strategyAdapter": "0x67A5D8acB7B6ea248e0039aBcaB5Aa4424dFED73",
         "weightBps": 1578
       },
       {
         "agentId": 4,
         "vault": "0x54c62c634D12286FB2895aE443F1d6d06009BdC4",
+        "strategyAdapter": "0x6E57fe2EAd15208cD4C460D13E8c286DC61721C8",
         "weightBps": 2631
       },
       {
         "agentId": 5,
         "vault": "0xd107D0b110F60582672d28b00236acD39EB46eca",
+        "strategyAdapter": "0x9EFE6B4fA5Fa925081D6C09DD594FB54CA5fAdad",
         "weightBps": 4210
       }
     ]
