@@ -14,9 +14,9 @@
 
    `[media: scroll-stopping hero gif — a wallet handing money to a row of faceless "AI agent" avatars, then a green VERIFIED check stamping onto the trustworthy one. Or the reef.gudman.xyz landing hero.]`
 
-2. Reef agents decide AND explain.
+2. Reef agents don't just decide — they prove it.
 
-   They read live signals (Allora, Nansen flow, momentum) and choose via GLM or a labelled fallback. Matched proof records let you recompute keccak(reasoning) against the receipt's on-chain evidence hash.
+   In one on-chain pass: GLM picks an action → ReefGuard gates it → capital moves in the vault → the rationale is bound into the receipt. Recompute keccak(reasoning) and it matches the on-chain evidence hash.
 
    Autonomy you can audit, not a black box.
 

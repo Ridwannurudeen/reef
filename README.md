@@ -26,7 +26,8 @@ Built for the **Mantle Turing Test Hackathon 2026 — AI × RWA track**.
 - **Composable trust** — `TrustOracle.scoreOf(agentId)` returns a 0–100 Trust Score (reputation 40% / receipt freshness 20% / drawdown 20% / bond 20%) in one on-chain call any Mantle protocol can read. The dashboard renders this exact on-chain number (verifiable parity ≈ 0.1%).
 - **Policy + capital gating** — `ReefGuard.canExecute(agentId, asset, sizeBps)` is a pure-view policy gate (registration, reputation, bond, disputes, asset allowlist, size). `Allocator` routes capital across agents trust-weighted, gated by named risk **mandates** (qualification bar + per-agent concentration cap).
 - **On-chain RWA compliance** — `ComplianceRegistry.screen(address)` is a standalone KYC / accreditation / ISO-3166 jurisdiction attestation registry any RWA protocol can read. The app soft-gates deposits on it, and an AI screener attests verdicts on-chain with `evidenceHash = keccak256(rationale)` — so the compliance call is itself verifiable.
-- **Real, autonomous AI** — reference agents read live **Allora** predictions, **Nansen** smart-money flow, and **CoinGecko** momentum, decide via **Z.ai GLM** (`glm-4.7-flash`) or a deterministic fallback, and execute **real swaps on FusionX V2**. Decision source, model, rationale, and swap tx hashes are published at `/api/executions.json`; rationale-bound receipts are summarized at `/api/proofs.json`.
+- **Real, autonomous AI — atomic & proof-bound** — reference agents read live **Allora** predictions, **Nansen** smart-money flow, and **CoinGecko** momentum, decide via **Z.ai GLM** (`glm-4.7-flash`) or a deterministic fallback, and run one sole-publisher loop (`proofbound_rebalance`) that **gates the decision through `ReefGuard`, moves vault capital via an `AdapterRegistry`-vetted strategy adapter, and binds the rationale into the on-chain receipt** (`evidenceHash == keccak256(rationale)`) — all in one pass. Fresh evidence at `/api/proofbound.json` + `/api/proofs.json`; reputation credits only on realized, donation-proof NAV. (`FusionXAdapter` for real Mantle-native DEX execution is mainnet-fork-tested.)
+- **Open agent network (BYOA)** — not a curated 5-agent demo: `create-reef-agent` + the zero-dependency `@reef/sdk` let any builder register an ERC-8004 identity, post a bond, `selfListVault` into the index, and run the proof-bound loop. A 6th agent deployed via this path is live-indexed (`getAllocation()` returns 6) with on-chain proof-bound receipts.
 - **Automated risk management** — a transparent exposure-band policy maps live ETH momentum to a target exposure and executes a **real on-chain** de-risk/re-risk on a DEX-backed vault (proven: 60% → 20% → 80%, each move a verifiable Mantlescan tx).
 - **The Financial Turing Test** — strategies, Allora, and a passive **human buy-and-hold baseline** are scored on one basis and ranked by **risk-adjusted return (Sharpe)** — the hackathon's question made measurable.
 - **Portable ERC-8004 reputation** — every agent is registered in Mantle's **official** ERC-8004 registries (canonical `0x8004…` singletons), with its Trust Score published to the official Reputation Registry.
@@ -108,7 +109,7 @@ A second mainnet deployment runs the **Financial Turing Test as a live benchmark
 
 ## Tech stack
 
-- **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); unit + fuzz/invariant suites + live mainnet-fork tests. **250 tests passing** (one L1-fork test is opt-in via `ETHEREUM_RPC`, skipped by default).
+- **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); unit + fuzz/invariant suites + live mainnet-fork tests. **253 tests passing** (one L1-fork test is opt-in via `ETHEREUM_RPC`, skipped by default).
 - **Agents** — Python (web3.py) reference agents, keeper, receipt loop, and read-only snapshots in `agents/`; decisions via Z.ai GLM with a deterministic fallback.
 - **Frontend** — static, no build step (`ui/`): `index.html` (landing), `app.html` (dashboard), `transparency.html` (on-chain proof), `agent.html` (agent passport), with a site-wide light/dark theme (light default), served at [reef.gudman.xyz](https://reef.gudman.xyz).
 - **SDK** — `@reef/sdk` (`sdk/`), a zero-dependency JS/TS client.
@@ -120,7 +121,7 @@ git clone https://github.com/Ridwannurudeen/reef.git
 cd reef
 cp .env.example .env     # fill in PRIVATE_KEY + API keys (all optional for build/test)
 forge build
-forge test                # 250 passing, 1 skipped
+forge test                # 253 passing, 1 skipped
 ```
 
 The static site needs no build — open `ui/index.html`, or visit [reef.gudman.xyz](https://reef.gudman.xyz).
@@ -148,6 +149,8 @@ await reef.report(5, asset, 1000);          // { score, rating, guardCleared, gu
 ```
 
 Live reference integrations (Mantlescan-verified): `MockProtocol` (ReefGuard gate) and `TrustOracleConsumer` (trust-weighted credit).
+
+**Bring your own agent** — `create-reef-agent/` is a fork-ready scaffold that registers an ERC-8004 identity, posts a bond, `selfListVault`s into the index, and runs the proof-bound receipt loop. A 6th agent deployed through it is already live-indexed with on-chain proof-bound receipts.
 
 ## Project structure
 
