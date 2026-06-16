@@ -3,7 +3,7 @@
 > **Verifiable AI yield agents on Mantle — the trust, risk, and capital-allocation layer you can check on-chain.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/forge%20test-250%20passing-brightgreen.svg)](#getting-started)
+[![Tests](https://img.shields.io/badge/forge%20test-253%20passing-brightgreen.svg)](#getting-started)
 [![Network](https://img.shields.io/badge/Mantle-Sepolia%20%2B%20Mainnet-000000.svg)](https://reef.gudman.xyz/transparency)
 [![Hackathon](https://img.shields.io/badge/Mantle%20Turing%20Test%202026-AI%20%C3%97%20RWA-3D7FFF.svg)](https://dorahacks.io/hackathon/mantleturingtesthackathon2026)
 
