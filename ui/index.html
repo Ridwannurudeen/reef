@@ -1351,16 +1351,18 @@
               >
                 <div class="uw-panel-head">
                   <div>
-                    <p class="uw-kicker">Policy veto replay</p>
+                    <p class="uw-kicker">Contract-backed policy veto</p>
                     <h2 class="uw-panel-title" id="blocked-replay-title">
                       Reef says no before the adapter moves funds
                     </h2>
                     <p class="uw-panel-sub" id="replay-note">
-                      Deterministic replay using the current ReefGuard policy,
+                      Read-only eth_call against the current ReefGuard policy,
                       not a live transaction.
                     </p>
                   </div>
-                  <span class="uw-badge uw-badge-blocked">replay</span>
+                  <span class="uw-badge uw-badge-blocked" id="replay-kind"
+                    >eth_call</span
+                  >
                 </div>
                 <div class="uw-replay-rail">
                   <div class="uw-replay-step">
@@ -1383,9 +1385,9 @@
                   </div>
                   <div class="uw-replay-step">
                     <strong>Proof</strong>
-                    <span>
-                      Rationale hash, receipt hash, and vault evidence hash are
-                      linked after the approved action executes.
+                    <span id="replay-proof">
+                      ReefGuard call data and returned reason are published in
+                      the public guard feed.
                     </span>
                   </div>
                 </div>
@@ -1973,6 +1975,18 @@ if (!gate.allowed) throw new Error(gate.reason);</code></pre>
           );
         }
 
+        function addressLink(address) {
+          address = String(address || "");
+          if (!/^0x[0-9a-fA-F]{40}$/.test(address)) return "";
+          return (
+            '<a class="uw-code" href="https://sepolia.mantlescan.xyz/address/' +
+            esc(address) +
+            '" rel="noopener">' +
+            esc(shortHash(address)) +
+            "</a>"
+          );
+        }
+
         function badge(label, kind) {
           var cls =
             kind === "bad"
@@ -2143,6 +2157,7 @@ if (!gate.allowed) throw new Error(gate.reason);</code></pre>
         }
 
         function hydrateReplay(guard) {
+          var blocked = guard && guard.blockedAction;
           var maxSize = Number(
             guard && guard.policy && guard.policy.maxSizeBps
               ? guard.policy.maxSizeBps
@@ -2153,23 +2168,67 @@ if (!gate.allowed) throw new Error(gate.reason);</code></pre>
               ? guard.policy.checkSizeBps
               : 3000,
           );
-          var proposed = Math.min(10000, maxSize + 1500);
+          var proposed = Number(
+            blocked && blocked.requestedSizeBps
+              ? blocked.requestedSizeBps
+              : maxSize + 1500,
+          );
+          var approved = Number(
+            blocked && blocked.approvedSizeBps
+              ? blocked.approvedSizeBps
+              : checked,
+          );
+          var call = (blocked && blocked.call) || {};
+          var callTarget = call.to || (guard && guard.guard);
+          var callData = call.data || "";
+
+          setText("replay-kind", blocked ? "eth_call" : "replay");
+          setText(
+            "replay-note",
+            blocked
+              ? "Read-only eth_call against the current ReefGuard policy; no transaction sent."
+              : "Deterministic replay using the current ReefGuard policy, not a live transaction.",
+          );
           setText(
             "replay-proposed",
             "Increase exposure to " + (proposed / 100).toFixed(0) + "%.",
           );
           setHtml(
             "replay-blocked",
-            badge("blocked", "bad") +
-              " action size over limit; live max is " +
-              esc((maxSize / 100).toFixed(0)) +
-              "%.",
+            blocked
+              ? badge(
+                  blocked.allowed ? "allowed" : "blocked",
+                  blocked.allowed ? "ok" : "bad",
+                ) +
+                  " " +
+                  esc(blocked.reason || "contract result unavailable") +
+                  " at " +
+                  esc((proposed / 100).toFixed(0)) +
+                  "%; live max is " +
+                  esc((maxSize / 100).toFixed(0)) +
+                  "%."
+              : badge("blocked", "bad") +
+                  " action size over limit; live max is " +
+                  esc((maxSize / 100).toFixed(0)) +
+                  "%.",
           );
           setText(
             "replay-replan",
             "Reduce exposure to " +
-              (checked / 100).toFixed(0) +
+              (approved / 100).toFixed(0) +
               "%, then re-check ReefGuard before execution.",
+          );
+          setHtml(
+            "replay-proof",
+            blocked
+              ? "Published in guard.json: " +
+                  esc(call.function || "canExecute") +
+                  " on " +
+                  (addressLink(callTarget) || esc(shortHash(callTarget))) +
+                  " with calldata " +
+                  esc(shortHash(callData)) +
+                  "."
+              : "Rationale hash, receipt hash, and vault evidence hash are linked after the approved action executes.",
           );
         }
 

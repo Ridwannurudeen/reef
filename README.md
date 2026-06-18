@@ -103,6 +103,12 @@ REEF_PROOF_VALID
 
 Three independent checks per agent: the recomputed `keccak256(rationale)` equals the published `evidenceHash`, which equals the on-chain `lastReceiptEvidenceHash`. The same proof renders in the browser on the [proof page](https://reef.gudman.xyz/transparency).
 
+The homepage policy veto is also backed by a read-only contract result. `guard_snapshot` calls the live Sepolia `ReefGuard.canExecute(agentId, asset, sizeBps)` twice: once at the approved check size for each agent, and once with an oversized proposal that should return `allowed=false` and the exact policy reason. The result is published as the `blockedAction` field in `/api/guard.json`; no transaction or private key is involved.
+
+```bash
+API_OUT_DIR=ui/api python -m agents.scripts.guard_snapshot
+```
+
 ## The trust & risk layer
 
 | Contract                              | Role                                                                                                                                           |
@@ -221,10 +227,11 @@ forge build                                      # compile contracts
 forge test                                       # Solidity unit, fuzz, invariant, and fork suites
 cd sdk && npm test                               # SDK selector, encoding, and provider tests
 python -m agents.scripts.verify_proof            # recompute live rationale hashes against chain
+API_OUT_DIR=ui/api python -m agents.scripts.guard_snapshot
 API_OUT_DIR=ui/api python -m agents.scripts.proofbound_rebalance
 ```
 
-The last command runs the live proof-bound loop and requires a funded operator key in `.env`; use `DRY_RUN=1` before any local experiment.
+`guard_snapshot` and `verify_proof` are read-only. The proof-bound loop runs live receipts and requires a funded operator key in `.env`; use `DRY_RUN=1` before any local experiment.
 
 ## Contributing
 
