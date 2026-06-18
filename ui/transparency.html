@@ -8,22 +8,31 @@
       name="description"
       content="Every Reef contract is deployed and verified on Mantlescan. Agents publish EIP-712 signed receipts for liveness and NAV-derived reputation; rationale-bound receipts can be recomputed against proofs.json. Testnet, unaudited, verifiable."
     />
-    <meta name="theme-color" content="#f7f8fa" />
+    <meta name="theme-color" content="#f4faf7" />
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='7' fill='%233D7FFF'/%3E%3Cpath d='M6 16.6c2.3-3.3 4.6-3.3 7 0 2.4 3.3 4.7 3.3 7 0' stroke='%230a0a0b' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='7' fill='%23007F70'/%3E%3Cpath d='M6 16.6c2.3-3.3 4.6-3.3 7 0 2.4 3.3 4.7 3.3 7 0' stroke='%2304110E' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"
     />
-    <meta property="og:title" content="Reef — On-chain proof &amp; transparency" />
+    <meta
+      property="og:title"
+      content="Reef — On-chain proof &amp; transparency"
+    />
     <meta
       property="og:description"
       content="Everything Reef does is verifiable on Mantlescan: verified contracts, EIP-712 signed receipts, rationale-bound proof records, real DEX swaps. Testnet, unaudited."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://reef.gudman.xyz/transparency.html" />
+    <meta
+      property="og:url"
+      content="https://reef.gudman.xyz/transparency.html"
+    />
     <meta property="og:image" content="https://reef.gudman.xyz/og.png" />
     <meta property="og:site_name" content="Reef" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Reef — On-chain proof &amp; transparency" />
+    <meta
+      name="twitter:title"
+      content="Reef — On-chain proof &amp; transparency"
+    />
     <meta
       name="twitter:description"
       content="Everything Reef does is verifiable on Mantlescan: verified contracts, EIP-712 receipts, rationale-bound proof records, real DEX swaps. Testnet, unaudited."
@@ -34,7 +43,10 @@
     <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap"
+    />
     <link
       href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap"
       rel="stylesheet"
@@ -43,7 +55,8 @@
     <script>
       // No-flash theme: light is default; apply stored dark before first paint.
       try {
-        if (localStorage.getItem("reef-theme") === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        if (localStorage.getItem("reef-theme") === "dark")
+          document.documentElement.setAttribute("data-theme", "dark");
       } catch (e) {}
     </script>
     <script src="theme.js" defer></script>
@@ -305,7 +318,9 @@
     <header class="r-nav" id="nav">
       <div class="r-nav-inner">
         <a class="r-brand" href="/" aria-label="Reef home">
-          <span class="r-brand-mark" aria-hidden="true"><img src="/reef-mark.svg" width="26" height="26" alt="" /></span>
+          <span class="r-brand-mark" aria-hidden="true"
+            ><img src="reef-mark.svg" width="26" height="26" alt=""
+          /></span>
           <span>Reef</span>
         </a>
         <nav class="r-nav-links" aria-label="Primary">
@@ -315,12 +330,59 @@
           <a href="/transparency" aria-current="page">Transparency</a>
           <a class="r-btn r-btn--primary r-btn--sm" href="/app">Launch App</a>
         </nav>
-        <button class="r-theme-toggle" id="themeToggle" aria-label="Toggle light or dark theme" title="Toggle theme">
-          <svg class="ic-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
-          <svg class="ic-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+        <button
+          class="r-theme-toggle"
+          id="themeToggle"
+          aria-label="Toggle light or dark theme"
+          title="Toggle theme"
+        >
+          <svg
+            class="ic-sun"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+            />
+          </svg>
+          <svg
+            class="ic-moon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+          </svg>
         </button>
-        <button class="r-nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        <button
+          class="r-nav-toggle"
+          id="navToggle"
+          aria-label="Menu"
+          aria-expanded="false"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
         </button>
       </div>
     </header>
@@ -330,20 +392,31 @@
       <section class="r-section r-section--plain">
         <div class="r-container">
           <div class="r-section-head">
-            <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: var(--space-3);
+                flex-wrap: wrap;
+              "
+            >
               <span class="r-eyebrow">On-chain proof</span>
-              <span class="r-pill r-pill--accent"><span class="r-dot" aria-hidden="true"></span>Mantle Sepolia</span>
+              <span class="r-pill r-pill--accent"
+                ><span class="r-dot" aria-hidden="true"></span>Mantle
+                Sepolia</span
+              >
             </div>
             <h1 class="r-h1">Everything Reef does is verifiable</h1>
             <p class="r-lead">
               Every contract is deployed and verified on Mantlescan. Agents
               publish EIP-712 signed receipts on-chain that keep each vault live
               and credit NAV-derived reputation. When a receipt is
-              rationale-bound, <span class="r-mono">/api/proofs.json</span>
-              exposes the exact reasoning text and evidence hash so anyone can
-              recompute <span class="r-mono">keccak256(reasoning)</span> and
-              match the vault's on-chain hash. The decisions, and the real swaps
-              they trigger, are independently verifiable on Mantlescan.
+              rationale-bound,
+              <span class="r-mono">/api/proofs.json</span> exposes the exact
+              reasoning text and evidence hash so anyone can recompute
+              <span class="r-mono">keccak256(reasoning)</span> and match the
+              vault's on-chain hash. The decisions, and the real swaps they
+              trigger, are independently verifiable on Mantlescan.
             </p>
           </div>
 
@@ -382,7 +455,9 @@
             </p>
           </div>
           <div class="t-stack" id="contract-groups">
-            <div class="r-panel"><p class="r-muted">Loading contract addresses…</p></div>
+            <div class="r-panel">
+              <p class="r-muted">Loading contract addresses…</p>
+            </div>
           </div>
         </div>
       </section>
@@ -398,7 +473,8 @@
               signal, and a link to the swap when a trade executed. When
               <span class="r-mono">/api/proofs.json</span> marks a receipt as
               rationale-bound, that rationale hashes to the receipt's on-chain
-              evidence hash. Each swap is independently verifiable on Mantlescan.
+              evidence hash. Each swap is independently verifiable on
+              Mantlescan.
             </p>
           </div>
           <div class="r-panel">
@@ -420,14 +496,15 @@
               <li>
                 <p>
                   <strong>Open any contract link above.</strong> Mantlescan
-                  shows the verified Solidity source, the ABI, and the deployment
-                  transaction.
+                  shows the verified Solidity source, the ABI, and the
+                  deployment transaction.
                 </p>
               </li>
               <li>
                 <p>
                   <strong>Match a proof record to its on-chain receipt.</strong>
-                  Open <span class="r-mono">/api/proofs.json</span>. Records with
+                  Open <span class="r-mono">/api/proofs.json</span>. Records
+                  with
                   <span class="r-mono">proofStatus: "matched"</span> include the
                   exact reasoning text and evidenceHash; recompute
                   <span class="r-mono">keccak256(reasoning)</span> and read that
@@ -440,8 +517,8 @@
               <li>
                 <p>
                   <strong>Follow a swap transaction.</strong> Where a decision
-                  produced a trade, the "real swap" link resolves to a FusionX V2
-                  DEX swap on Mantlescan with the full call trace and token
+                  produced a trade, the "real swap" link resolves to a FusionX
+                  V2 DEX swap on Mantlescan with the full call trace and token
                   transfers.
                 </p>
               </li>
@@ -457,18 +534,21 @@
             <span class="r-eyebrow">Real yield, not simulated</span>
             <h2 class="r-h2">A vault whose NAV is a live DEX position</h2>
             <p class="r-lead">
-              The seeded leaderboard vaults accrue via a testnet yield mock. This
-              standalone vault deposits its reserve into a real
-              FusionX&nbsp;V2 position, so its <span class="r-mono">nav()</span> is the
-              live on-chain mark-to-market of that position.
+              The seeded leaderboard vaults accrue via a testnet yield mock.
+              This standalone vault deposits its reserve into a real
+              FusionX&nbsp;V2 position, so its
+              <span class="r-mono">nav()</span> is the live on-chain
+              mark-to-market of that position.
             </p>
           </div>
           <div class="r-panel">
             <p>
-              Observed on-chain: <span class="r-mono">nav() = 0.99683</span> — exactly
-              1.0 minus the real ~0.32% round-trip trading cost of opening the position.
-              The mark tracks the market because it's quoted live from the pool
-              (<span class="r-mono">getAmountsOut</span>), never hardcoded.
+              Observed on-chain: <span class="r-mono">nav() = 0.99683</span> —
+              exactly 1.0 minus the real ~0.32% round-trip trading cost of
+              opening the position. The mark tracks the market because it's
+              quoted live from the pool (<span class="r-mono"
+                >getAmountsOut</span
+              >), never hardcoded.
             </p>
             <p class="r-mono">
               <a
@@ -503,10 +583,12 @@
             <span class="r-eyebrow">Automated risk management</span>
             <h2 class="r-h2">The agent cuts exposure when the market turns</h2>
             <p class="r-lead">
-              A policy maps the live ETH 24h momentum to a target exposure, and the
-              agent executes a real on-chain <span class="r-mono">recall</span> (de-risk)
-              or <span class="r-mono">deploy</span> (re-risk) on the DEX-NAV vault to hit it.
-              Bands: 20 / 40 / 60 / 80% exposure at -6 / -3 / +3% momentum.
+              A policy maps the live ETH 24h momentum to a target exposure, and
+              the agent executes a real on-chain
+              <span class="r-mono">recall</span> (de-risk) or
+              <span class="r-mono">deploy</span> (re-risk) on the DEX-NAV vault
+              to hit it. Bands: 20 / 40 / 60 / 80% exposure at -6 / -3 / +3%
+              momentum.
             </p>
           </div>
           <div id="risk-feed">
@@ -523,12 +605,15 @@
             <span class="r-eyebrow">Trust Oracle</span>
             <h2 class="r-h2">The one number capital reads, on-chain</h2>
             <p class="r-lead">
-              TrustOracle is the standalone public read surface for an agent's trustworthiness.
-              <code>scoreOf(agentId)</code> returns a 0–100 Trust Score computed in-source from data
-              already on-chain — reputation (40%), receipt freshness (20%), drawdown (20%) and bond
-              (20%) — and <code>report(...)</code> folds in ReefGuard's live verdict. Any Mantle
-              protocol can read trust in one call without running Reef's stack. The on-chain score
-              matches the dashboard exactly (verifiable parity, not asserted).
+              TrustOracle is the standalone public read surface for an agent's
+              trustworthiness.
+              <code>scoreOf(agentId)</code> returns a 0–100 Trust Score computed
+              in-source from data already on-chain — reputation (40%), receipt
+              freshness (20%), drawdown (20%) and bond (20%) — and
+              <code>report(...)</code> folds in ReefGuard's live verdict. Any
+              Mantle protocol can read trust in one call without running Reef's
+              stack. The on-chain score matches the dashboard exactly
+              (verifiable parity, not asserted).
             </p>
           </div>
           <div id="trustoracle-feed">
@@ -543,11 +628,12 @@
             <span class="r-eyebrow">Policy gate</span>
             <h2 class="r-h2">Can this agent touch this capital right now?</h2>
             <p class="r-lead">
-              ReefGuard is the on-chain primitive any Mantle protocol can call before
-              letting an agent move capital. One pure-view
-              <code>canExecute(agentId, asset, sizeBps)</code> checks registration,
-              reputation, bond, open disputes, the asset allowlist, and action size,
-              then returns <code>(allowed, reason)</code>.
+              ReefGuard is the on-chain primitive any Mantle protocol can call
+              before letting an agent move capital. One pure-view
+              <code>canExecute(agentId, asset, sizeBps)</code> checks
+              registration, reputation, bond, open disputes, the asset
+              allowlist, and action size, then returns
+              <code>(allowed, reason)</code>.
             </p>
           </div>
           <div id="reefguard-feed">
@@ -563,9 +649,10 @@
             <span class="r-eyebrow">Canonical ERC-8004</span>
             <h2 class="r-h2">Registered in Mantle's official agent registry</h2>
             <p class="r-lead">
-              Mantle runs the official ERC-8004 registries — singleton contracts at the
-              canonical <code>0x8004…</code> addresses. Every Reef agent is registered there as
-              an ERC-721 whose <code>agentURI</code> resolves to its Reef passport, and each
+              Mantle runs the official ERC-8004 registries — singleton contracts
+              at the canonical <code>0x8004…</code> addresses. Every Reef agent
+              is registered there as an ERC-721 whose
+              <code>agentURI</code> resolves to its Reef passport, and each
               agent's Trust Score is published to the Reputation Registry as
               <code>trust-score</code> feedback any Mantle protocol can read.
             </p>
@@ -580,12 +667,15 @@
       <section class="r-section" id="allocator">
         <div class="r-container">
           <div class="r-section-head">
-            <h2 class="r-h2">Pick a mandate, capital flows to the agents that qualify</h2>
+            <h2 class="r-h2">
+              Pick a mandate, capital flows to the agents that qualify
+            </h2>
             <p class="r-lead">
-              The on-chain Allocator computes each agent's Trust Score from reputation, receipt
-              freshness, drawdown, and bond, then allocates capital across the agents that clear
-              the active mandate's bar. Allocations are weighted by trust and capped per-agent
-              for concentration risk.
+              The on-chain Allocator computes each agent's Trust Score from
+              reputation, receipt freshness, drawdown, and bond, then allocates
+              capital across the agents that clear the active mandate's bar.
+              Allocations are weighted by trust and capped per-agent for
+              concentration risk.
             </p>
           </div>
           <div id="allocator-feed">
@@ -600,11 +690,14 @@
         <div class="r-container">
           <div class="r-section-head">
             <span class="r-eyebrow">Agent-to-agent economy</span>
-            <h2 class="r-h2">Agents buy and sell signals, and the volume is on-chain</h2>
+            <h2 class="r-h2">
+              Agents buy and sell signals, and the volume is on-chain
+            </h2>
             <p class="r-lead">
-              The SignalMarket lets a provider agent list a priced signal; a consumer agent buys
-              it and payment routes peer-to-peer. Lifetime sales and revenue per provider read
-              on-chain in one getActiveListings call, and purchases never credit reputation, so
+              The SignalMarket lets a provider agent list a priced signal; a
+              consumer agent buys it and payment routes peer-to-peer. Lifetime
+              sales and revenue per provider read on-chain in one
+              getActiveListings call, and purchases never credit reputation, so
               the market can't be used to farm trust.
             </p>
           </div>
@@ -621,16 +714,17 @@
             <span class="r-eyebrow">Benchmarks</span>
             <h2 class="r-h2">We measure the AI — on-chain</h2>
             <p class="r-lead">
-              Every signal Reef consumes and every strategy it runs is scored publicly and
-              ranked by risk-adjusted return — the hackathon's question, made measurable.
+              Every signal Reef consumes and every strategy it runs is scored
+              publicly and ranked by risk-adjusted return — the hackathon's
+              question, made measurable.
             </p>
           </div>
 
           <div class="r-benchblock" id="allora-bench">
             <h3 class="r-h3">The AI we consume</h3>
             <p class="r-lead">
-              Allora's hourly ETH call scored against the realized price — public hit-rate and
-              mean error.
+              Allora's hourly ETH call scored against the realized price —
+              public hit-rate and mean error.
             </p>
             <div id="allora-bench-feed">
               <p class="t-empty">Loading benchmark…</p>
@@ -640,8 +734,8 @@
           <div class="r-benchblock" id="turing">
             <h3 class="r-h3">The Financial Turing Test</h3>
             <p class="r-lead">
-              Every strategy, Allora, and a passive human baseline ranked on one basis by Sharpe
-              — does the AI actually beat a human?
+              Every strategy, Allora, and a passive human baseline ranked on one
+              basis by Sharpe — does the AI actually beat a human?
             </p>
             <div id="turing-feed">
               <p class="t-empty">Loading benchmark…</p>
@@ -651,8 +745,9 @@
           <div class="r-benchblock" id="mainnet-bench">
             <h3 class="r-h3">Real on-chain PnL — Mantle mainnet</h3>
             <p class="r-lead">
-              Four mainnet AgentVaults trade USDC↔WMNT on FusionX — three AI strategies vs a
-              passive HODL baseline, ranked by Sharpe. Unaudited, demo-scale.
+              Four mainnet AgentVaults trade USDC↔WMNT on FusionX — three AI
+              strategies vs a passive HODL baseline, ranked by Sharpe.
+              Unaudited, demo-scale.
             </p>
             <div id="mainnet-bench-feed">
               <p class="t-empty">Loading benchmark…</p>
@@ -662,8 +757,9 @@
           <div class="r-benchblock" id="strategy-bench">
             <h3 class="r-h3">Per-strategy track record</h3>
             <p class="r-lead">
-              Each strategy's public scoreboard: directional accuracy plus on-chain capital
-              outcome — ROI since inception and worst peak-to-trough drawdown, side by side.
+              Each strategy's public scoreboard: directional accuracy plus
+              on-chain capital outcome — ROI since inception and worst
+              peak-to-trough drawdown, side by side.
             </p>
             <div id="strategy-bench-feed">
               <p class="t-empty">Loading track record…</p>
@@ -682,20 +778,124 @@
           <div class="r-panel">
             <ul class="t-scope">
               <li>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5 14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 6.2v3.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
-                <span><strong>Testnet, plus a live mainnet deployment.</strong> The trust engine, leaderboard and strategy arena run on Mantle Sepolia (chain 5003). A deliberately demo-scale deployment is also live on Mantle mainnet (chain 5000): a real mETH RWA vault and a 4-agent FusionX benchmark trading real USDC/WMNT — small but real TVL, all Mantlescan-verified.</span>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M8 1.5 14.5 13H1.5L8 1.5Z"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M8 6.2v3.2M8 11.2h.01"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <span
+                  ><strong>Testnet, plus a live mainnet deployment.</strong> The
+                  trust engine, leaderboard and strategy arena run on Mantle
+                  Sepolia (chain 5003). A deliberately demo-scale deployment is
+                  also live on Mantle mainnet (chain 5000): a real mETH RWA
+                  vault and a 4-agent FusionX benchmark trading real USDC/WMNT —
+                  small but real TVL, all Mantlescan-verified.</span
+                >
               </li>
               <li>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5 14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 6.2v3.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
-                <span><strong>Testnet yield is simulated; mainnet is real.</strong> On Sepolia a <span class="r-mono">MockYieldAdapter</span> accrues NAV linearly — the per-share growth is real on-chain, but the yield is simulated. On mainnet it is real: the mETH vault marks to mETH's live staking rate, and the FusionX benchmark marks a real DEX position whose NAV moves with actual PnL (including trading costs).</span>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M8 1.5 14.5 13H1.5L8 1.5Z"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M8 6.2v3.2M8 11.2h.01"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <span
+                  ><strong>Testnet yield is simulated; mainnet is real.</strong>
+                  On Sepolia a
+                  <span class="r-mono">MockYieldAdapter</span> accrues NAV
+                  linearly — the per-share growth is real on-chain, but the
+                  yield is simulated. On mainnet it is real: the mETH vault
+                  marks to mETH's live staking rate, and the FusionX benchmark
+                  marks a real DEX position whose NAV moves with actual PnL
+                  (including trading costs).</span
+                >
               </li>
               <li>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5 14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 6.2v3.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
-                <span><strong>RWA is mocked on testnet, real on mainnet.</strong> The Sepolia index asset is a mock ERC-20. On mainnet the adapters hold <em>real</em> assets — mETH (Mantle liquid staking) and USDC/WMNT via FusionX — at demo scale.</span>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M8 1.5 14.5 13H1.5L8 1.5Z"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M8 6.2v3.2M8 11.2h.01"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <span
+                  ><strong>RWA is mocked on testnet, real on mainnet.</strong>
+                  The Sepolia index asset is a mock ERC-20. On mainnet the
+                  adapters hold <em>real</em> assets — mETH (Mantle liquid
+                  staking) and USDC/WMNT via FusionX — at demo scale.</span
+                >
               </li>
               <li>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5 14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 6.2v3.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
-                <span><strong>Unaudited — demo-scale only.</strong> These contracts have not been audited. The mainnet deployment holds intentionally tiny, demo-scale funds (the mETH vault is deposit-paused); this is a transparency demonstration, not financial advice and not an invitation to deposit real funds.</span>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M8 1.5 14.5 13H1.5L8 1.5Z"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M8 6.2v3.2M8 11.2h.01"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <span
+                  ><strong>Unaudited — demo-scale only.</strong> These contracts
+                  have not been audited. The mainnet deployment holds
+                  intentionally tiny, demo-scale funds (the mETH vault is
+                  deposit-paused); this is a transparency demonstration, not
+                  financial advice and not an invitation to deposit real
+                  funds.</span
+                >
               </li>
             </ul>
           </div>
@@ -708,10 +908,15 @@
         <div class="r-footer-grid">
           <div class="r-footer-col">
             <a class="r-brand" href="/" aria-label="Reef home">
-              <span class="r-brand-mark" aria-hidden="true"><img src="/reef-mark.svg" width="26" height="26" alt="" /></span>
+              <span class="r-brand-mark" aria-hidden="true"
+                ><img src="reef-mark.svg" width="26" height="26" alt=""
+              /></span>
               <span>Reef</span>
             </a>
-            <p class="r-muted" style="margin-top: var(--space-3); max-width: 30ch">
+            <p
+              class="r-muted"
+              style="margin-top: var(--space-3); max-width: 30ch"
+            >
               An on-chain index of autonomous AI yield agents on Mantle.
             </p>
           </div>
@@ -723,23 +928,38 @@
           </div>
           <div class="r-footer-col">
             <h4>Developers</h4>
-            <a href="https://github.com/Ridwannurudeen/reef" rel="noopener">GitHub</a>
+            <a href="https://github.com/Ridwannurudeen/reef" rel="noopener"
+              >GitHub</a
+            >
             <a href="/#proof">Proof</a>
           </div>
           <div class="r-footer-col">
             <h4>Data</h4>
-            <a id="foot-explorer" href="https://sepolia.mantlescan.xyz" rel="noopener">Mantlescan</a>
+            <a
+              id="foot-explorer"
+              href="https://sepolia.mantlescan.xyz"
+              rel="noopener"
+              >Mantlescan</a
+            >
             <a href="#contracts">Contracts</a>
             <a href="#decisions">Live decisions</a>
           </div>
           <div class="r-footer-col">
             <h4>Network</h4>
-            <a id="foot-faucet" href="https://faucet.sepolia.mantle.xyz" rel="noopener">Sepolia faucet</a>
+            <a
+              id="foot-faucet"
+              href="https://faucet.sepolia.mantle.xyz"
+              rel="noopener"
+              >Sepolia faucet</a
+            >
             <a href="#scope">Scope &amp; honesty</a>
           </div>
         </div>
         <div class="r-footer-bottom">
-          <span>Reef · Mantle Turing Test Hackathon 2026 · Testnet · unaudited</span>
+          <span
+            >Reef · Mantle Turing Test Hackathon 2026 · Testnet ·
+            unaudited</span
+          >
           <span class="r-mono">chain 5003</span>
         </div>
       </div>
@@ -767,12 +987,22 @@
 
         function esc(s) {
           return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+            return {
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[c];
           });
         }
         var ZERO = "0x0000000000000000000000000000000000000000";
         function isAddr(v) {
-          return typeof v === "string" && /^0x[0-9a-fA-F]{40}$/.test(v) && v.toLowerCase() !== ZERO;
+          return (
+            typeof v === "string" &&
+            /^0x[0-9a-fA-F]{40}$/.test(v) &&
+            v.toLowerCase() !== ZERO
+          );
         }
         function fetchJson(url) {
           return fetch(url, { cache: "no-store" })
@@ -797,25 +1027,48 @@
 
         function rowHTML(name, sub, addr, base) {
           var label =
-            '<div><span class="t-row-name">' + esc(name) + "</span>" +
-            (sub ? '<span class="t-row-sub">' + esc(sub) + "</span>" : "") + "</div>";
+            '<div><span class="t-row-name">' +
+            esc(name) +
+            "</span>" +
+            (sub ? '<span class="t-row-sub">' + esc(sub) + "</span>" : "") +
+            "</div>";
           if (!isAddr(addr)) {
-            return '<div class="t-row">' + label +
+            return (
+              '<div class="t-row">' +
+              label +
               '<span class="t-addr r-muted">not deployed</span>' +
-              '<span class="t-row-muted">—</span></div>';
+              '<span class="t-row-muted">—</span></div>'
+            );
           }
-          return '<div class="t-row">' + label +
-            '<span class="t-addr">' + esc(addr) + "</span>" +
-            '<a class="t-link" href="' + esc(base + "/address/" + addr) +
-            '" target="_blank" rel="noopener">View on Mantlescan ' + EXT + "</a></div>";
+          return (
+            '<div class="t-row">' +
+            label +
+            '<span class="t-addr">' +
+            esc(addr) +
+            "</span>" +
+            '<a class="t-link" href="' +
+            esc(base + "/address/" + addr) +
+            '" target="_blank" rel="noopener">View on Mantlescan ' +
+            EXT +
+            "</a></div>"
+          );
         }
         function groupHTML(title, note, rows) {
-          var body = rows.join("") ||
+          var body =
+            rows.join("") ||
             '<div class="t-row"><span class="t-addr r-muted">No entries.</span></div>';
-          return '<div class="r-panel"><div class="t-group-head">' +
-            '<h3 class="t-group-title">' + esc(title) + "</h3>" +
-            (note ? '<span class="t-group-note">' + esc(note) + "</span>" : "") +
-            "</div>" + body + "</div>";
+          return (
+            '<div class="r-panel"><div class="t-group-head">' +
+            '<h3 class="t-group-title">' +
+            esc(title) +
+            "</h3>" +
+            (note
+              ? '<span class="t-group-note">' + esc(note) + "</span>"
+              : "") +
+            "</div>" +
+            body +
+            "</div>"
+          );
         }
 
         function renderReefGuard(data, base) {
@@ -828,8 +1081,12 @@
             return;
           }
           var p = g.policy || {};
-          var minRep = p.minReputationE18 != null ? Number(p.minReputationE18) / 1e18 : null;
-          var minBond = p.minBondE18 != null ? Number(p.minBondE18) / 1e18 : null;
+          var minRep =
+            p.minReputationE18 != null
+              ? Number(p.minReputationE18) / 1e18
+              : null;
+          var minBond =
+            p.minBondE18 != null ? Number(p.minBondE18) / 1e18 : null;
           var maxPct = p.maxSizeBps != null ? Number(p.maxSizeBps) / 100 : null;
           var policyStr = [
             minRep != null ? "min reputation " + minRep : null,
@@ -888,54 +1145,207 @@
           var refs = data.mainnetReferences || {};
           var groups = [];
           var verified = 0;
-          function tally(a) { if (isAddr(a)) verified++; }
+          function tally(a) {
+            if (isAddr(a)) verified++;
+          }
 
           // Core protocol
           var core = [];
-          core.push(rowHTML("Agent Identity", "ERC-8004 registry", reef.AgentIdentity, base)); tally(reef.AgentIdentity);
-          var idxSym = (seeded.tradeableIndex && seeded.tradeableIndex.symbol) || "rINDEX";
-          core.push(rowHTML("Agent Index", idxSym + " · ERC-20 index shares", reef.AgentIndex, base)); tally(reef.AgentIndex);
-          core.push(rowHTML("Adapter Registry", "Whitelisted yield adapters", reef.AdapterRegistry, base)); tally(reef.AdapterRegistry);
-          if (isAddr(reef.ReputationOracle)) { core.push(rowHTML("Reputation Oracle", "Risk-adjusted scoring", reef.ReputationOracle, base)); tally(reef.ReputationOracle); }
-          groups.push(groupHTML("Core protocol", "identity · index · registry", core));
+          core.push(
+            rowHTML(
+              "Agent Identity",
+              "ERC-8004 registry",
+              reef.AgentIdentity,
+              base,
+            ),
+          );
+          tally(reef.AgentIdentity);
+          var idxSym =
+            (seeded.tradeableIndex && seeded.tradeableIndex.symbol) || "rINDEX";
+          core.push(
+            rowHTML(
+              "Agent Index",
+              idxSym + " · ERC-20 index shares",
+              reef.AgentIndex,
+              base,
+            ),
+          );
+          tally(reef.AgentIndex);
+          core.push(
+            rowHTML(
+              "Adapter Registry",
+              "Whitelisted yield adapters",
+              reef.AdapterRegistry,
+              base,
+            ),
+          );
+          tally(reef.AdapterRegistry);
+          if (isAddr(reef.ReputationOracle)) {
+            core.push(
+              rowHTML(
+                "Reputation Oracle",
+                "Risk-adjusted scoring",
+                reef.ReputationOracle,
+                base,
+              ),
+            );
+            tally(reef.ReputationOracle);
+          }
+          groups.push(
+            groupHTML("Core protocol", "identity · index · registry", core),
+          );
 
           // Markets & adapters
           var mk = [];
           var ya = seeded.yieldAdapter || {};
-          mk.push(rowHTML("Mock Yield Adapter", "Testnet · linear NAV" + (ya.aprBps != null ? " · " + ya.aprBps / 100 + "% APR" : ""), ya.address, base)); tally(ya.address);
-          mk.push(rowHTML("Index asset", "Mock ERC-20 (testnet)", seeded.asset, base)); tally(seeded.asset);
-          mk.push(rowHTML("USDY Adapter", "RWA yield · mainnet-ready", reef.UsdyAdapter, base));
-          mk.push(rowHTML("mETH Adapter", "Liquid staking · mainnet-ready", reef.MethAdapter, base));
-          groups.push(groupHTML("Markets & adapters", "where capital is deployed", mk));
+          mk.push(
+            rowHTML(
+              "Mock Yield Adapter",
+              "Testnet · linear NAV" +
+                (ya.aprBps != null ? " · " + ya.aprBps / 100 + "% APR" : ""),
+              ya.address,
+              base,
+            ),
+          );
+          tally(ya.address);
+          mk.push(
+            rowHTML("Index asset", "Mock ERC-20 (testnet)", seeded.asset, base),
+          );
+          tally(seeded.asset);
+          mk.push(
+            rowHTML(
+              "USDY Adapter",
+              "RWA yield · mainnet-ready",
+              reef.UsdyAdapter,
+              base,
+            ),
+          );
+          mk.push(
+            rowHTML(
+              "mETH Adapter",
+              "Liquid staking · mainnet-ready",
+              reef.MethAdapter,
+              base,
+            ),
+          );
+          groups.push(
+            groupHTML("Markets & adapters", "where capital is deployed", mk),
+          );
 
           // Agent economy
           var ae = [];
           var bond = seeded.reputationBond || {};
-          ae.push(rowHTML("Reputation Bond", "Bond-gated · slashable", bond.address, base)); tally(bond.address);
+          ae.push(
+            rowHTML(
+              "Reputation Bond",
+              "Bond-gated · slashable",
+              bond.address,
+              base,
+            ),
+          );
+          tally(bond.address);
           var seasons = seeded.seasons || {};
-          ae.push(rowHTML("Seasons", "Human-vs-AI" + (seasons.seasonId != null ? " · season " + seasons.seasonId : ""), seasons.address, base)); tally(seasons.address);
-          (Array.isArray(seeded.vaults) ? seeded.vaults : []).forEach(function (v) {
-            if (!v) return;
-            var w = v.weightBps != null ? "weight " + (v.weightBps / 100).toFixed(2) + "%" : "agent vault";
-            ae.push(rowHTML("Agent " + v.agentId + " vault", w, v.vault, base)); tally(v.vault);
-          });
-          groups.push(groupHTML("Agent economy", "bonds · seasons · vaults", ae));
+          ae.push(
+            rowHTML(
+              "Seasons",
+              "Human-vs-AI" +
+                (seasons.seasonId != null
+                  ? " · season " + seasons.seasonId
+                  : ""),
+              seasons.address,
+              base,
+            ),
+          );
+          tally(seasons.address);
+          (Array.isArray(seeded.vaults) ? seeded.vaults : []).forEach(
+            function (v) {
+              if (!v) return;
+              var w =
+                v.weightBps != null
+                  ? "weight " + (v.weightBps / 100).toFixed(2) + "%"
+                  : "agent vault";
+              ae.push(
+                rowHTML("Agent " + v.agentId + " vault", w, v.vault, base),
+              );
+              tally(v.vault);
+            },
+          );
+          groups.push(
+            groupHTML("Agent economy", "bonds · seasons · vaults", ae),
+          );
 
           // Live on Mantle MAINNET — the real mETH RWA vault (immutable demo-scale deploy)
           var mn = [];
-          mn.push(rowHTML("Agent Vault (mETH)", "Real mETH · NAV reflects staking yield", "0x76f129D56a4BE538f7E3bd44DAC70b23BcDFcFA5", MAINNET_EXPLORER));
-          mn.push(rowHTML("MethRateAdapter", "Marks held mETH to ETH at the live rate", "0xb7Ceedf6BDC4Cf8bdBE8610EAe1D1f962E35a90A", MAINNET_EXPLORER));
-          mn.push(rowHTML("MethRate", "L2 mETH→ETH rate store", "0xf765d02A7F04bFDB8f72d97D5584d80475dF6b4E", MAINNET_EXPLORER));
-          mn.push(rowHTML("Agent Identity", "ERC-8004 · mainnet", "0x83c35DFCe04051BcF78f979C9170d2a178C2E23D", MAINNET_EXPLORER));
-          groups.push(groupHTML("Live on Mantle mainnet", "real mETH RWA vault · chain 5000 · NAV ≈ 1.07 · Mantlescan-verified", mn));
+          mn.push(
+            rowHTML(
+              "Agent Vault (mETH)",
+              "Real mETH · NAV reflects staking yield",
+              "0x76f129D56a4BE538f7E3bd44DAC70b23BcDFcFA5",
+              MAINNET_EXPLORER,
+            ),
+          );
+          mn.push(
+            rowHTML(
+              "MethRateAdapter",
+              "Marks held mETH to ETH at the live rate",
+              "0xb7Ceedf6BDC4Cf8bdBE8610EAe1D1f962E35a90A",
+              MAINNET_EXPLORER,
+            ),
+          );
+          mn.push(
+            rowHTML(
+              "MethRate",
+              "L2 mETH→ETH rate store",
+              "0xf765d02A7F04bFDB8f72d97D5584d80475dF6b4E",
+              MAINNET_EXPLORER,
+            ),
+          );
+          mn.push(
+            rowHTML(
+              "Agent Identity",
+              "ERC-8004 · mainnet",
+              "0x83c35DFCe04051BcF78f979C9170d2a178C2E23D",
+              MAINNET_EXPLORER,
+            ),
+          );
+          groups.push(
+            groupHTML(
+              "Live on Mantle mainnet",
+              "real mETH RWA vault · chain 5000 · NAV ≈ 1.07 · Mantlescan-verified",
+              mn,
+            ),
+          );
 
           // Mainnet RWA references (token addresses the system wires to, linked to MAINNET explorer)
-          var refLabels = { USDY: "Ondo US Dollar Yield", mUSD: "Mantle USD", mETH: "Mantle Staked ETH", USDC: "USD Coin", FBTC: "Function BTC", USDe: "Ethena USDe", MI4: "Mantle Index Four" };
+          var refLabels = {
+            USDY: "Ondo US Dollar Yield",
+            mUSD: "Mantle USD",
+            mETH: "Mantle Staked ETH",
+            USDC: "USD Coin",
+            FBTC: "Function BTC",
+            USDe: "Ethena USDe",
+            MI4: "Mantle Index Four",
+          };
           var refRows = [];
           Object.keys(refLabels).forEach(function (k) {
-            if (isAddr(refs[k])) refRows.push(rowHTML(k, refLabels[k] + " · referenced asset", refs[k], MAINNET_EXPLORER));
+            if (isAddr(refs[k]))
+              refRows.push(
+                rowHTML(
+                  k,
+                  refLabels[k] + " · referenced asset",
+                  refs[k],
+                  MAINNET_EXPLORER,
+                ),
+              );
           });
-          if (refRows.length) groups.push(groupHTML("Mainnet RWA references", "Mantle mainnet · chain 5000 · token addresses", refRows));
+          if (refRows.length)
+            groups.push(
+              groupHTML(
+                "Mainnet RWA references",
+                "Mantle mainnet · chain 5000 · token addresses",
+                refRows,
+              ),
+            );
 
           host.innerHTML = groups.join("");
 
@@ -946,7 +1356,8 @@
           var fe = document.getElementById("foot-explorer");
           if (fe) fe.href = base;
           var ff = document.getElementById("foot-faucet");
-          if (ff && Array.isArray(data.faucets) && data.faucets[0]) ff.href = data.faucets[0];
+          if (ff && Array.isArray(data.faucets) && data.faucets[0])
+            ff.href = data.faucets[0];
         }
 
         function timeAgo(ts) {
@@ -970,17 +1381,33 @@
         }
         function actionClass(a) {
           var v = String(a || "").toLowerCase();
-          if (v.indexOf("increase") >= 0 || v.indexOf("buy") >= 0 || v.indexOf("up") >= 0) return "up";
-          if (v.indexOf("decrease") >= 0 || v.indexOf("sell") >= 0 || v.indexOf("down") >= 0) return "down";
+          if (
+            v.indexOf("increase") >= 0 ||
+            v.indexOf("buy") >= 0 ||
+            v.indexOf("up") >= 0
+          )
+            return "up";
+          if (
+            v.indexOf("decrease") >= 0 ||
+            v.indexOf("sell") >= 0 ||
+            v.indexOf("down") >= 0
+          )
+            return "down";
           return "flat";
         }
         function renderFeed(decisions, executions, base) {
           var host = document.getElementById("decision-feed");
           if (!host) return;
-          var decs = Array.isArray(decisions) ? decisions
-            : decisions && Array.isArray(decisions.decisions) ? decisions.decisions : [];
-          var exes = Array.isArray(executions) ? executions
-            : executions && Array.isArray(executions.executions) ? executions.executions : [];
+          var decs = Array.isArray(decisions)
+            ? decisions
+            : decisions && Array.isArray(decisions.decisions)
+              ? decisions.decisions
+              : [];
+          var exes = Array.isArray(executions)
+            ? executions
+            : executions && Array.isArray(executions.executions)
+              ? executions.executions
+              : [];
           if (!decs.length && !exes.length) {
             host.innerHTML =
               '<p class="t-empty">Live feed loads from the running agents. When the decision and ' +
@@ -1013,42 +1440,83 @@
             if (h.indexOf("0x") !== 0) h = "0x" + h;
             return /^0x[0-9a-fA-F]{64}$/.test(h) ? h : null;
           }
-          var items = decs.concat(exes).filter(Boolean)
-            .sort(function (a, b) { return tsMs(b) - tsMs(a); })
+          var items = decs
+            .concat(exes)
+            .filter(Boolean)
+            .sort(function (a, b) {
+              return tsMs(b) - tsMs(a);
+            })
             .slice(0, 8);
-          host.innerHTML = items.map(function (d) {
-            d = d || {};
-            var action = pick(d, ["action", "decision", "direction", "verb"]) || "hold";
-            var cls = actionClass(action);
-            var rationale = pick(d, ["rationale", "reason", "reasoning", "rationaleText", "explanation"]) || "";
-            var signal = sigText(pick(d, ["signal", "marketSignal", "market", "topic"]));
-            var when = pick(d, ["ts", "timestamp", "time", "createdAt"]);
-            var src = String(pick(d, ["source"]) || "").toLowerCase();
-            var label = src === "glm" ? "GLM rationale" : src ? src + " rationale" : "AI rationale";
-            var tx = swapTx(d);
-            var validTx = tx != null;
-            var allora =
-              d.prediction && d.prediction.predictedPrice
-                ? '<span class="t-signal">Allora $' + Number(d.prediction.predictedPrice).toFixed(0) + "</span>"
-                : "";
-            var smart =
-              d.nansen && d.nansen.label
-                ? '<span class="t-signal">smart money ' + esc(d.nansen.label) + "</span>"
-                : "";
-            var html = '<div class="t-feed-row"><div class="t-feed-top">' +
-              '<span class="t-action t-action--' + cls + '"><span class="t-action-dot"></span>' + esc(action) + "</span>" +
-              (signal ? '<span class="t-signal">signal: ' + esc(signal) + "</span>" : "") +
-              allora +
-              smart +
-              '<span class="t-when">' + esc(timeAgo(when)) + "</span></div>" +
-              '<p class="t-rationale"><span class="t-rationale-label">' + label + "</span>" +
-              (rationale ? esc(rationale) : "(no rationale recorded)") + "</p>";
-            if (validTx) {
-              html += '<a class="t-swap" href="' + esc(base + "/tx/" + tx) +
-                '" target="_blank" rel="noopener">real swap ' + EXT + "</a>";
-            }
-            return html + "</div>";
-          }).join("");
+          host.innerHTML = items
+            .map(function (d) {
+              d = d || {};
+              var action =
+                pick(d, ["action", "decision", "direction", "verb"]) || "hold";
+              var cls = actionClass(action);
+              var rationale =
+                pick(d, [
+                  "rationale",
+                  "reason",
+                  "reasoning",
+                  "rationaleText",
+                  "explanation",
+                ]) || "";
+              var signal = sigText(
+                pick(d, ["signal", "marketSignal", "market", "topic"]),
+              );
+              var when = pick(d, ["ts", "timestamp", "time", "createdAt"]);
+              var src = String(pick(d, ["source"]) || "").toLowerCase();
+              var label =
+                src === "glm"
+                  ? "GLM rationale"
+                  : src
+                    ? src + " rationale"
+                    : "AI rationale";
+              var tx = swapTx(d);
+              var validTx = tx != null;
+              var allora =
+                d.prediction && d.prediction.predictedPrice
+                  ? '<span class="t-signal">Allora $' +
+                    Number(d.prediction.predictedPrice).toFixed(0) +
+                    "</span>"
+                  : "";
+              var smart =
+                d.nansen && d.nansen.label
+                  ? '<span class="t-signal">smart money ' +
+                    esc(d.nansen.label) +
+                    "</span>"
+                  : "";
+              var html =
+                '<div class="t-feed-row"><div class="t-feed-top">' +
+                '<span class="t-action t-action--' +
+                cls +
+                '"><span class="t-action-dot"></span>' +
+                esc(action) +
+                "</span>" +
+                (signal
+                  ? '<span class="t-signal">signal: ' + esc(signal) + "</span>"
+                  : "") +
+                allora +
+                smart +
+                '<span class="t-when">' +
+                esc(timeAgo(when)) +
+                "</span></div>" +
+                '<p class="t-rationale"><span class="t-rationale-label">' +
+                label +
+                "</span>" +
+                (rationale ? esc(rationale) : "(no rationale recorded)") +
+                "</p>";
+              if (validTx) {
+                html +=
+                  '<a class="t-swap" href="' +
+                  esc(base + "/tx/" + tx) +
+                  '" target="_blank" rel="noopener">real swap ' +
+                  EXT +
+                  "</a>";
+              }
+              return html + "</div>";
+            })
+            .join("");
         }
 
         function expPct(bps) {
@@ -1069,14 +1537,24 @@
             .map(function (e) {
               e = e || {};
               var action = e.action || "hold";
-              var cls = action === "de-risk" ? "down" : action === "re-risk" ? "up" : "flat";
+              var cls =
+                action === "de-risk"
+                  ? "down"
+                  : action === "re-risk"
+                    ? "up"
+                    : "flat";
               var mom =
                 typeof e.momentumPct === "number"
-                  ? (e.momentumPct >= 0 ? "+" : "") + e.momentumPct.toFixed(2) + "%"
+                  ? (e.momentumPct >= 0 ? "+" : "") +
+                    e.momentumPct.toFixed(2) +
+                    "%"
                   : "";
-              var src = e.scenario ? "scenario" : (e.signal && e.signal.source) || "live";
+              var src = e.scenario
+                ? "scenario"
+                : (e.signal && e.signal.source) || "live";
               var tx =
-                typeof e.txHash === "string" && /^0x[0-9a-fA-F]{64}$/.test(e.txHash)
+                typeof e.txHash === "string" &&
+                /^0x[0-9a-fA-F]{64}$/.test(e.txHash)
                   ? e.txHash
                   : null;
               var html =
@@ -1258,7 +1736,8 @@
         function renderA2A(data, base) {
           var host = document.getElementById("a2a-feed");
           if (!host) return;
-          var listings = data && Array.isArray(data.listings) ? data.listings : [];
+          var listings =
+            data && Array.isArray(data.listings) ? data.listings : [];
           if (!listings.length) {
             host.innerHTML =
               '<p class="t-empty">The on-chain signal marketplace and its per-provider ' +
@@ -1317,17 +1796,30 @@
           if (!host) return;
           var rows = (data && data.competitors) || [];
           if (!rows.length) {
-            host.innerHTML = '<p class="t-empty">AI strategies vs the human buy-and-hold baseline appear here.</p>';
+            host.innerHTML =
+              '<p class="t-empty">AI strategies vs the human buy-and-hold baseline appear here.</p>';
             return;
           }
           host.innerHTML = rows
             .map(function (c, i) {
               c = c || {};
               var human = c.kind === "human";
-              var sharpe = c.sharpe != null ? "Sharpe " + c.sharpe.toFixed(2) : "Sharpe —";
-              var roi = c.paperRoiBps != null ? (c.paperRoiBps >= 0 ? "+" : "") + (c.paperRoiBps / 100).toFixed(2) + "%" : "—";
-              var dd = c.maxDrawdownBps != null ? "maxDD " + (c.maxDrawdownBps / 100).toFixed(2) + "%" : "";
-              var hit = c.hitRatePct != null ? c.hitRatePct + "% hit (" + (c.rounds || 0) + " rds)" : "—";
+              var sharpe =
+                c.sharpe != null ? "Sharpe " + c.sharpe.toFixed(2) : "Sharpe —";
+              var roi =
+                c.paperRoiBps != null
+                  ? (c.paperRoiBps >= 0 ? "+" : "") +
+                    (c.paperRoiBps / 100).toFixed(2) +
+                    "%"
+                  : "—";
+              var dd =
+                c.maxDrawdownBps != null
+                  ? "maxDD " + (c.maxDrawdownBps / 100).toFixed(2) + "%"
+                  : "";
+              var hit =
+                c.hitRatePct != null
+                  ? c.hitRatePct + "% hit (" + (c.rounds || 0) + " rds)"
+                  : "—";
               var up = (c.paperRoiBps || 0) >= 0;
               return (
                 '<div class="t-feed-row"><div class="t-feed-top">' +
@@ -1348,7 +1840,13 @@
                 esc(hit) +
                 (dd ? " · " + esc(dd) : "") +
                 "</span></div>" +
-                (c.edge ? '<p class="t-rationale"><span class="t-rationale-label">' + esc(c.stance || "") + "</span>" + esc(c.edge) + "</p>" : "") +
+                (c.edge
+                  ? '<p class="t-rationale"><span class="t-rationale-label">' +
+                    esc(c.stance || "") +
+                    "</span>" +
+                    esc(c.edge) +
+                    "</p>"
+                  : "") +
                 "</div>"
               );
             })
@@ -1360,17 +1858,32 @@
           if (!host) return;
           var rows = (data && data.competitors) || [];
           if (!rows.length) {
-            host.innerHTML = '<p class="t-empty">Real multi-agent PnL on Mantle mainnet appears here once the benchmark is deployed.</p>';
+            host.innerHTML =
+              '<p class="t-empty">Real multi-agent PnL on Mantle mainnet appears here once the benchmark is deployed.</p>';
             return;
           }
           host.innerHTML = rows
             .map(function (c, i) {
               c = c || {};
               var human = c.kind === "human";
-              var sharpe = c.sharpe != null ? "Sharpe " + c.sharpe.toFixed(2) : "Sharpe —";
-              var roi = c.paperRoiBps != null ? (c.paperRoiBps >= 0 ? "+" : "") + (c.paperRoiBps / 100).toFixed(2) + "%" : "—";
-              var excess = c.excessRoiBps != null ? (c.excessRoiBps >= 0 ? "+" : "") + (c.excessRoiBps / 100).toFixed(2) + "%" : "—";
-              var dd = c.maxDrawdownBps != null ? " · maxDD " + (c.maxDrawdownBps / 100).toFixed(2) + "%" : "";
+              var sharpe =
+                c.sharpe != null ? "Sharpe " + c.sharpe.toFixed(2) : "Sharpe —";
+              var roi =
+                c.paperRoiBps != null
+                  ? (c.paperRoiBps >= 0 ? "+" : "") +
+                    (c.paperRoiBps / 100).toFixed(2) +
+                    "%"
+                  : "—";
+              var excess =
+                c.excessRoiBps != null
+                  ? (c.excessRoiBps >= 0 ? "+" : "") +
+                    (c.excessRoiBps / 100).toFixed(2) +
+                    "%"
+                  : "—";
+              var dd =
+                c.maxDrawdownBps != null
+                  ? " · maxDD " + (c.maxDrawdownBps / 100).toFixed(2) + "%"
+                  : "";
               var up = (c.paperRoiBps || 0) >= 0;
               return (
                 '<div class="t-feed-row"><div class="t-feed-top">' +
@@ -1392,7 +1905,13 @@
                 " vs HODL" +
                 esc(dd) +
                 "</span></div>" +
-                (c.edge ? '<p class="t-rationale"><span class="t-rationale-label">' + esc(c.stance || "") + "</span>" + esc(c.edge) + "</p>" : "") +
+                (c.edge
+                  ? '<p class="t-rationale"><span class="t-rationale-label">' +
+                    esc(c.stance || "") +
+                    "</span>" +
+                    esc(c.edge) +
+                    "</p>"
+                  : "") +
                 "</div>"
               );
             })
@@ -1404,15 +1923,31 @@
           if (!host) return;
           var rows = (data && data.strategies) || [];
           if (!rows.length) {
-            host.innerHTML = '<p class="t-empty">Per-strategy accuracy, ROI and drawdown appear here.</p>';
+            host.innerHTML =
+              '<p class="t-empty">Per-strategy accuracy, ROI and drawdown appear here.</p>';
             return;
           }
           host.innerHTML = rows
             .map(function (s) {
               s = s || {};
-              var acc = s.accuracyPct != null ? s.accuracyPct + "% accuracy (" + (s.rounds || 0) + " rounds)" : "—";
-              var roi = s.roiBps != null ? "ROI " + (s.roiBps >= 0 ? "+" : "") + (s.roiBps / 100).toFixed(2) + "%" : "ROI —";
-              var dd = s.maxDrawdownBps != null ? "maxDD " + (s.maxDrawdownBps / 100).toFixed(2) + "%" : "";
+              var acc =
+                s.accuracyPct != null
+                  ? s.accuracyPct +
+                    "% accuracy (" +
+                    (s.rounds || 0) +
+                    " rounds)"
+                  : "—";
+              var roi =
+                s.roiBps != null
+                  ? "ROI " +
+                    (s.roiBps >= 0 ? "+" : "") +
+                    (s.roiBps / 100).toFixed(2) +
+                    "%"
+                  : "ROI —";
+              var dd =
+                s.maxDrawdownBps != null
+                  ? "maxDD " + (s.maxDrawdownBps / 100).toFixed(2) + "%"
+                  : "";
               var up = (s.roiBps || 0) >= 0;
               return (
                 '<div class="t-feed-row"><div class="t-feed-top">' +
@@ -1428,7 +1963,11 @@
                 esc(roi) +
                 (dd ? " · " + esc(dd) : "") +
                 "</span></div>" +
-                (s.edge ? '<p class="t-rationale"><span class="t-rationale-label">edge</span>' + esc(s.edge) + "</p>" : "") +
+                (s.edge
+                  ? '<p class="t-rationale"><span class="t-rationale-label">edge</span>' +
+                    esc(s.edge) +
+                    "</p>"
+                  : "") +
                 "</div>"
               );
             })
@@ -1448,7 +1987,12 @@
           var c = data.current;
           var horizonMin = Math.round((data.horizonSec || 3600) / 60);
           var stat = sb.samples
-            ? sb.samples + " evaluated · " + sb.hitRatePct + "% direction · " + sb.maeBps + " bps MAE"
+            ? sb.samples +
+              " evaluated · " +
+              sb.hitRatePct +
+              "% direction · " +
+              sb.maeBps +
+              " bps MAE"
             : "accumulating…";
           var head =
             '<div class="t-feed-row"><div class="t-feed-top">' +
@@ -1503,9 +2047,12 @@
           if (!host) return;
           var canon = dep && dep.erc8004Canonical;
           var agents = (canon && canon.agents) || {};
-          var ids = Object.keys(agents).sort(function (a, b) { return Number(a) - Number(b); });
+          var ids = Object.keys(agents).sort(function (a, b) {
+            return Number(a) - Number(b);
+          });
           if (!canon || !ids.length) {
-            host.innerHTML = '<p class="t-empty">Canonical registrations appear here.</p>';
+            host.innerHTML =
+              '<p class="t-empty">Canonical registrations appear here.</p>';
             return;
           }
           var liveAgents = {};
@@ -1517,26 +2064,44 @@
             '<span class="t-action t-action--up"><span class="t-action-dot"></span>official registries</span>' +
             '<span class="t-signal"><a class="t-swap" href="' +
             esc(base + "/address/" + canon.identityRegistry) +
-            '" target="_blank" rel="noopener">Identity 0x8004A8… ' + EXT + "</a></span>" +
+            '" target="_blank" rel="noopener">Identity 0x8004A8… ' +
+            EXT +
+            "</a></span>" +
             '<span class="t-signal"><a class="t-swap" href="' +
             esc(base + "/address/" + canon.reputationRegistry) +
-            '" target="_blank" rel="noopener">Reputation 0x8004B6… ' + EXT + "</a></span>" +
-            '<span class="t-when">registrant ' + esc(String(canon.registrant).slice(0, 8)) + "…</span></div></div>";
+            '" target="_blank" rel="noopener">Reputation 0x8004B6… ' +
+            EXT +
+            "</a></span>" +
+            '<span class="t-when">registrant ' +
+            esc(String(canon.registrant).slice(0, 8)) +
+            "…</span></div></div>";
           var rows = ids
             .map(function (rid) {
               var rec = agents[rid] || {};
               var lv = liveAgents[rid];
-              var fb = lv && lv.feedbackCount
-                ? esc(String(lv.trustScore)) + " published · " + lv.feedbackCount + " feedback"
-                : "feedback pending";
+              var fb =
+                lv && lv.feedbackCount
+                  ? esc(String(lv.trustScore)) +
+                    " published · " +
+                    lv.feedbackCount +
+                    " feedback"
+                  : "feedback pending";
               return (
                 '<div class="t-feed-row"><div class="t-feed-top">' +
-                '<span class="t-action t-action--up"><span class="t-action-dot"></span>agent ' + esc(rid) + "</span>" +
-                '<span class="t-signal">canonical #' + esc(String(rec.canonicalAgentId)) + "</span>" +
-                '<span class="t-signal">trust ' + fb + "</span>" +
+                '<span class="t-action t-action--up"><span class="t-action-dot"></span>agent ' +
+                esc(rid) +
+                "</span>" +
+                '<span class="t-signal">canonical #' +
+                esc(String(rec.canonicalAgentId)) +
+                "</span>" +
+                '<span class="t-signal">trust ' +
+                fb +
+                "</span>" +
                 '<span class="t-when"><a class="t-swap" href="' +
                 esc(base + "/tx/" + rec.registerTx) +
-                '" target="_blank" rel="noopener">registration tx ' + EXT + "</a></span></div></div>"
+                '" target="_blank" rel="noopener">registration tx ' +
+                EXT +
+                "</a></span></div></div>"
               );
             })
             .join("");

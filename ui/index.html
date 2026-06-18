@@ -3,20 +3,23 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Reef — verifiable AI yield agents on Mantle</title>
+    <title>Reef - proof-bound agent underwriting on Mantle</title>
     <meta
       name="description"
-      content="Verifiable AI yield agents on Mantle: agents compete to earn yield and every decision is committed on-chain, so you check it yourself instead of trusting a black box. Reputation-weighted index, on-chain risk + compliance, and the Financial Turing Test."
+      content="Reef makes autonomous financial agents prove their history, earn a Trust Score, satisfy policy, and operate inside a mandate before capital moves."
     />
-    <meta name="theme-color" content="#f7f8fa" />
+    <meta name="theme-color" content="#f4faf7" />
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='7' fill='%233D7FFF'/%3E%3Cpath d='M6 16.6c2.3-3.3 4.6-3.3 7 0 2.4 3.3 4.7 3.3 7 0' stroke='%230a0a0b' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='6' fill='%23007F70'/%3E%3Cpath d='M6 16.6c2.3-3.3 4.6-3.3 7 0 2.4 3.3 4.7 3.3 7 0' stroke='%23F8FFFC' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"
     />
-    <meta property="og:title" content="Reef — verifiable AI yield agents on Mantle" />
+    <meta
+      property="og:title"
+      content="Reef - proof-bound agent underwriting on Mantle"
+    />
     <meta
       property="og:description"
-      content="AI agents compete to earn yield on Mantle — every decision committed on-chain so you verify it yourself, not a black box. Reputation-weighted index + the Financial Turing Test."
+      content="Proof before permission. Reef binds rationale, policy, execution, and performance so agents earn the right to move capital."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://reef.gudman.xyz" />
@@ -25,10 +28,13 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="Reef" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Reef — verifiable AI yield agents on Mantle" />
+    <meta
+      name="twitter:title"
+      content="Reef - proof-bound agent underwriting on Mantle"
+    />
     <meta
       name="twitter:description"
-      content="Verifiable AI yield agents on Mantle — every decision committed on-chain. Testnet · unaudited."
+      content="Make agents prove, score, pass policy, and stay inside a mandate before capital moves."
     />
     <meta name="twitter:image" content="https://reef.gudman.xyz/og.png" />
 
@@ -36,7 +42,10 @@
     <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap"
+    />
     <link
       href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
@@ -44,2270 +53,2299 @@
     <link rel="stylesheet" href="reef.css" />
 
     <script>
-      // No-flash theme: light is default; apply stored dark before first paint.
       try {
         if (localStorage.getItem("reef-theme") === "dark") {
           document.documentElement.setAttribute("data-theme", "dark");
         }
       } catch (e) {}
     </script>
+    <script src="theme.js" defer></script>
 
     <style>
-      /* ─────────────────────────────────────────────────────────────
-         Landing experience layer (.lx-*). Cyber-minimalist telemetry:
-         glass over near-black, one electric-azure accent, depth from
-         radial glow + 1px hairlines. Tokens come from reef.css; nothing
-         here leaks into the dApp / transparency pages.
-         ───────────────────────────────────────────────────────────── */
+      :root {
+        --uw-ink: #071513;
+        --uw-paper: #f4faf7;
+        --uw-paper-2: #e9f3ef;
+        --uw-card: #fffffb;
+        --uw-card-2: #f8fcf9;
+        --uw-line: rgba(8, 39, 35, 0.13);
+        --uw-line-strong: rgba(8, 39, 35, 0.24);
+        --uw-muted: #4f625d;
+        --uw-subtle: #78908a;
+        --uw-aqua: #007f70;
+        --uw-aqua-2: #005f55;
+        --uw-amber: #a66700;
+        --uw-red: #b93a2d;
+        --uw-green: #008960;
+        --uw-blue: #1f65cf;
+        --uw-radius: 8px;
+        --uw-radius-sm: 5px;
+        --uw-shadow:
+          0 1px 2px rgba(8, 39, 35, 0.05),
+          0 28px 70px -44px rgba(8, 39, 35, 0.28);
+      }
+
+      html[data-theme="dark"] {
+        --uw-ink: #f4fffb;
+        --uw-paper: #061211;
+        --uw-paper-2: #081a18;
+        --uw-card: #0d211f;
+        --uw-card-2: #122d29;
+        --uw-line: rgba(180, 255, 236, 0.12);
+        --uw-line-strong: rgba(180, 255, 236, 0.22);
+        --uw-muted: #a7c2bb;
+        --uw-subtle: #6f9088;
+        --uw-aqua: #27e6bf;
+        --uw-aqua-2: #75ffe3;
+        --uw-amber: #f2b84b;
+        --uw-red: #ff7a59;
+        --uw-green: #27e6bf;
+        --uw-blue: #7ca8ff;
+        --uw-shadow: none;
+      }
 
       body {
-        background: var(--bg);
-        position: relative;
-      }
-      html {
-        overflow-x: hidden;
-      }
-      /* Grid/flex children default to min-width:auto (sized to widest
-         unbreakable content) — collapse so the table/code can't widen the
-         mobile layout viewport. */
-      .lx-hero-grid,
-      .lx-bento,
-      .lx-proof,
-      .lx-dev,
-      .lx-hero-grid > *,
-      .lx-bento > *,
-      .lx-proof > *,
-      .lx-dev > * {
-        min-width: 0;
-      }
-      .lx-arena-scroll {
-        max-width: 100%;
-        overflow-x: auto;
+        background: var(--uw-paper);
+        color: var(--uw-ink);
       }
 
-      /* ── Ambient canvas: deep radial glow orbs behind everything ── */
-      .lx-canvas {
+      .uw-page {
+        position: relative;
+        min-height: 100vh;
+        overflow: clip;
+      }
+
+      .uw-page::before {
+        content: "";
         position: fixed;
         inset: 0;
         z-index: -2;
-        overflow: clip;
         pointer-events: none;
-      }
-      .lx-orb {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(120px);
-        opacity: 0.5;
-      }
-      /* Box widths capped to the viewport so no orb edge crosses the right
-         edge (off-right overflow would expand the mobile layout viewport).
-         blur() bleeds the glow well beyond the box without affecting layout. */
-      .lx-orb--1 {
-        width: min(560px, 78vw);
-        height: min(560px, 78vw);
-        top: -240px;
-        left: -160px;
-        background: radial-gradient(circle, rgba(61, 127, 255, 0.22), transparent 70%);
-      }
-      .lx-orb--2 {
-        width: min(520px, 72vw);
-        height: min(520px, 72vw);
-        top: 260px;
-        right: 0;
-        background: radial-gradient(circle, rgba(124, 168, 255, 0.16), transparent 70%);
-      }
-      .lx-orb--3 {
-        width: min(680px, 86vw);
-        height: min(680px, 86vw);
-        bottom: -360px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: radial-gradient(circle, rgba(54, 211, 154, 0.08), transparent 70%);
-      }
-      /* fine telemetry grid wash */
-      .lx-canvas::after {
-        content: "";
-        position: absolute;
-        inset: 0;
         background-image:
-          linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
-        background-size: 56px 56px;
-        mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
-        -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+          url("data:image/svg+xml,%3Csvg width='760' height='520' viewBox='0 0 760 520' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23007F70' stroke-opacity='.09' stroke-width='1'%3E%3Cpath d='M34 409c103-108 196-143 278-104 103 49 186 40 248-26 50-53 96-78 166-74'/%3E%3Cpath d='M0 320c103-93 195-121 276-84 101 47 180 36 238-34 54-65 112-94 213-91'/%3E%3Cpath d='M28 212c92-72 181-87 267-45 78 39 142 21 191-53 58-87 134-119 228-95'/%3E%3Cpath d='M69 105c83-51 160-49 232 8 58 45 120 32 185-40 52-58 112-81 180-68'/%3E%3Cpath d='M137 484c90-55 172-60 247-14 88 53 165 39 233-41 41-49 86-74 135-76'/%3E%3C/g%3E%3C/svg%3E"),
+          linear-gradient(var(--grid-line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+        background-position:
+          50% 0,
+          0 0,
+          0 0;
+        background-size:
+          760px 520px,
+          46px 46px,
+          46px 46px;
+        opacity: 0.78;
+        mask-image: linear-gradient(#000 0%, #000 72%, transparent 100%);
+        -webkit-mask-image: linear-gradient(
+          #000 0%,
+          #000 72%,
+          transparent 100%
+        );
       }
 
-      /* ── Glass primitive ── */
-      .lx-glass {
-        position: relative;
-        background: linear-gradient(180deg, rgba(28, 28, 32, 0.5), rgba(18, 18, 21, 0.42));
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border: 1px solid var(--line);
-        border-radius: var(--radius-lg);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-        transition:
-          border-color 220ms var(--ease),
-          box-shadow 220ms var(--ease),
-          transform 220ms var(--ease);
-      }
-      .lx-glass--hover:hover {
-        border-color: var(--accent-line);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.06),
-          0 0 0 1px rgba(61, 127, 255, 0.08),
-          0 18px 50px -28px rgba(61, 127, 255, 0.35);
-        transform: translateY(-2px);
-      }
-      /* gradient trace revealed on hover along the top edge */
-      .lx-glass--hover::before {
-        content: "";
-        position: absolute;
-        inset: 0 0 auto 0;
-        height: 1px;
-        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-        background: linear-gradient(90deg, transparent, var(--accent), transparent);
-        opacity: 0;
-        transition: opacity 240ms var(--ease);
-      }
-      .lx-glass--hover:hover::before {
-        opacity: 0.7;
+      .uw-skip {
+        position: fixed;
+        left: 16px;
+        top: 12px;
+        z-index: 20;
+        transform: translateY(-140%);
+        background: var(--uw-card);
+        border: 1px solid var(--uw-line-strong);
+        border-radius: var(--uw-radius-sm);
+        color: var(--uw-ink);
+        padding: 10px 12px;
       }
 
-      /* ── Kinetic mount: staggered rise (spring-style easing) ── */
-      @media (prefers-reduced-motion: no-preference) {
-        .lx-reveal {
-          opacity: 0;
-          transform: translateY(16px);
-          transition:
-            opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-            transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-          transition-delay: calc(var(--d, 0) * 65ms);
-          will-change: opacity, transform;
-        }
-        .lx-reveal.in {
-          opacity: 1;
-          transform: none;
-        }
+      .uw-skip:focus {
+        transform: translateY(0);
       }
 
-      /* ── Floating command nav ── */
-      .lx-nav {
-        position: sticky;
-        top: 14px;
-        z-index: 60;
-        padding: 0 var(--space-5);
-        margin-top: 14px;
-      }
-      .lx-nav-inner {
-        max-width: var(--maxw);
+      .uw-container {
+        width: min(1180px, calc(100% - 40px));
         margin: 0 auto;
-        height: 58px;
+      }
+
+      .uw-nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid var(--uw-line);
+        background: color-mix(in srgb, var(--uw-paper) 90%, transparent);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+      }
+
+      .uw-nav-inner {
+        height: 72px;
         display: flex;
         align-items: center;
-        gap: var(--space-5);
-        padding: 0 10px 0 18px;
-        border: 1px solid var(--line);
-        border-radius: var(--radius-pill);
-        background: rgba(13, 13, 15, 0.62);
-        backdrop-filter: blur(16px) saturate(140%);
-        -webkit-backdrop-filter: blur(16px) saturate(140%);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.05),
-          0 12px 40px -20px rgba(0, 0, 0, 0.8);
-        transition: border-color 220ms var(--ease), background 220ms var(--ease);
+        justify-content: space-between;
+        gap: 18px;
       }
-      .lx-nav.is-scrolled .lx-nav-inner {
-        border-color: var(--line-strong);
-        background: rgba(13, 13, 15, 0.82);
-      }
-      .lx-navlinks {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 2px;
-        margin-left: auto;
-      }
-      .lx-navlinks a {
-        position: relative;
-        z-index: 1;
-        padding: 8px 14px;
-        border-radius: var(--radius-pill);
-        color: var(--muted);
-        font-size: 14px;
-        font-weight: 500;
-        transition: color 180ms var(--ease);
-      }
-      .lx-navlinks a:hover,
-      .lx-navlinks a.is-active {
-        color: var(--text);
-      }
-      .lx-navpill {
-        position: absolute;
-        top: 50%;
-        left: 0;
-        height: 34px;
-        width: 0;
-        transform: translateY(-50%);
-        border-radius: var(--radius-pill);
-        background: var(--surface-2);
-        border: 1px solid var(--line);
-        opacity: 0;
-        transition:
-          left 320ms cubic-bezier(0.22, 1, 0.36, 1),
-          width 320ms cubic-bezier(0.22, 1, 0.36, 1),
-          opacity 200ms var(--ease);
-        pointer-events: none;
-      }
-      .lx-nav-actions {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-left: var(--space-2);
-        padding-left: var(--space-4);
-        border-left: 1px solid var(--line);
-      }
-      .lx-kbd {
+
+      .uw-brand {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        height: 32px;
-        padding: 0 11px;
-        border-radius: var(--radius-pill);
-        border: 1px solid var(--line);
-        background: var(--surface);
-        color: var(--subtle);
-        font-size: 12px;
-        font-family: var(--mono);
-        cursor: pointer;
-        transition: border-color 160ms var(--ease), color 160ms var(--ease);
+        gap: 10px;
+        min-width: max-content;
+        color: var(--uw-ink);
       }
-      .lx-kbd:hover {
-        border-color: var(--accent-line);
-        color: var(--accent-2);
+
+      .uw-brand img {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
       }
-      .lx-kbd kbd {
+
+      .uw-brand-main {
+        display: block;
+        color: var(--uw-ink);
+        font-family: var(--sans);
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .uw-brand-sub {
+        display: block;
+        margin-top: -3px;
+        color: var(--uw-muted);
         font-family: var(--mono);
         font-size: 11px;
-        color: var(--muted);
       }
-      .lx-theme {
-        display: inline-grid;
-        place-items: center;
-        width: 34px;
-        height: 34px;
-        flex: none;
-        border-radius: 50%;
-        border: 1px solid var(--line);
-        background: var(--surface);
-        color: var(--muted);
-        cursor: pointer;
-        transition:
-          border-color 160ms var(--ease),
-          color 160ms var(--ease),
-          transform 220ms var(--ease);
+
+      .uw-links {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
       }
-      .lx-theme:hover {
-        border-color: var(--accent-line);
-        color: var(--accent);
+
+      .uw-links a {
+        border-radius: var(--uw-radius-sm);
+        color: var(--uw-muted);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 10px;
       }
-      .lx-theme:active {
-        transform: scale(0.92);
+
+      .uw-links a:hover {
+        background: var(--accent-soft);
+        color: var(--uw-ink);
       }
-      .lx-theme .ic-sun {
-        display: none;
+
+      .uw-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
-      .lx-theme .ic-moon {
-        display: block;
-      }
-      html[data-theme="dark"] .lx-theme .ic-sun {
-        display: block;
-      }
-      html[data-theme="dark"] .lx-theme .ic-moon {
-        display: none;
-      }
-      .lx-nav-toggle {
-        display: none;
+
+      .uw-theme,
+      .uw-menu {
         width: 38px;
         height: 38px;
+        display: inline-grid;
         place-items: center;
-        border: 1px solid var(--line);
-        border-radius: var(--radius-pill);
-        background: transparent;
-        color: var(--text);
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius-sm);
+        background: var(--uw-card);
+        color: var(--uw-ink);
         cursor: pointer;
       }
 
-      /* ── Live status beacon ── */
-      .lx-live {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        height: 30px;
-        padding: 0 12px;
-        border-radius: var(--radius-pill);
-        border: 1px solid var(--accent-line);
-        background: var(--accent-soft);
-        color: var(--accent-2);
-        font-size: 12px;
-        font-weight: 500;
-      }
-      .lx-beacon {
-        position: relative;
-        width: 7px;
-        height: 7px;
-        flex: none;
-      }
-      .lx-beacon i {
-        position: absolute;
-        inset: 0;
-        border-radius: 50%;
-        background: var(--success);
-      }
-      @media (prefers-reduced-motion: no-preference) {
-        .lx-beacon i::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
-          background: var(--success);
-          animation: lx-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-      }
-      @keyframes lx-ping {
-        0% {
-          transform: scale(1);
-          opacity: 0.65;
-        }
-        75%,
-        100% {
-          transform: scale(3);
-          opacity: 0;
-        }
+      .uw-menu {
+        display: none;
       }
 
-      /* ── Hero ── */
-      .lx-hero {
-        padding: var(--space-8) 0 var(--space-7);
-      }
-      .lx-hero-grid {
-        display: grid;
-        grid-template-columns: 1.05fr 0.95fr;
-        gap: var(--space-7);
+      .uw-btn {
+        min-height: 40px;
+        display: inline-flex;
         align-items: center;
-      }
-      .lx-hero h1 {
-        margin-top: var(--space-4);
-        max-width: 11ch;
-        font-size: clamp(2.6rem, 5.4vw, 4.1rem);
-        line-height: 1.02;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid var(--uw-line-strong);
+        border-radius: var(--uw-radius-sm);
+        background: var(--uw-card);
+        color: var(--uw-ink);
+        font-family: var(--mono);
+        font-size: 12px;
         font-weight: 600;
-        letter-spacing: -0.03em;
-      }
-      .lx-grad {
-        background: linear-gradient(100deg, var(--accent-2) 0%, var(--accent) 45%, var(--success) 110%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-      }
-      .lx-hero .r-lead {
-        margin-top: var(--space-5);
-        max-width: 50ch;
-      }
-      .lx-cta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-3);
-        margin-top: var(--space-6);
-      }
-      .r-btn {
+        letter-spacing: 0.05em;
+        padding: 0 14px;
+        text-transform: uppercase;
         transition:
-          background 140ms var(--ease),
-          border-color 140ms var(--ease),
-          color 140ms var(--ease),
-          transform 160ms var(--ease),
-          box-shadow 200ms var(--ease);
+          border-color 160ms var(--ease),
+          background-color 160ms var(--ease),
+          transform 160ms var(--ease);
       }
-      .r-btn:hover {
+
+      .uw-btn:hover {
+        border-color: var(--uw-aqua);
+        color: var(--uw-ink);
         transform: translateY(-1px);
       }
-      .r-btn--primary:hover {
-        box-shadow: 0 10px 30px -12px rgba(61, 127, 255, 0.7);
-      }
-      .lx-ghost {
-        display: inline-flex;
-        align-items: center;
-        gap: 9px;
-        height: 40px;
-        padding: 0 8px 0 4px;
-        color: var(--muted);
-        font-size: 14px;
-        font-weight: 500;
-        background: transparent;
-        border: 0;
-        cursor: pointer;
-        transition: color 160ms var(--ease);
-      }
-      .lx-ghost:hover {
-        color: var(--text);
-      }
-      .lx-ghost .ic {
-        display: grid;
-        place-items: center;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: 1px solid var(--line-strong);
-        color: var(--accent);
-      }
-      .lx-hero-pills {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-2);
-        margin-top: var(--space-6);
-      }
-      .lx-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        font-size: 13px;
-        color: var(--muted);
-      }
-      .lx-tag svg {
-        color: var(--accent);
-        flex: none;
+
+      .uw-btn-primary {
+        background: var(--uw-aqua);
+        border-color: var(--uw-aqua);
+        color: var(--on-accent);
       }
 
-      /* ── Hero telemetry card ── */
-      .lx-tele {
-        padding: var(--space-5);
+      .uw-btn-primary:hover {
+        color: var(--on-accent);
       }
-      .lx-tele-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--space-3);
-        margin-bottom: var(--space-5);
+
+      .uw-section {
+        padding: 92px 0;
       }
-      .lx-tele-title {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text);
+
+      .uw-section-tight {
+        padding: 56px 0;
       }
-      .lx-tele-title .lx-brandmark {
-        width: 20px;
-        height: 20px;
-      }
-      .lx-tele-nav {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-      }
-      .lx-tele-nav .big {
+
+      .uw-kicker {
+        margin: 0 0 14px;
+        color: var(--uw-aqua);
         font-family: var(--mono);
-        font-variant-numeric: tabular-nums;
-        font-size: 2.5rem;
-        font-weight: 500;
-        line-height: 1;
-        letter-spacing: -0.02em;
-        color: var(--text);
-      }
-      .lx-tele-nav .lab {
-        font-size: 12px;
-        color: var(--subtle);
-      }
-      .lx-spark {
-        margin-top: var(--space-4);
-        width: 100%;
-        height: 64px;
-        display: block;
-      }
-      .lx-tele-foot {
-        margin-top: var(--space-4);
-        padding-top: var(--space-4);
-        border-top: 1px solid var(--line);
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: var(--space-3);
-      }
-      .lx-mini .v {
-        font-family: var(--mono);
-        font-variant-numeric: tabular-nums;
-        font-size: 1.15rem;
-        font-weight: 500;
-        color: var(--text);
-      }
-      .lx-mini .k {
-        margin-top: 3px;
         font-size: 11px;
-        color: var(--subtle);
-      }
-      .lx-tele-updated {
-        margin-top: var(--space-4);
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        font-size: 11px;
-        color: var(--subtle);
-        font-family: var(--mono);
-      }
-
-      /* ── Trust strip ── */
-      .lx-trust {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-3) var(--space-6);
-        padding: var(--space-5) 0;
-        border-top: 1px solid var(--line);
-        border-bottom: 1px solid var(--line);
-      }
-      .lx-trust .lbl {
-        font-size: 12px;
         font-weight: 600;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: var(--subtle);
-      }
-      .lx-trust .item {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--muted);
-      }
-      .lx-trust .item svg {
-        color: var(--accent);
-        flex: none;
       }
 
-      /* ── Bento metrics ── */
-      .lx-bento {
-        display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        gap: var(--space-4);
-      }
-      .lx-cell {
-        grid-column: span 3;
-        padding: var(--space-5);
-      }
-      .lx-cell--wide {
-        grid-column: span 6;
-      }
-      .lx-stat-v {
-        font-family: var(--mono);
-        font-variant-numeric: tabular-nums;
-        font-size: clamp(1.7rem, 2.6vw, 2.1rem);
-        font-weight: 500;
-        line-height: 1;
-        letter-spacing: -0.015em;
-        color: var(--text);
-      }
-      .lx-stat-k {
-        margin-top: 10px;
-        font-size: 13px;
-        color: var(--muted);
-      }
-      .lx-stat-sub {
-        margin-top: 6px;
-        font-size: 12px;
-        color: var(--subtle);
-        font-family: var(--mono);
-      }
-      .lx-cell--wide .lx-vs {
-        display: flex;
-        align-items: center;
-        gap: var(--space-5);
-        margin-top: var(--space-3);
-      }
-      .lx-vs-side {
-        flex: 1;
-      }
-      .lx-vs-side .who {
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--subtle);
-      }
-      .lx-vs-side .sc {
-        font-family: var(--mono);
-        font-size: 1.5rem;
-        font-weight: 500;
-        margin-top: 4px;
-      }
-      .lx-vs-side.win .sc {
-        color: var(--success);
-      }
-      .lx-vs-bar {
-        height: 6px;
-        border-radius: var(--radius-pill);
-        background: var(--surface-2);
-        overflow: hidden;
-        margin-top: var(--space-3);
-        display: flex;
-      }
-      .lx-vs-bar i {
-        display: block;
-        height: 100%;
-      }
-      .lx-vs-bar .ai {
-        background: var(--accent);
-      }
-      .lx-vs-bar .hu {
-        background: var(--gold);
+      .uw-h1,
+      .uw-h2,
+      .uw-h3 {
+        margin: 0;
+        letter-spacing: 0;
       }
 
-      /* ── Section heads ── */
-      .lx-head {
+      .uw-h1 {
+        max-width: 10ch;
+        font-size: clamp(44px, 7vw, 86px);
+        line-height: 0.98;
+      }
+
+      .uw-h2 {
+        font-size: clamp(32px, 4.4vw, 58px);
+        line-height: 1.03;
+      }
+
+      .uw-h3 {
+        font-size: 20px;
+        line-height: 1.25;
+      }
+
+      .uw-lead {
         max-width: 62ch;
-        margin: 0 auto var(--space-7);
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--space-3);
-      }
-      .lx-head--left {
-        margin-left: 0;
-        text-align: left;
-        align-items: flex-start;
-      }
-
-      /* ── Primitive cards ── */
-      .lx-feat {
-        padding: var(--space-5);
-      }
-      .lx-feat-ic {
-        display: grid;
-        place-items: center;
-        width: 42px;
-        height: 42px;
-        border-radius: var(--radius);
-        border: 1px solid var(--accent-line);
-        background: var(--accent-soft);
-        color: var(--accent);
-        margin-bottom: var(--space-4);
-      }
-      .lx-feat h3 {
-        margin: 0 0 var(--space-2);
-        font-size: 1.05rem;
-        font-weight: 600;
-        letter-spacing: -0.01em;
-      }
-      .lx-feat p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 14px;
-      }
-
-      /* ── Agent Arena ── */
-      .lx-arena {
-        padding: var(--space-5) var(--space-5) var(--space-3);
-      }
-      .lx-arena-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: var(--space-3);
-        margin-bottom: var(--space-4);
-      }
-      .lx-arena-title {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 1.05rem;
-        font-weight: 600;
-      }
-      .lx-segc {
-        display: inline-flex;
-        padding: 3px;
-        gap: 2px;
-        border-radius: var(--radius-pill);
-        border: 1px solid var(--line);
-        background: var(--bg-soft);
-      }
-      .lx-seg {
-        padding: 6px 14px;
-        border-radius: var(--radius-pill);
-        border: 0;
-        background: transparent;
-        color: var(--muted);
-        font-family: var(--sans);
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 180ms var(--ease), color 180ms var(--ease);
-      }
-      .lx-seg.is-active {
-        background: var(--surface-2);
-        color: var(--text);
-      }
-      .lx-arena-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-      }
-      .lx-arena-table th {
-        text-align: left;
-        font-size: 11px;
-        font-weight: 500;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: var(--subtle);
-        padding: 0 var(--space-3) var(--space-3);
-        border-bottom: 1px solid var(--line);
-      }
-      .lx-arena-table td {
-        padding: 13px var(--space-3);
-        border-bottom: 1px solid var(--line);
-        vertical-align: middle;
-      }
-      .lx-arena-table tbody tr {
-        transition: background 160ms var(--ease);
-      }
-      .lx-arena-table tbody tr:hover {
-        background: rgba(255, 255, 255, 0.018);
-      }
-      .lx-arena-table tbody tr:last-child td {
-        border-bottom: 0;
-      }
-      .lx-rank {
-        font-family: var(--mono);
-        color: var(--subtle);
-        width: 34px;
-      }
-      .lx-agent {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-      }
-      .lx-ava {
-        display: grid;
-        place-items: center;
-        width: 30px;
-        height: 30px;
-        flex: none;
-        border-radius: 8px;
-        border: 1px solid var(--line);
-        background: var(--surface-2);
-        font-family: var(--mono);
-        font-size: 12px;
-        color: var(--accent-2);
-      }
-      .lx-agent .nm {
-        font-weight: 500;
-        color: var(--text);
-      }
-      .lx-agent .sb {
-        font-size: 12px;
-        color: var(--subtle);
-      }
-      .lx-num {
-        font-family: var(--mono);
-        font-variant-numeric: tabular-nums;
-        text-align: right;
-        color: var(--text);
-      }
-      .lx-side {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 3px 9px;
-        border-radius: var(--radius-pill);
-        font-size: 12px;
-        font-weight: 500;
-        border: 1px solid var(--line);
-      }
-      .lx-side--ai {
-        color: var(--accent-2);
-        border-color: var(--accent-line);
-        background: var(--accent-soft);
-      }
-      .lx-side--human {
-        color: var(--gold);
-        border-color: rgba(198, 154, 68, 0.3);
-        background: var(--gold-soft);
-      }
-      .lx-score {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .lx-score .rt {
-        font-family: var(--mono);
-        font-size: 11px;
-        padding: 2px 7px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--line);
-        color: var(--muted);
-      }
-      .lx-meter {
-        position: relative;
-        width: 54px;
-        height: 5px;
-        border-radius: var(--radius-pill);
-        background: var(--surface-2);
-        overflow: hidden;
-      }
-      .lx-meter i {
-        position: absolute;
-        inset: 0 auto 0 0;
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
-        border-radius: var(--radius-pill);
-      }
-      .lx-arena-foot {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--space-3);
-        padding: var(--space-4) var(--space-2) var(--space-2);
-        flex-wrap: wrap;
-      }
-      .lx-arena-foot a {
-        font-size: 14px;
-        font-weight: 500;
-      }
-      .lx-arena-note {
-        font-size: 12px;
-        color: var(--subtle);
-        font-family: var(--mono);
-      }
-
-      /* ── Skeleton shimmer ── */
-      .lx-skel {
-        display: inline-block;
-        min-width: 3.2ch;
-        height: 1em;
-        border-radius: 5px;
-        background: linear-gradient(
-          90deg,
-          var(--surface-2) 25%,
-          var(--surface-3) 37%,
-          var(--surface-2) 63%
-        );
-        background-size: 280% 100%;
-        vertical-align: -0.12em;
-      }
-      @media (prefers-reduced-motion: no-preference) {
-        .lx-skel {
-          animation: lx-shimmer 1.5s ease-in-out infinite;
-        }
-      }
-      @keyframes lx-shimmer {
-        0% {
-          background-position: 130% 0;
-        }
-        100% {
-          background-position: -130% 0;
-        }
-      }
-
-      /* ── Steps (how it works) ── */
-      .lx-steps {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: var(--space-4);
-      }
-      .lx-step {
-        padding: var(--space-5);
-      }
-      .lx-step .n {
-        font-family: var(--mono);
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--accent);
-      }
-      .lx-step h3 {
-        margin: var(--space-3) 0 var(--space-2);
-        font-size: 1rem;
-        font-weight: 600;
-      }
-      .lx-step p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 14px;
-      }
-
-      /* ── Proof ── */
-      .lx-proof {
-        display: grid;
-        grid-template-columns: 1.1fr 1fr;
-        gap: var(--space-6);
-        align-items: start;
-      }
-      .lx-proof-list {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        display: grid;
-        gap: var(--space-4);
-      }
-      .lx-proof-list li {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        color: var(--text);
-        font-size: 15px;
-      }
-      .lx-proof-list svg {
-        flex: none;
-        margin-top: 3px;
-        color: var(--success);
-      }
-      .lx-proof-card {
-        padding: var(--space-5);
-      }
-      .lx-proof-card h3 {
-        margin: 0 0 var(--space-4);
-        font-size: 14px;
-        font-weight: 600;
-      }
-      .lx-proof-links {
-        display: grid;
-        gap: 0;
-        margin-bottom: var(--space-4);
-      }
-      .lx-proof-links a {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 11px 0;
-        border-bottom: 1px solid var(--line);
-        color: var(--text);
-        font-size: 14px;
-        transition: color 140ms var(--ease), padding-left 160ms var(--ease);
-      }
-      .lx-proof-links a:hover {
-        color: var(--accent);
-        padding-left: 4px;
-      }
-      .lx-proof-links a span {
-        color: var(--subtle);
-        font-family: var(--mono);
-        font-size: 12px;
-      }
-      .lx-proof-note {
-        margin: 0;
-        color: var(--subtle);
-        font-size: 13px;
+        margin: 22px 0 0;
+        color: var(--uw-muted);
+        font-size: 18px;
         line-height: 1.55;
       }
 
-      /* ── Developers ── */
-      .lx-dev {
+      .uw-hero {
+        padding: 86px 0 56px;
+      }
+
+      .uw-hero-grid {
         display: grid;
-        grid-template-columns: 1.4fr 1fr;
-        gap: var(--space-6);
-        align-items: stretch;
+        grid-template-columns: minmax(0, 0.88fr) minmax(420px, 1.12fr);
+        gap: 44px;
+        align-items: start;
       }
-      .lx-term {
-        margin: 0;
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        border: 1px solid var(--line);
-        background: var(--bg-soft);
-      }
-      .lx-term-bar {
+
+      .uw-ctas {
         display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      .uw-sequence {
+        display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 7px;
-        padding: 11px var(--space-4);
-        border-bottom: 1px solid var(--line);
-      }
-      .lx-term-bar i {
-        width: 11px;
-        height: 11px;
-        border-radius: 50%;
-        background: var(--surface-3);
-      }
-      .lx-term-bar .ttl {
-        margin-left: 8px;
+        gap: 8px;
+        margin-top: 34px;
+        color: var(--uw-muted);
         font-family: var(--mono);
         font-size: 12px;
-        color: var(--subtle);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
       }
-      .lx-term pre {
-        margin: 0;
-        padding: var(--space-5);
-        overflow-x: auto;
+
+      .uw-sequence strong {
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius-sm);
+        background: var(--uw-card);
+        color: var(--uw-ink);
+        padding: 7px 9px;
+      }
+
+      .uw-sequence span {
+        color: var(--uw-subtle);
+      }
+
+      .uw-status-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .uw-tag {
+        border: 1px solid var(--uw-line);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--uw-card) 78%, transparent);
+        color: var(--uw-muted);
         font-family: var(--mono);
+        font-size: 11px;
+        padding: 6px 9px;
+      }
+
+      .uw-tag-aqua {
+        border-color: color-mix(in srgb, var(--uw-aqua) 36%, var(--uw-line));
+        color: var(--uw-aqua);
+      }
+
+      .uw-tag-amber {
+        border-color: color-mix(in srgb, var(--uw-amber) 38%, var(--uw-line));
+        color: var(--uw-amber);
+      }
+
+      .uw-proof-stack {
+        display: grid;
+        gap: 14px;
+      }
+
+      .uw-panel {
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius);
+        background: color-mix(in srgb, var(--uw-card) 92%, transparent);
+        box-shadow: var(--uw-shadow);
+      }
+
+      .uw-panel-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 18px 14px;
+        border-bottom: 1px solid var(--uw-line);
+      }
+
+      .uw-panel-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .uw-panel-sub {
+        margin: 4px 0 0;
+        color: var(--uw-muted);
         font-size: 13px;
-        line-height: 1.75;
-        color: var(--muted);
       }
-      .lx-term .t {
-        color: var(--accent);
+
+      .uw-live {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-width: max-content;
+        color: var(--uw-aqua);
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
       }
-      .lx-term .c {
-        color: var(--subtle);
+
+      .uw-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 14%, transparent);
       }
-      .lx-term .g {
-        color: var(--success);
+
+      .uw-proof-grid {
+        display: grid;
+        gap: 0;
       }
-      .lx-dev-list {
+
+      .uw-proof-row {
+        display: grid;
+        grid-template-columns: 148px minmax(0, 1fr);
+        gap: 16px;
+        padding: 13px 18px;
+        border-bottom: 1px solid var(--uw-line);
+      }
+
+      .uw-proof-row:last-child {
+        border-bottom: 0;
+      }
+
+      .uw-label {
+        color: var(--uw-subtle);
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+
+      .uw-value {
+        min-width: 0;
+        color: var(--uw-ink);
+        font-size: 14px;
+      }
+
+      .uw-value-mono,
+      .uw-code,
+      .uw-num {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .uw-value-mono {
+        overflow-wrap: anywhere;
+        font-size: 12px;
+      }
+
+      .uw-badge {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--uw-line);
+        border-radius: 999px;
+        color: var(--uw-muted);
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 8px;
+        text-transform: uppercase;
+      }
+
+      .uw-badge-ok {
+        border-color: color-mix(in srgb, var(--uw-green) 40%, var(--uw-line));
+        background: color-mix(in srgb, var(--uw-green) 9%, transparent);
+        color: var(--uw-green);
+      }
+
+      .uw-badge-warn {
+        border-color: color-mix(in srgb, var(--uw-amber) 42%, var(--uw-line));
+        background: color-mix(in srgb, var(--uw-amber) 10%, transparent);
+        color: var(--uw-amber);
+      }
+
+      .uw-badge-blocked {
+        border-color: color-mix(in srgb, var(--uw-red) 44%, var(--uw-line));
+        background: color-mix(in srgb, var(--uw-red) 10%, transparent);
+        color: var(--uw-red);
+      }
+
+      .uw-replay {
+        border-color: color-mix(in srgb, var(--uw-red) 26%, var(--uw-line));
+      }
+
+      .uw-replay-rail {
+        display: grid;
+        gap: 0;
+        padding: 8px 0;
+      }
+
+      .uw-replay-step {
+        position: relative;
+        display: grid;
+        grid-template-columns: 118px minmax(0, 1fr);
+        gap: 14px;
+        padding: 11px 18px;
+      }
+
+      .uw-replay-step + .uw-replay-step {
+        border-top: 1px dashed var(--uw-line);
+      }
+
+      .uw-replay-step strong {
+        color: var(--uw-ink);
+        font-size: 13px;
+      }
+
+      .uw-replay-step span {
+        color: var(--uw-muted);
+        font-size: 13px;
+      }
+
+      .uw-metric-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1px;
+        overflow: hidden;
+        margin-top: 22px;
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius);
+        background: var(--uw-line);
+      }
+
+      .uw-metric {
+        background: var(--uw-card);
+        padding: 16px;
+      }
+
+      .uw-metric strong {
+        display: block;
+        font-family: var(--mono);
+        font-size: 22px;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+      }
+
+      .uw-metric span {
+        display: block;
+        margin-top: 7px;
+        color: var(--uw-muted);
+        font-size: 12px;
+      }
+
+      .uw-split {
+        display: grid;
+        grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+        gap: 42px;
+        align-items: start;
+      }
+
+      .uw-gap-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .uw-gap-box {
+        min-height: 218px;
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius);
+        background: var(--uw-card);
+        padding: 22px;
+      }
+
+      .uw-gap-box h3 {
+        margin: 0 0 16px;
+        font-size: 18px;
+      }
+
+      .uw-gap-list {
+        display: grid;
+        gap: 12px;
         margin: 0;
         padding: 0;
         list-style: none;
-        display: grid;
-        gap: var(--space-3);
-        align-content: center;
       }
-      .lx-dev-list li {
-        padding: var(--space-4);
+
+      .uw-gap-list li {
+        color: var(--uw-muted);
         font-size: 14px;
-        color: var(--text);
-      }
-      .lx-dev-list li code {
-        font-family: var(--mono);
-        color: var(--accent-2);
-        font-size: 13px;
-      }
-      .lx-dev-list li span {
-        display: block;
-        margin-top: 4px;
-        color: var(--muted);
-        font-size: 13px;
       }
 
-      /* ── CTA band ── */
-      .lx-ctaband {
-        text-align: center;
-        padding: var(--space-8) var(--space-5);
-      }
-      .lx-ctaband h2 {
-        max-width: 18ch;
-        margin: 0 auto;
-      }
-      .lx-ctaband .lx-cta {
-        justify-content: center;
-        margin-top: var(--space-6);
-      }
-
-      /* ── Command palette ── */
-      .lx-cmd {
-        position: fixed;
-        inset: 0;
-        z-index: 100;
-        display: none;
-        align-items: flex-start;
-        justify-content: center;
-        padding: 14vh var(--space-5) var(--space-5);
-        background: rgba(5, 5, 6, 0.62);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-      }
-      .lx-cmd.is-open {
-        display: flex;
-      }
-      .lx-cmd-box {
-        width: 100%;
-        max-width: 560px;
-        border: 1px solid var(--line-strong);
-        border-radius: var(--radius-lg);
-        background: linear-gradient(180deg, rgba(28, 28, 32, 0.9), rgba(16, 16, 19, 0.92));
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9);
+      .uw-flow {
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius);
+        background: var(--uw-card);
         overflow: hidden;
       }
-      @media (prefers-reduced-motion: no-preference) {
-        .lx-cmd.is-open .lx-cmd-box {
-          animation: lx-pop 0.26s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-      }
-      @keyframes lx-pop {
-        from {
-          opacity: 0;
-          transform: translateY(-10px) scale(0.98);
-        }
-      }
-      .lx-cmd-in {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        padding: var(--space-4) var(--space-5);
-        border-bottom: 1px solid var(--line);
-      }
-      .lx-cmd-in svg {
-        color: var(--subtle);
-        flex: none;
-      }
-      .lx-cmd-in input {
-        flex: 1;
-        background: transparent;
-        border: 0;
-        outline: none;
-        color: var(--text);
-        font-family: var(--sans);
-        font-size: 15px;
-      }
-      .lx-cmd-in input::placeholder {
-        color: var(--subtle);
-      }
-      .lx-cmd-list {
-        max-height: 320px;
-        overflow-y: auto;
-        padding: var(--space-2);
-      }
-      .lx-cmd-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        width: 100%;
-        padding: 11px 13px;
-        border: 0;
-        border-radius: var(--radius);
-        background: transparent;
-        color: var(--text);
-        font-family: var(--sans);
-        font-size: 14px;
-        text-align: left;
-        cursor: pointer;
-      }
-      .lx-cmd-item .ic {
+
+      .uw-flow-row {
         display: grid;
-        place-items: center;
-        width: 28px;
-        height: 28px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--line);
-        color: var(--accent);
-        flex: none;
+        grid-template-columns: 150px minmax(0, 1fr) 90px;
+        align-items: stretch;
+        min-height: 116px;
+        border-bottom: 1px solid var(--uw-line);
       }
-      .lx-cmd-item .sub {
-        margin-left: auto;
+
+      .uw-flow-row:last-child {
+        border-bottom: 0;
+      }
+
+      .uw-flow-key {
+        display: flex;
+        align-items: center;
+        padding: 18px;
+        border-right: 1px solid var(--uw-line);
+        color: var(--uw-aqua);
+        font-family: var(--mono);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+
+      .uw-flow-copy {
+        padding: 18px;
+      }
+
+      .uw-flow-copy h3 {
+        margin: 0;
+        font-size: 20px;
+      }
+
+      .uw-flow-copy p {
+        margin: 7px 0 0;
+        color: var(--uw-muted);
+      }
+
+      .uw-flow-proof {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-left: 1px solid var(--uw-line);
+        color: var(--uw-subtle);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+
+      .uw-passport {
+        display: grid;
+        grid-template-columns: minmax(0, 0.86fr) minmax(460px, 1.14fr);
+        gap: 34px;
+        align-items: start;
+      }
+
+      .uw-passport-card {
+        border: 1px solid var(--uw-line-strong);
+        border-radius: var(--uw-radius);
+        background: var(--uw-card);
+        box-shadow: var(--uw-shadow);
+        overflow: hidden;
+      }
+
+      .uw-passport-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 22px;
+        border-bottom: 1px solid var(--uw-line);
+      }
+
+      .uw-score {
+        text-align: right;
+      }
+
+      .uw-score strong {
+        display: block;
+        color: var(--uw-aqua);
+        font-family: var(--mono);
+        font-size: 42px;
+        line-height: 0.95;
+      }
+
+      .uw-passport-rows {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .uw-passport-row {
+        min-width: 0;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--uw-line);
+      }
+
+      .uw-passport-row:nth-child(odd) {
+        border-right: 1px solid var(--uw-line);
+      }
+
+      .uw-passport-row dt {
+        color: var(--uw-subtle);
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .uw-passport-row dd {
+        margin: 5px 0 0;
+        overflow-wrap: anywhere;
+        color: var(--uw-ink);
+        font-size: 14px;
+      }
+
+      .uw-components {
+        padding: 18px;
+      }
+
+      .uw-component {
+        display: grid;
+        grid-template-columns: 120px minmax(0, 1fr) 82px;
+        gap: 12px;
+        align-items: center;
+        margin-top: 12px;
+      }
+
+      .uw-component:first-child {
+        margin-top: 0;
+      }
+
+      .uw-bar {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--surface-3);
+        overflow: hidden;
+      }
+
+      .uw-bar i {
+        display: block;
+        width: var(--w, 0%);
+        height: 100%;
+        border-radius: inherit;
+        background: var(--uw-aqua);
+      }
+
+      .uw-envelope {
+        display: grid;
+        gap: 8px;
+        margin-top: 20px;
+      }
+
+      .uw-envelope-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius-sm);
+        background: var(--uw-card);
+        padding: 10px 12px;
+      }
+
+      .uw-table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius);
+        background: var(--uw-card);
+      }
+
+      .uw-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 720px;
+      }
+
+      .uw-table th,
+      .uw-table td {
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--uw-line);
+        text-align: left;
+      }
+
+      .uw-table th {
+        color: var(--uw-subtle);
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .uw-table td {
+        color: var(--uw-muted);
+        font-size: 14px;
+      }
+
+      .uw-table tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .uw-table .num {
+        text-align: right;
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .uw-build-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+        gap: 20px;
+      }
+
+      .uw-call-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .uw-call {
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius);
+        background: var(--uw-card);
+        padding: 18px;
+      }
+
+      .uw-call code {
+        display: block;
+        color: var(--uw-aqua);
+        font-family: var(--mono);
+        overflow-wrap: anywhere;
+      }
+
+      .uw-call p {
+        margin: 8px 0 0;
+        color: var(--uw-muted);
+      }
+
+      .uw-term {
+        overflow: hidden;
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius);
+        background: var(--code-bg);
+      }
+
+      .uw-term-head {
+        border-bottom: 1px solid var(--uw-line);
+        color: var(--uw-subtle);
         font-family: var(--mono);
         font-size: 11px;
-        color: var(--subtle);
+        padding: 11px 14px;
       }
-      .lx-cmd-item.is-active,
-      .lx-cmd-item:hover {
-        background: var(--surface-2);
+
+      .uw-term pre {
+        margin: 0;
+        overflow: auto;
+        padding: 16px;
+        color: var(--uw-ink);
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.7;
       }
-      .lx-cmd-empty {
-        padding: var(--space-5);
-        text-align: center;
-        color: var(--subtle);
+
+      .uw-path {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .uw-path span {
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius-sm);
+        background: var(--uw-card);
+        color: var(--uw-muted);
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 8px 9px;
+      }
+
+      .uw-boundary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .uw-boundary {
+        min-height: 122px;
+        border: 1px solid var(--uw-line);
+        border-radius: var(--uw-radius);
+        background: var(--uw-card);
+        padding: 16px;
+      }
+
+      .uw-boundary strong {
+        display: block;
         font-size: 14px;
       }
 
-      /* ── Responsive ── */
-      @media (max-width: 940px) {
-        .lx-hero-grid {
-          grid-template-columns: 1fr;
-          gap: var(--space-6);
-        }
-        .lx-cell {
-          grid-column: span 6;
-        }
-        .lx-cell--wide {
-          grid-column: span 12;
-        }
-        .lx-steps {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        .lx-proof,
-        .lx-dev {
-          grid-template-columns: 1fr;
-        }
+      .uw-boundary span {
+        display: block;
+        margin-top: 8px;
+        color: var(--uw-muted);
+        font-size: 13px;
       }
-      @media (max-width: 680px) {
-        .lx-navlinks,
-        .lx-kbd {
-          display: none;
+
+      .uw-final {
+        border: 1px solid var(--uw-line-strong);
+        border-radius: var(--uw-radius);
+        background: var(--uw-card);
+        padding: 28px;
+      }
+
+      .uw-footer {
+        border-top: 1px solid var(--uw-line);
+        padding: 42px 0;
+      }
+
+      .uw-footer-grid {
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) repeat(4, minmax(0, 150px));
+        gap: 24px;
+      }
+
+      .uw-footer h4 {
+        margin: 0 0 10px;
+        font-size: 13px;
+      }
+
+      .uw-footer a {
+        display: block;
+        margin-top: 7px;
+        color: var(--uw-muted);
+        font-size: 13px;
+      }
+
+      .uw-footnote {
+        margin-top: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--uw-subtle);
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+
+      .uw-skeleton {
+        display: inline-block;
+        width: 10ch;
+        height: 1em;
+        border-radius: 3px;
+        background: linear-gradient(
+          90deg,
+          var(--skel-1),
+          var(--skel-2),
+          var(--skel-1)
+        );
+        background-size: 220% 100%;
+        animation: uw-shimmer 1.6s infinite;
+        color: transparent;
+      }
+
+      @keyframes uw-shimmer {
+        from {
+          background-position: 120% 0;
         }
-        .lx-nav-toggle {
-          display: grid;
-          margin-left: auto;
-        }
-        .lx-nav-actions {
-          border-left: 0;
-          padding-left: 0;
-        }
-        .lx-menu-open .lx-navlinks {
-          display: flex;
-          position: absolute;
-          top: 70px;
-          left: var(--space-5);
-          right: var(--space-5);
-          flex-direction: column;
-          align-items: stretch;
-          gap: 2px;
-          padding: var(--space-3);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-lg);
-          background: rgba(13, 13, 15, 0.95);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-        }
-        .lx-menu-open .lx-navpill {
-          display: none;
-        }
-        .lx-cell {
-          grid-column: span 12;
-        }
-        .lx-steps {
-          grid-template-columns: 1fr;
-        }
-        .lx-arena-scroll {
-          overflow-x: auto;
-        }
-        .lx-arena-table {
-          min-width: 540px;
+        to {
+          background-position: -120% 0;
         }
       }
 
-      /* ── Theme-aware surfaces — token-driven so light (default) and dark
-         both render correctly. Declared last so they win over the literal
-         fallbacks above via source order. ── */
-      .lx-orb--1 {
-        background: radial-gradient(circle, var(--orb-1), transparent 70%);
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
       }
-      .lx-orb--2 {
-        background: radial-gradient(circle, var(--orb-2), transparent 70%);
+
+      @media (max-width: 980px) {
+        .uw-links {
+          position: fixed;
+          inset: 72px 16px auto;
+          display: none;
+          border: 1px solid var(--uw-line);
+          border-radius: var(--uw-radius);
+          background: var(--uw-card);
+          box-shadow: var(--uw-shadow);
+          padding: 10px;
+        }
+
+        .uw-links.is-open {
+          display: grid;
+        }
+
+        .uw-links a {
+          padding: 12px;
+        }
+
+        .uw-menu {
+          display: inline-grid;
+        }
+
+        .uw-nav .uw-btn-primary {
+          display: none;
+        }
+
+        .uw-hero-grid,
+        .uw-split,
+        .uw-passport,
+        .uw-build-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .uw-metric-strip,
+        .uw-boundary-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
       }
-      .lx-orb--3 {
-        background: radial-gradient(circle, var(--orb-3), transparent 70%);
-      }
-      .lx-canvas::after {
-        background-image:
-          linear-gradient(var(--grid-line) 1px, transparent 1px),
-          linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-      }
-      .lx-glass {
-        background: var(--glass);
-        box-shadow: var(--card-shadow), inset 0 1px 0 var(--glass-inset);
-      }
-      .lx-glass--hover:hover {
-        box-shadow:
-          inset 0 1px 0 var(--glass-inset),
-          0 0 0 1px var(--glass-ring),
-          var(--glass-glow);
-      }
-      .lx-nav-inner {
-        background: var(--nav-glass);
-        box-shadow:
-          inset 0 1px 0 var(--glass-inset),
-          0 12px 40px -20px var(--shadow);
-      }
-      .lx-nav.is-scrolled .lx-nav-inner {
-        background: var(--nav-glass-2);
-      }
-      .r-btn--primary:hover {
-        box-shadow: var(--btn-glow);
-      }
-      .lx-spark {
-        color: var(--accent);
-      }
-      .lx-arena-table tbody tr:hover {
-        background: var(--row-hover);
-      }
-      .lx-side--human {
-        border-color: var(--gold-line);
-      }
-      .lx-cmd {
-        background: var(--cmd-scrim);
-      }
-      .lx-cmd-box {
-        background: var(--cmd-bg);
-        box-shadow: 0 30px 80px -30px var(--shadow);
-      }
-      .lx-menu-open .lx-navlinks {
-        background: var(--nav-glass-2);
+
+      @media (max-width: 680px) {
+        .uw-container {
+          width: min(100% - 28px, 1180px);
+        }
+
+        .uw-nav-inner {
+          height: 66px;
+        }
+
+        .uw-brand-text {
+          display: none;
+        }
+
+        .uw-hero {
+          padding-top: 58px;
+        }
+
+        .uw-section {
+          padding: 66px 0;
+        }
+
+        .uw-proof-row,
+        .uw-replay-step,
+        .uw-flow-row {
+          grid-template-columns: 1fr;
+        }
+
+        .uw-proof-row {
+          gap: 6px;
+        }
+
+        .uw-flow-key,
+        .uw-flow-proof {
+          border-right: 0;
+          border-left: 0;
+          justify-content: flex-start;
+        }
+
+        .uw-flow-key {
+          border-bottom: 1px solid var(--uw-line);
+        }
+
+        .uw-flow-proof {
+          border-top: 1px solid var(--uw-line);
+          padding: 14px 18px;
+        }
+
+        .uw-passport-rows,
+        .uw-gap-grid,
+        .uw-metric-strip,
+        .uw-boundary-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .uw-passport-row:nth-child(odd) {
+          border-right: 0;
+        }
+
+        .uw-component {
+          grid-template-columns: 1fr;
+          gap: 6px;
+        }
+
+        .uw-footer-grid {
+          grid-template-columns: 1fr 1fr;
+        }
       }
     </style>
   </head>
+
   <body>
-    <div class="lx-canvas" aria-hidden="true">
-      <span class="lx-orb lx-orb--1"></span>
-      <span class="lx-orb lx-orb--2"></span>
-      <span class="lx-orb lx-orb--3"></span>
-    </div>
+    <div class="uw-page">
+      <a class="uw-skip" href="#main">Skip to content</a>
 
-    <header>
-      <nav class="lx-nav" id="nav" aria-label="Primary">
-        <div class="lx-nav-inner">
-          <a class="r-brand" href="/" aria-label="Reef home">
-            <span class="r-brand-mark" aria-hidden="true"><img src="/reef-mark.svg" width="26" height="26" alt="" /></span>
-            <span>Reef</span>
+      <header class="uw-nav">
+        <div class="uw-container uw-nav-inner">
+          <a class="uw-brand" href="/" aria-label="Reef home">
+            <img src="reef-mark.svg" width="28" height="28" alt="" />
+            <span class="uw-brand-text">
+              <strong class="uw-brand-main">Reef</strong>
+              <span class="uw-brand-sub">Agent Trust on Mantle</span>
+            </span>
           </a>
-          <div class="lx-navlinks" id="navlinks">
-            <span class="lx-navpill" id="navpill" aria-hidden="true"></span>
-            <a href="#primitives" data-spy="primitives">Product</a>
-            <a href="#arena" data-spy="arena">Agents</a>
-            <a href="#proof" data-spy="proof">Proof</a>
-            <a href="#build" data-spy="build">Developers</a>
+
+          <nav class="uw-links" id="navLinks" aria-label="Primary">
+            <a href="#proof">Proof</a>
+            <a href="#flow">Flow</a>
+            <a href="#passport">Passport</a>
+            <a href="#benchmark">Benchmark</a>
+            <a href="#build">Build</a>
+            <a href="#boundaries">Boundaries</a>
             <a href="/transparency">Transparency</a>
-          </div>
-          <div class="lx-nav-actions">
-            <span class="lx-live"><span class="lx-beacon"><i></i></span>On Mantle</span>
-            <button class="lx-kbd" id="cmdOpen" aria-label="Open command palette">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
-              <kbd>⌘K</kbd>
+          </nav>
+
+          <div class="uw-actions">
+            <button
+              class="uw-theme"
+              id="themeToggle"
+              type="button"
+              aria-label="Toggle light or dark theme"
+              title="Toggle theme"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="4" />
+                <path
+                  d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+                />
+              </svg>
             </button>
-            <button class="lx-theme" id="themeToggle" aria-label="Toggle light or dark theme" title="Toggle theme">
-              <svg class="ic-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
-              <svg class="ic-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
-            </button>
-            <a class="r-btn r-btn--primary r-btn--sm" href="/app">Launch app</a>
-            <button class="lx-nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            <a class="uw-btn uw-btn-primary" href="/app#judge">
+              Verify decision
+            </a>
+            <button
+              class="uw-menu"
+              id="menuToggle"
+              type="button"
+              aria-label="Menu"
+              aria-expanded="false"
+              aria-controls="navLinks"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
             </button>
           </div>
         </div>
-      </nav>
-    </header>
+      </header>
 
-    <main>
-      <!-- HERO -->
-      <section class="lx-hero" aria-labelledby="hero-title">
-        <div class="r-container">
-          <div class="lx-hero-grid">
+      <main id="main">
+        <section class="uw-hero" id="proof" aria-labelledby="hero-title">
+          <div class="uw-container uw-hero-grid">
             <div>
-              <p class="r-eyebrow lx-reveal" style="--d: 0">Built on Mantle · The Financial Turing Test</p>
-              <h1 class="lx-reveal" id="hero-title" style="--d: 1">
-                <span class="lx-grad">Verifiable</span> AI yield agents
+              <p class="uw-kicker">Proof before permission</p>
+              <h1 class="uw-h1" id="hero-title">
+                Make agents earn the right to move capital.
               </h1>
-              <p class="r-lead lx-reveal" style="--d: 2">
-                AI agents compete to earn yield on Mantle with source-labelled
-                decisions, signed receipts, and matched proof records you can
-                check on-chain. Reef ranks them by proven returns and bundles
-                the whole field into one tradeable index.
+              <p class="uw-lead">
+                Reef binds autonomous financial decisions to verifiable
+                execution, scores realized performance and risk, and enforces
+                policy before capital moves.
               </p>
-              <div class="lx-cta lx-reveal" style="--d: 3">
-                <a class="r-btn r-btn--primary" href="/app">Launch app</a>
-                <a class="r-btn" href="/transparency">View the proof</a>
-                <a class="lx-ghost" href="/app#arena">
-                  <span class="ic" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg></span>
-                  Watch agents live
+              <div class="uw-ctas" aria-label="Primary actions">
+                <a class="uw-btn uw-btn-primary" href="/app#judge">
+                  Verify a live decision
                 </a>
+                <a class="uw-btn" href="#build">Build with Reef</a>
               </div>
-              <div class="lx-hero-pills lx-reveal" style="--d: 4">
-                <span class="lx-tag"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>On-chain proof</span>
-                <span class="lx-tag"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>Trust-weighted index</span>
-                <span class="lx-tag"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>Mantlescan-verified</span>
-                <span class="lx-tag"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>250 tests passing</span>
+
+              <div class="uw-sequence" aria-label="Reef sequence">
+                <strong>Prove</strong>
+                <span>-></span>
+                <strong>Score</strong>
+                <span>-></span>
+                <strong>Gate</strong>
+                <span>-></span>
+                <strong>Allocate</strong>
+              </div>
+
+              <div class="uw-status-strip" aria-label="Deployment status">
+                <span class="uw-tag uw-tag-aqua"
+                  >ERC-8004-compatible identity</span
+                >
+                <span class="uw-tag">Mantle Sepolia full protocol</span>
+                <span class="uw-tag">Mainnet proof badges</span>
+                <span class="uw-tag uw-tag-amber">Unaudited, demo scale</span>
+              </div>
+
+              <div class="uw-metric-strip" aria-label="Live Reef metrics">
+                <div class="uw-metric">
+                  <strong id="metric-agents" class="uw-skeleton">0</strong>
+                  <span>agents tracked</span>
+                </div>
+                <div class="uw-metric">
+                  <strong id="metric-proofs" class="uw-skeleton">0</strong>
+                  <span>verified receipts</span>
+                </div>
+                <div class="uw-metric">
+                  <strong id="metric-freshness" class="uw-skeleton">0m</strong>
+                  <span>latest receipt age</span>
+                </div>
+                <div class="uw-metric">
+                  <strong id="metric-guard" class="uw-skeleton">0/0</strong>
+                  <span>ReefGuard clear</span>
+                </div>
               </div>
             </div>
 
-            <!-- Live telemetry card -->
-            <aside class="lx-glass lx-glass--hover lx-tele lx-reveal" style="--d: 3" aria-label="Live protocol telemetry">
-              <div class="lx-tele-head">
-                <span class="lx-tele-title">
-                  <img class="lx-brandmark" src="/reef-mark.svg" width="20" height="20" alt="" aria-hidden="true" />
-                  Index telemetry
-                </span>
-                <span class="lx-live"><span class="lx-beacon"><i></i></span>Live</span>
-              </div>
-              <div class="lx-tele-nav">
-                <span class="big"><span class="lx-skel" id="tele-nav" style="width: 5ch"></span></span>
-                <span class="lab">NAV / rINDEX</span>
-              </div>
-              <svg class="lx-spark" id="tele-spark" viewBox="0 0 320 64" preserveAspectRatio="none" aria-hidden="true"></svg>
-              <div class="lx-tele-foot">
-                <div class="lx-mini">
-                  <div class="v"><span class="lx-skel" id="tele-agents" style="width: 2ch"></span></div>
-                  <div class="k">Agents tracked</div>
+            <div class="uw-proof-stack">
+              <article class="uw-panel" aria-labelledby="live-proof-title">
+                <div class="uw-panel-head">
+                  <div>
+                    <p class="uw-kicker">Live proof path</p>
+                    <h2 class="uw-panel-title" id="live-proof-title">
+                      One decision, independently checkable
+                    </h2>
+                    <p class="uw-panel-sub" id="live-updated">
+                      Reading the public proof feed.
+                    </p>
+                  </div>
+                  <span class="uw-live">
+                    <span class="uw-dot" aria-hidden="true"></span>
+                    <span id="live-source-badge">live</span>
+                  </span>
                 </div>
-                <div class="lx-mini">
-                  <div class="v"><span class="lx-skel" id="tele-proofs" style="width: 3ch"></span></div>
-                  <div class="k">On-chain proofs</div>
+
+                <div class="uw-proof-grid">
+                  <div class="uw-proof-row">
+                    <div class="uw-label">Identity</div>
+                    <div class="uw-value">
+                      <span id="live-agent">Agent</span>
+                      <span class="uw-badge" id="live-score"
+                        >score loading</span
+                      >
+                    </div>
+                  </div>
+                  <div class="uw-proof-row">
+                    <div class="uw-label">Signals</div>
+                    <div class="uw-value" id="live-signals">
+                      source-labelled feed pending
+                    </div>
+                  </div>
+                  <div class="uw-proof-row">
+                    <div class="uw-label">Rationale</div>
+                    <div class="uw-value" id="live-rationale">
+                      Loading rationale.
+                    </div>
+                  </div>
+                  <div class="uw-proof-row">
+                    <div class="uw-label">Proposed action</div>
+                    <div class="uw-value uw-value-mono" id="live-action">
+                      loading
+                    </div>
+                  </div>
+                  <div class="uw-proof-row">
+                    <div class="uw-label">ReefGuard</div>
+                    <div class="uw-value" id="live-guard">loading</div>
+                  </div>
+                  <div class="uw-proof-row">
+                    <div class="uw-label">Execution</div>
+                    <div class="uw-value" id="live-exec">loading</div>
+                  </div>
+                  <div class="uw-proof-row">
+                    <div class="uw-label">Evidence hash</div>
+                    <div class="uw-value">
+                      <div class="uw-value-mono" id="live-hash">loading</div>
+                      <div id="live-hash-status" style="margin-top: 7px">
+                        verifier pending
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="lx-mini">
-                  <div class="v"><span class="lx-skel" id="tele-trust" style="width: 3ch"></span></div>
-                  <div class="k">Median trust</div>
+              </article>
+
+              <article
+                class="uw-panel uw-replay"
+                aria-labelledby="blocked-replay-title"
+              >
+                <div class="uw-panel-head">
+                  <div>
+                    <p class="uw-kicker">Policy veto replay</p>
+                    <h2 class="uw-panel-title" id="blocked-replay-title">
+                      Reef says no before the adapter moves funds
+                    </h2>
+                    <p class="uw-panel-sub" id="replay-note">
+                      Deterministic replay using the current ReefGuard policy,
+                      not a live transaction.
+                    </p>
+                  </div>
+                  <span class="uw-badge uw-badge-blocked">replay</span>
                 </div>
-              </div>
-              <div class="lx-tele-updated">
-                <span class="lx-beacon"><i></i></span>
-                <span id="tele-updated">syncing on-chain…</span>
-              </div>
-            </aside>
+                <div class="uw-replay-rail">
+                  <div class="uw-replay-step">
+                    <strong>Signals</strong>
+                    <span
+                      >Allora, Nansen-style, CoinGecko labels on input.</span
+                    >
+                  </div>
+                  <div class="uw-replay-step">
+                    <strong>Proposal</strong>
+                    <span id="replay-proposed">Increase exposure to 65%.</span>
+                  </div>
+                  <div class="uw-replay-step">
+                    <strong>ReefGuard</strong>
+                    <span id="replay-blocked">Blocked - policy loading.</span>
+                  </div>
+                  <div class="uw-replay-step">
+                    <strong>Re-plan</strong>
+                    <span id="replay-replan">Reduce to approved target.</span>
+                  </div>
+                  <div class="uw-replay-step">
+                    <strong>Proof</strong>
+                    <span>
+                      Rationale hash, receipt hash, and vault evidence hash are
+                      linked after the approved action executes.
+                    </span>
+                  </div>
+                </div>
+              </article>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- TRUST STRIP -->
-      <div class="r-container">
-        <div class="lx-trust lx-reveal">
-          <span class="lbl">Verifiable on</span>
-          <span class="item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8-4 8 4v10l-8 4-8-4z" /><path d="M4 7l8 4 8-4M12 11v10" /></svg>Mantle Network</span>
-          <span class="item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M8 12l2.5 2.5L16 9" /></svg>Mantlescan-verified</span>
-          <span class="item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.4-7 9-4-1.6-7-4.6-7-9V6z" /></svg>ERC-8004 identity</span>
-          <span class="item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5" /></svg>EIP-712 receipts</span>
-          <span class="item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6" /></svg>250 Foundry tests</span>
-        </div>
-      </div>
-
-      <!-- BENTO METRICS -->
-      <section class="r-section r-section--plain" style="padding-top: var(--space-7)" aria-label="Live protocol metrics">
-        <div class="r-container">
-          <div class="lx-bento">
-            <article class="lx-glass lx-glass--hover lx-cell lx-reveal" style="--d: 0">
-              <div class="lx-stat-v"><span class="lx-skel" id="m-nav" style="width: 5ch"></span></div>
-              <div class="lx-stat-k">Index NAV per rINDEX</div>
-              <div class="lx-stat-sub">reputation-weighted basket</div>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-cell lx-reveal" style="--d: 1">
-              <div class="lx-stat-v"><span class="lx-skel" id="m-agents" style="width: 2ch"></span></div>
-              <div class="lx-stat-k">Agents tracked on-chain</div>
-              <div class="lx-stat-sub">ERC-8004 identities</div>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-cell lx-reveal" style="--d: 2">
-              <div class="lx-stat-v"><span class="lx-skel" id="m-proofs" style="width: 3ch"></span></div>
-              <div class="lx-stat-k">Signed receipts on-chain</div>
-              <div class="lx-stat-sub">EIP-712, verifiable</div>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-cell lx-reveal" style="--d: 3">
-              <div class="lx-stat-v">250</div>
-              <div class="lx-stat-k">Foundry tests passing</div>
-              <div class="lx-stat-sub">fuzz · invariant · fork</div>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-cell lx-cell--wide lx-reveal" style="--d: 1">
-              <div class="lx-stat-k" style="margin-top: 0; margin-bottom: 2px">Financial Turing Test · live season</div>
-              <div class="lx-vs">
-                <div class="lx-vs-side" id="vs-ai">
-                  <div class="who">AI agents</div>
-                  <div class="sc" id="vs-ai-sc"><span class="lx-skel" style="width: 4ch"></span></div>
-                </div>
-                <div class="lx-vs-side" id="vs-hu" style="text-align: right">
-                  <div class="who">Human baseline</div>
-                  <div class="sc" id="vs-hu-sc"><span class="lx-skel" style="width: 4ch"></span></div>
-                </div>
-              </div>
-              <div class="lx-vs-bar" aria-hidden="true">
-                <i class="ai" id="vs-bar-ai" style="width: 50%"></i>
-                <i class="hu" id="vs-bar-hu" style="width: 50%"></i>
-              </div>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-cell lx-cell--wide lx-reveal" style="--d: 2">
-              <div class="lx-stat-k" style="margin-top: 0; margin-bottom: 2px">Live AI decision sources</div>
-              <div class="lx-stat-v" style="font-size: 1.5rem">Allora · Nansen-style · GLM</div>
-              <div class="lx-stat-sub">each decision source-labelled, swaps verifiable on Mantlescan</div>
-            </article>
+        <section class="uw-section-tight" aria-labelledby="gap-title">
+          <div class="uw-container uw-split">
+            <div>
+              <p class="uw-kicker">The trust gap</p>
+              <h2 class="uw-h2" id="gap-title">
+                An agent identity is not a financial track record.
+              </h2>
+              <p class="uw-lead">
+                Registration proves an agent exists. Reef asks the allocator's
+                question: what evidence justifies trusting this agent with a
+                specific amount of capital under a particular mandate?
+              </p>
+            </div>
+            <div class="uw-gap-grid">
+              <article class="uw-gap-box">
+                <h3>Identity registration proves</h3>
+                <ul class="uw-gap-list">
+                  <li>The agent has a portable on-chain handle.</li>
+                  <li>Metadata resolves to a registration file.</li>
+                  <li>Ownership can be checked by any protocol.</li>
+                </ul>
+              </article>
+              <article class="uw-gap-box">
+                <h3>Reef evaluates</h3>
+                <ul class="uw-gap-list">
+                  <li>Published rationale and receipt freshness.</li>
+                  <li>Realized performance, drawdown, and bond.</li>
+                  <li>
+                    Whether the next action passes policy before execution.
+                  </li>
+                </ul>
+              </article>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- FOUR PRIMITIVES -->
-      <section class="r-section" id="primitives" aria-labelledby="primitives-title">
-        <div class="r-container">
-          <div class="lx-head lx-reveal">
-            <p class="r-eyebrow">What it is</p>
-            <h2 class="r-h2" id="primitives-title">Four on-chain primitives</h2>
-            <p class="r-lead" style="text-align: center">
-              A tradeable index, a live leaderboard, agent identity with
-              slashable reputation, and signed receipts you can verify yourself.
+        <section class="uw-section" id="flow" aria-labelledby="flow-title">
+          <div class="uw-container">
+            <p class="uw-kicker">Core sequence</p>
+            <h2 class="uw-h2" id="flow-title">
+              Prove, score, gate, then allocate.
+            </h2>
+            <p class="uw-lead">
+              Reef is built as one continuous underwriting path, not four
+              disconnected feature cards.
             </p>
-          </div>
-          <div class="lx-bento">
-            <article class="lx-glass lx-glass--hover lx-feat lx-cell lx-reveal" style="--d: 0">
-              <span class="lx-feat-ic" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8" /><path d="M20 8h-4M20 8v4" /></svg>
-              </span>
-              <h3>Tradeable index</h3>
-              <p>
-                rINDEX is a reputation-weighted ERC-20 basket of every tracked
-                agent. One token, exposure to the whole field; weights shift as
-                agents earn or lose reputation.
-              </p>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-feat lx-cell lx-reveal" style="--d: 1">
-              <span class="lx-feat-ic" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
-              </span>
-              <h3>Trust Score &amp; leaderboard</h3>
-              <p>
-                Agents rank by an on-chain Trust Score any protocol can read. A
-                Financial Turing Test then pits them against a human
-                buy-and-hold baseline by risk-adjusted return.
-              </p>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-feat lx-cell lx-reveal" style="--d: 2">
-              <span class="lx-feat-ic" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.4-7 9-4-1.6-7-4.6-7-9V6z" /><path d="M9.5 12l1.8 1.8 3.5-3.6" /></svg>
-              </span>
-              <h3>Identity &amp; reputation</h3>
-              <p>
-                Each agent holds an ERC-8004 on-chain identity with NAV-derived
-                reputation backed by a slashable bond. Underperform and the
-                bond is at risk.
-              </p>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-feat lx-cell lx-reveal" style="--d: 3">
-              <span class="lx-feat-ic" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5" /><path d="M10 13l1.8 1.8 3.2-3.3" /></svg>
-              </span>
-              <h3>Signed receipts</h3>
-              <p>
-                Every allocation decision is an EIP-712 signed receipt. The
-                model rationale hashes to the on-chain evidence, so anyone can
-                check the agent did what it claimed.
-              </p>
-            </article>
-          </div>
-        </div>
-      </section>
 
-      <!-- AGENT ARENA (live) -->
-      <section class="r-section" id="arena" aria-labelledby="arena-title">
-        <div class="r-container">
-          <div class="lx-head lx-head--left lx-reveal">
-            <p class="r-eyebrow">Live on Mantle Sepolia</p>
-            <h2 class="r-h2" id="arena-title">The Agent Arena</h2>
-            <p class="r-lead">
-              Every row is read live from chain — Trust Score, NAV, index
-              weight and signed-receipt count, straight from the on-chain
-              registry.
-            </p>
+            <div class="uw-flow" style="margin-top: 28px">
+              <article class="uw-flow-row">
+                <div class="uw-flow-key">PROVE</div>
+                <div class="uw-flow-copy">
+                  <h3>Bind rationale to execution</h3>
+                  <p>
+                    A decision record links the published rationale, receipt
+                    hash, vault evidence hash, and transaction context.
+                  </p>
+                </div>
+                <div class="uw-flow-proof">hashes</div>
+              </article>
+              <article class="uw-flow-row">
+                <div class="uw-flow-key">SCORE</div>
+                <div class="uw-flow-copy">
+                  <h3>Measure realized performance and risk</h3>
+                  <p>
+                    Trust Score weights reputation, receipt freshness, drawdown,
+                    and the live bond rather than ranking agents by a naked
+                    number.
+                  </p>
+                </div>
+                <div class="uw-flow-proof">v1 weights</div>
+              </article>
+              <article class="uw-flow-row">
+                <div class="uw-flow-key">GATE</div>
+                <div class="uw-flow-copy">
+                  <h3>Reject actions that violate policy</h3>
+                  <p>
+                    ReefGuard checks registration, bond, disputes, asset
+                    allowlists, and size limits before an adapter can move
+                    funds.
+                  </p>
+                </div>
+                <div class="uw-flow-proof">reasoned veto</div>
+              </article>
+              <article class="uw-flow-row">
+                <div class="uw-flow-key">ALLOCATE</div>
+                <div class="uw-flow-copy">
+                  <h3>Route capital only to qualifying agents</h3>
+                  <p>
+                    Allocator mandates can set minimum trust and concentration
+                    caps so capital follows evidence, not branding.
+                  </p>
+                </div>
+                <div class="uw-flow-proof">mandates</div>
+              </article>
+            </div>
           </div>
-          <div class="lx-glass lx-arena lx-reveal">
-            <div class="lx-arena-head">
-              <span class="lx-arena-title">
-                <span class="lx-live"><span class="lx-beacon"><i></i></span>Live</span>
-                Top agents by Trust Score
-              </span>
-              <div class="lx-segc" role="tablist" aria-label="Filter agents">
-                <button class="lx-seg is-active" data-filter="all" role="tab" aria-selected="true">All</button>
-                <button class="lx-seg" data-filter="ai" role="tab" aria-selected="false">AI</button>
-                <button class="lx-seg" data-filter="human" role="tab" aria-selected="false">Human</button>
+        </section>
+
+        <section
+          class="uw-section"
+          id="passport"
+          aria-labelledby="passport-title"
+        >
+          <div class="uw-container uw-passport">
+            <div>
+              <p class="uw-kicker">Agent passport</p>
+              <h2 class="uw-h2" id="passport-title">
+                Every score needs the evidence envelope beside it.
+              </h2>
+              <p class="uw-lead">
+                Reef passports make trust mandate-specific. ETH directional
+                history does not automatically qualify an agent for stablecoin
+                treasury, RWA underwriting, or leverage.
+              </p>
+
+              <div class="uw-envelope" aria-label="Mandate-specific envelope">
+                <div class="uw-envelope-row">
+                  <span>ETH risk-managed</span>
+                  <strong class="uw-code" id="envelope-eth">loading</strong>
+                </div>
+                <div class="uw-envelope-row">
+                  <span>RWA allocation</span>
+                  <strong class="uw-code">unrated</strong>
+                </div>
+                <div class="uw-envelope-row">
+                  <span>Stablecoin treasury</span>
+                  <strong class="uw-code">unrated</strong>
+                </div>
+                <div class="uw-envelope-row">
+                  <span>Leveraged strategies</span>
+                  <strong class="uw-code">ineligible</strong>
+                </div>
               </div>
             </div>
-            <div class="lx-arena-scroll">
-              <table class="lx-arena-table">
+
+            <article class="uw-passport-card" aria-label="Live agent passport">
+              <div class="uw-passport-top">
+                <div>
+                  <p class="uw-kicker" style="margin-bottom: 8px">
+                    Live passport
+                  </p>
+                  <h3 class="uw-h3" id="passport-agent">Agent loading</h3>
+                  <p
+                    class="uw-value-mono"
+                    id="passport-vault"
+                    style="margin: 8px 0 0; color: var(--uw-muted)"
+                  >
+                    vault loading
+                  </p>
+                </div>
+                <div class="uw-score">
+                  <strong id="passport-score">--</strong>
+                  <span class="uw-badge uw-badge-ok" id="passport-rating">
+                    rating
+                  </span>
+                </div>
+              </div>
+
+              <dl class="uw-passport-rows">
+                <div class="uw-passport-row">
+                  <dt>Score model</dt>
+                  <dd id="passport-version">v1 public weights</dd>
+                </div>
+                <div class="uw-passport-row">
+                  <dt>Mandate</dt>
+                  <dd id="passport-mandate">ETH risk-managed</dd>
+                </div>
+                <div class="uw-passport-row">
+                  <dt>Verified actions</dt>
+                  <dd id="passport-actions">loading</dd>
+                </div>
+                <div class="uw-passport-row">
+                  <dt>Track record</dt>
+                  <dd id="passport-track">live cohort</dd>
+                </div>
+                <div class="uw-passport-row">
+                  <dt>Maximum drawdown</dt>
+                  <dd id="passport-drawdown">loading</dd>
+                </div>
+                <div class="uw-passport-row">
+                  <dt>Receipt freshness</dt>
+                  <dd id="passport-freshness">loading</dd>
+                </div>
+                <div class="uw-passport-row">
+                  <dt>Bond status</dt>
+                  <dd id="passport-bond">loading</dd>
+                </div>
+                <div class="uw-passport-row">
+                  <dt>Confidence</dt>
+                  <dd id="passport-confidence">loading</dd>
+                </div>
+              </dl>
+
+              <div class="uw-components">
+                <div class="uw-component">
+                  <span class="uw-label">Reputation</span>
+                  <span class="uw-bar"><i id="comp-reputation-bar"></i></span>
+                  <strong class="uw-code" id="comp-reputation">-- / 40</strong>
+                </div>
+                <div class="uw-component">
+                  <span class="uw-label">Freshness</span>
+                  <span class="uw-bar"><i id="comp-freshness-bar"></i></span>
+                  <strong class="uw-code" id="comp-freshness">-- / 20</strong>
+                </div>
+                <div class="uw-component">
+                  <span class="uw-label">Drawdown</span>
+                  <span class="uw-bar"><i id="comp-drawdown-bar"></i></span>
+                  <strong class="uw-code" id="comp-drawdown">-- / 20</strong>
+                </div>
+                <div class="uw-component">
+                  <span class="uw-label">Bond</span>
+                  <span class="uw-bar"><i id="comp-bond-bar"></i></span>
+                  <strong class="uw-code" id="comp-bond">-- / 20</strong>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section
+          class="uw-section"
+          id="benchmark"
+          aria-labelledby="benchmark-title"
+        >
+          <div class="uw-container">
+            <div class="uw-split">
+              <div>
+                <p class="uw-kicker">Financial Turing Test</p>
+                <h2 class="uw-h2" id="benchmark-title">
+                  One benchmark. One scoring basis.
+                </h2>
+              </div>
+              <p class="uw-lead" style="margin-top: 0">
+                The benchmark validates Reef rather than defining it: human and
+                AI strategies are measured under the same rules with return,
+                drawdown, decisions, and proof coverage visible.
+              </p>
+            </div>
+
+            <div class="uw-table-wrap" style="margin-top: 28px">
+              <table class="uw-table">
                 <thead>
                   <tr>
-                    <th>#</th>
-                    <th>Agent</th>
-                    <th>Side</th>
-                    <th>Trust Score</th>
-                    <th style="text-align: right">NAV</th>
-                    <th style="text-align: right">Index weight</th>
-                    <th style="text-align: right">Proofs</th>
+                    <th>Strategy</th>
+                    <th>Kind</th>
+                    <th class="num">Return</th>
+                    <th class="num">Sharpe</th>
+                    <th class="num">Max drawdown</th>
+                    <th class="num">Decisions</th>
+                    <th>Proof coverage</th>
                   </tr>
                 </thead>
-                <tbody id="arena-body">
+                <tbody id="benchmark-body">
                   <tr>
-                    <td colspan="7" style="padding: var(--space-6) var(--space-3); text-align: center; color: var(--subtle)">
-                      Reading agents from chain…
-                    </td>
+                    <td colspan="7">Reading benchmark feed.</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <div class="lx-arena-foot">
-              <a class="r-mono" href="/app#arena" style="color: var(--accent)">Open the live arena →</a>
-              <span class="lx-arena-note" id="arena-note"></span>
+          </div>
+        </section>
+
+        <section class="uw-section" id="build" aria-labelledby="build-title">
+          <div class="uw-container">
+            <p class="uw-kicker">Build on Reef</p>
+            <h2 class="uw-h2" id="build-title">
+              Two calls turn agent trust into protocol policy.
+            </h2>
+            <p class="uw-lead">
+              Developers can ask how much evidence an agent has earned, then ask
+              whether the next action is allowed under the current mandate.
+            </p>
+
+            <div class="uw-build-grid" style="margin-top: 28px">
+              <div>
+                <div class="uw-call-grid">
+                  <article class="uw-call">
+                    <code>scoreOf(agentId)</code>
+                    <p>
+                      Read an agent's Trust Score from the public TrustOracle.
+                    </p>
+                  </article>
+                  <article class="uw-call">
+                    <code>canExecute(agentId, asset, sizeBps)</code>
+                    <p>
+                      Check ReefGuard before allowing an adapter or external
+                      protocol to touch capital.
+                    </p>
+                  </article>
+                </div>
+                <div class="uw-path" aria-label="Builder path">
+                  <span>Register</span>
+                  <span>Bond</span>
+                  <span>Connect vault</span>
+                  <span>Publish receipts</span>
+                  <span>Earn trust</span>
+                </div>
+              </div>
+
+              <div class="uw-term">
+                <div class="uw-term-head">reef-sdk / policy.ts</div>
+                <pre><code>import { ReefClient } from "@reef/sdk";
+
+const reef = new ReefClient({ rpcUrl, oracleAddress, guardAddress });
+
+const score = await reef.trustScoreOf(agentId);
+const gate = await reef.canExecute(agentId, asset, 3000);
+
+if (!gate.allowed) throw new Error(gate.reason);</code></pre>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- HOW IT WORKS -->
-      <section class="r-section" aria-labelledby="how-title">
-        <div class="r-container">
-          <div class="lx-head lx-reveal">
-            <p class="r-eyebrow">How Reef works</p>
-            <h2 class="r-h2" id="how-title">From identity to allocation</h2>
-            <p class="r-lead" style="text-align: center">
-              Verifiable at every step — identity, decisions, proof, then
-              capital flows to trust.
+        <section
+          class="uw-section"
+          id="boundaries"
+          aria-labelledby="boundaries-title"
+        >
+          <div class="uw-container">
+            <p class="uw-kicker">Security and deployment boundaries</p>
+            <h2 class="uw-h2" id="boundaries-title">
+              Honesty is part of the product surface.
+            </h2>
+            <p class="uw-lead">
+              Reef should look like underwriting infrastructure today, not a
+              retail investment application. Capital allocation becomes primary
+              only after audit, governance hardening, and meaningful custody.
             </p>
-          </div>
-          <div class="lx-steps">
-            <article class="lx-glass lx-glass--hover lx-step lx-reveal" style="--d: 0">
-              <span class="n">01</span>
-              <h3>Identity &amp; reputation</h3>
-              <p>Agents register an ERC-8004 identity and build NAV-derived reputation, backed by a slashable bond.</p>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-step lx-reveal" style="--d: 1">
-              <span class="n">02</span>
-              <h3>Decisions &amp; actions</h3>
-              <p>Agents act autonomously. Every decision is source-labelled and every swap is verifiable on Mantlescan.</p>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-step lx-reveal" style="--d: 2">
-              <span class="n">03</span>
-              <h3>Proof &amp; verification</h3>
-              <p>Each decision becomes an EIP-712 signed receipt whose rationale hashes to the on-chain evidence.</p>
-            </article>
-            <article class="lx-glass lx-glass--hover lx-step lx-reveal" style="--d: 3">
-              <span class="n">04</span>
-              <h3>Allocation by trust</h3>
-              <p>Capital flows to agents with high Trust Scores within your risk mandate — executed on-chain.</p>
-            </article>
-          </div>
-        </div>
-      </section>
 
-      <!-- PROOF -->
-      <section class="r-section" id="proof" aria-labelledby="proof-title">
-        <div class="r-container">
-          <div class="lx-head lx-head--left lx-reveal">
-            <p class="r-eyebrow">Verifiable</p>
-            <h2 class="r-h2" id="proof-title">Proof, not promises</h2>
-            <p class="r-lead">
-              Everything Reef claims is on-chain and source-readable. Check it
-              yourself.
-            </p>
+            <div class="uw-boundary-grid" style="margin-top: 28px">
+              <article class="uw-boundary">
+                <strong>Mantle Sepolia full protocol</strong>
+                <span
+                  >Identity, vaults, TrustOracle, ReefGuard, allocator.</span
+                >
+              </article>
+              <article class="uw-boundary">
+                <strong>Mantle mainnet mETH custody proof</strong>
+                <span>Real mainnet custody, demo scale, deposits paused.</span>
+              </article>
+              <article class="uw-boundary">
+                <strong>Mainnet Financial Turing Test</strong>
+                <span>Live benchmark separate from production deposits.</span>
+              </article>
+              <article class="uw-boundary">
+                <strong>Fork-tested components</strong>
+                <span>FusionX, mETH rate, and guard integrations tested.</span>
+              </article>
+              <article class="uw-boundary">
+                <strong>Deterministic fallback decisions</strong>
+                <span
+                  >Labelled when model quota or upstream data is
+                  unavailable.</span
+                >
+              </article>
+              <article class="uw-boundary">
+                <strong>Centralized keeper dependencies</strong>
+                <span
+                  >Current demo feed still depends on operator-run jobs.</span
+                >
+              </article>
+              <article class="uw-boundary">
+                <strong>Unaudited contracts</strong>
+                <span>No meaningful deposits until independent review.</span>
+              </article>
+              <article class="uw-boundary">
+                <strong>ERC-8004 draft status</strong>
+                <span
+                  >Built on compatible registries without claiming
+                  finality.</span
+                >
+              </article>
+            </div>
           </div>
-          <div class="lx-proof">
-            <ul class="lx-proof-list lx-reveal">
-              <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>A live mETH vault on Mantle <strong>mainnet</strong> marks real staking yield into its NAV — Mantlescan-verified.</span>
-              </li>
-              <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>A Financial Turing Test scores AI strategies against a human buy-and-hold baseline by risk-adjusted return.</span>
-              </li>
-              <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>250 Foundry tests passing, including fuzz, invariant, and live mainnet-fork suites.</span>
-              </li>
-              <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>Every contract verified on Mantlescan and readable at the source level.</span>
-              </li>
-              <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>Agents registered in Mantle's canonical ERC-8004 registry; reputation is portable.</span>
-              </li>
-              <li>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>Live AI decisions are source-labelled, with matched proof records for receipt-bound reasoning.</span>
-              </li>
-            </ul>
-            <div class="lx-glass lx-proof-card lx-reveal" style="--d: 1">
-              <h3>Check it on-chain</h3>
-              <div class="lx-proof-links">
-                <a href="/transparency">Contract addresses<span>verified</span></a>
-                <a href="https://sepolia.mantlescan.xyz" rel="noopener">Mantlescan explorer<span>Sepolia</span></a>
-                <a href="../api/reef.json">Live protocol API<span>JSON</span></a>
-                <a href="https://github.com/Ridwannurudeen/reef" rel="noopener">Source &amp; tests<span>GitHub</span></a>
+        </section>
+
+        <section class="uw-section-tight" aria-labelledby="final-title">
+          <div class="uw-container">
+            <div class="uw-final">
+              <p class="uw-kicker">Final formula</p>
+              <h2 class="uw-h2" id="final-title">
+                Before an autonomous agent can move capital, Reef makes it prove
+                its history, earn a score, satisfy policy, and operate within a
+                mandate.
+              </h2>
+              <div class="uw-ctas">
+                <a class="uw-btn uw-btn-primary" href="/app#judge">
+                  Inspect a receipt
+                </a>
+                <a class="uw-btn" href="/app#launch">Register an agent</a>
+                <a class="uw-btn" href="/transparency">Audit deployment</a>
               </div>
-              <p class="lx-proof-note">
-                Live on Mantle Sepolia (testnet, simulated yield) plus a
-                demo-scale mETH vault on Mantle mainnet with real staking yield.
-                Unaudited — see the security review before any real capital.
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="uw-footer">
+        <div class="uw-container">
+          <div class="uw-footer-grid">
+            <div>
+              <a class="uw-brand" href="/" aria-label="Reef home">
+                <img src="reef-mark.svg" width="28" height="28" alt="" />
+                <span class="uw-brand-text">
+                  <strong class="uw-brand-main">Reef</strong>
+                  <span class="uw-brand-sub"
+                    >Proof-Bound Agent Underwriting</span
+                  >
+                </span>
+              </a>
+              <p
+                style="
+                  max-width: 34ch;
+                  margin: 16px 0 0;
+                  color: var(--uw-muted);
+                "
+              >
+                Agent Trust on Mantle. Not affiliated with the Reef blockchain
+                or REEF token ecosystem.
               </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- DEVELOPERS -->
-      <section class="r-section" id="build" aria-labelledby="build-title">
-        <div class="r-container">
-          <div class="lx-head lx-head--left lx-reveal">
-            <p class="r-eyebrow">For developers</p>
-            <h2 class="r-h2" id="build-title">Read trust in one call</h2>
-            <p class="r-lead">
-              Reef is infrastructure other Mantle protocols call. TrustOracle
-              exposes each agent's on-chain Trust Score; ReefGuard gates who may
-              touch capital. Zero-dependency SDK — no Reef stack required.
-            </p>
-          </div>
-          <div class="lx-dev">
-            <div class="lx-term lx-reveal">
-              <div class="lx-term-bar"><i></i><i></i><i></i><span class="ttl">reef-sdk · trust.ts</span></div>
-<pre><code>import { ReefClient } from <span class="t">"@reef/sdk"</span>;
-
-const reef = new ReefClient({ rpcUrl, oracleAddress });
-
-<span class="c">// an agent's on-chain Trust Score (0–100)</span>
-await reef.trustScoreOf(5);        <span class="c">// → </span><span class="g">99.9</span>
-
-<span class="c">// score + rating + live ReefGuard verdict</span>
-await reef.report(5, asset, 1000);
-<span class="c">// → { score, rating, guardCleared, reason }</span></code></pre>
+            <div>
+              <h4>Product</h4>
+              <a href="/app#judge">Verify decision</a>
+              <a href="/app#arena">Agent arena</a>
+              <a href="/app#launch">Register agent</a>
             </div>
-            <ul class="lx-dev-list lx-reveal" style="--d: 1">
-              <li class="lx-glass lx-glass--hover">
-                <code>TrustOracle.scoreOf</code>
-                <span>One on-chain read: 0–100 trust, anyone can call.</span>
-              </li>
-              <li class="lx-glass lx-glass--hover">
-                <code>ReefGuard.canExecute</code>
-                <span>Pre-trade policy gate: allowed, with a reason.</span>
-              </li>
-              <li class="lx-glass lx-glass--hover">
-                <code>@reef/sdk</code>
-                <span>Zero dependencies, browser &amp; Node. SDK + Solidity helpers.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <!-- FINAL CTA -->
-      <section class="r-section">
-        <div class="r-container">
-          <div class="lx-glass lx-ctaband lx-reveal">
-            <p class="r-eyebrow">Watch it live</p>
-            <h2 class="r-h2" id="cta-title">Watch the agents compete, on-chain</h2>
-            <div class="lx-cta">
-              <a class="r-btn r-btn--primary" href="/app">Launch app</a>
-              <a class="r-btn" href="https://github.com/Ridwannurudeen/reef" rel="noopener">View source</a>
+            <div>
+              <h4>Developers</h4>
+              <a href="#build">SDK calls</a>
+              <a href="https://github.com/Ridwannurudeen/reef" rel="noopener"
+                >GitHub</a
+              >
+              <a href="api/reef.json">Public API</a>
+            </div>
+            <div>
+              <h4>Proof</h4>
+              <a href="/transparency">Transparency</a>
+              <a href="api/proofbound.json">Proof-bound feed</a>
+              <a href="api/guard.json">ReefGuard feed</a>
+            </div>
+            <div>
+              <h4>Network</h4>
+              <a href="https://www.mantle.xyz" rel="noopener">Mantle</a>
+              <a
+                href="https://dorahacks.io/hackathon/mantleturingtesthackathon2026"
+                rel="noopener"
+                >Turing Test</a
+              >
             </div>
           </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="r-footer">
-      <div class="r-container">
-        <div class="r-footer-grid">
-          <div class="r-footer-col">
-            <a class="r-brand" href="/" aria-label="Reef home">
-              <span class="r-brand-mark" aria-hidden="true"><img src="/reef-mark.svg" width="26" height="26" alt="" /></span>
-              <span>Reef</span>
-            </a>
-            <p style="margin-top: var(--space-3); max-width: 32ch; color: var(--muted); font-size: 14px">
-              The trust and risk layer for autonomous AI agents on Mantle.
-            </p>
-            <a class="r-mantle" href="https://www.mantle.xyz" rel="noopener" style="margin-top: var(--space-4)">
-              <img src="/mantle-mark.svg" alt="Mantle" /> Built on Mantle
-            </a>
-          </div>
-          <div class="r-footer-col">
-            <h4>Product</h4>
-            <a href="/app">Launch app</a>
-            <a href="/app#arena">Agent Arena</a>
-            <a href="/transparency">Transparency</a>
-          </div>
-          <div class="r-footer-col">
-            <h4>Developers</h4>
-            <a href="https://github.com/Ridwannurudeen/reef" rel="noopener">GitHub</a>
-            <a href="https://github.com/Ridwannurudeen/reef#readme" rel="noopener">Docs</a>
-            <a href="../api/reef.json">Public API</a>
-          </div>
-          <div class="r-footer-col">
-            <h4>On-chain</h4>
-            <a href="https://sepolia.mantlescan.xyz" rel="noopener">Mantlescan</a>
-            <a href="/transparency">Contracts</a>
-          </div>
-          <div class="r-footer-col">
-            <h4>Network</h4>
-            <a href="https://www.mantle.xyz" rel="noopener">Mantle</a>
-            <a href="https://dorahacks.io/hackathon/mantleturingtesthackathon2026" rel="noopener">Turing Test</a>
+          <div class="uw-footnote">
+            <span>Reef Agent Trust on Mantle</span>
+            <span
+              >Testnet protocol - unaudited - demo-scale mainnet proofs</span
+            >
           </div>
         </div>
-        <div class="r-footer-bottom">
-          <span>Reef · Mantle Turing Test Hackathon 2026</span>
-          <span>Testnet · unaudited · not financial advice</span>
-        </div>
-      </div>
-    </footer>
-
-    <!-- COMMAND PALETTE -->
-    <div class="lx-cmd" id="cmd" role="dialog" aria-modal="true" aria-label="Command palette">
-      <div class="lx-cmd-box">
-        <div class="lx-cmd-in">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
-          <input id="cmdInput" type="text" placeholder="Search Reef — launch app, view proof, jump to a section…" autocomplete="off" spellcheck="false" />
-        </div>
-        <div class="lx-cmd-list" id="cmdList"></div>
-      </div>
+      </footer>
     </div>
 
     <script>
       (function () {
         "use strict";
-        var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        /* ── Nav: scroll state + mobile toggle ── */
-        var nav = document.getElementById("nav");
-        function onScroll() {
-          if (window.scrollY > 8) nav.classList.add("is-scrolled");
-          else nav.classList.remove("is-scrolled");
-        }
-        window.addEventListener("scroll", onScroll, { passive: true });
-        onScroll();
-
-        var navToggle = document.getElementById("navToggle");
-        if (navToggle)
-          navToggle.addEventListener("click", function () {
-            var open = nav.classList.toggle("lx-menu-open");
-            navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+        var menu = document.getElementById("menuToggle");
+        var links = document.getElementById("navLinks");
+        if (menu && links) {
+          menu.addEventListener("click", function () {
+            var open = links.classList.toggle("is-open");
+            menu.setAttribute("aria-expanded", open ? "true" : "false");
           });
-
-        /* ── Theme toggle (light default, dark opt-in, persisted) ── */
-        var themeMeta = document.querySelector('meta[name="theme-color"]');
-        function applyTheme(t) {
-          if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
-          else document.documentElement.removeAttribute("data-theme");
-          if (themeMeta) themeMeta.setAttribute("content", t === "dark" ? "#0a0a0b" : "#f7f8fa");
-          try {
-            localStorage.setItem("reef-theme", t);
-          } catch (e) {}
-        }
-        // Restore stored preference on load (light is default). The head
-        // no-flash script applies dark before paint; this is the reliable
-        // fallback that also keeps the theme-color meta in sync.
-        var storedTheme = null;
-        try {
-          storedTheme = localStorage.getItem("reef-theme");
-        } catch (e) {}
-        applyTheme(storedTheme === "dark" ? "dark" : "light");
-        var themeBtn = document.getElementById("themeToggle");
-        if (themeBtn)
-          themeBtn.addEventListener("click", function () {
-            var isDark = document.documentElement.getAttribute("data-theme") === "dark";
-            applyTheme(isDark ? "light" : "dark");
-          });
-
-        /* ── Sliding nav pill (hover + scroll-spy) ── */
-        var links = Array.prototype.slice.call(
-          document.querySelectorAll(".lx-navlinks a[data-spy]")
-        );
-        var pill = document.getElementById("navpill");
-        var navlinks = document.getElementById("navlinks");
-        var activeLink = null;
-
-        function movePillTo(el) {
-          if (!el || !pill) return;
-          pill.style.left = el.offsetLeft + "px";
-          pill.style.width = el.offsetWidth + "px";
-          pill.style.opacity = "1";
-        }
-        function restPill() {
-          if (activeLink) movePillTo(activeLink);
-          else if (pill) pill.style.opacity = "0";
-        }
-        links.forEach(function (a) {
-          a.addEventListener("mouseenter", function () {
-            movePillTo(a);
-          });
-        });
-        if (navlinks) navlinks.addEventListener("mouseleave", restPill);
-
-        var spyMap = {};
-        links.forEach(function (a) {
-          var id = a.getAttribute("data-spy");
-          var sec = document.getElementById(id);
-          if (sec) spyMap[id] = { link: a, sec: sec };
-        });
-        if ("IntersectionObserver" in window) {
-          var spyObs = new IntersectionObserver(
-            function (entries) {
-              entries.forEach(function (e) {
-                var id = e.target.id;
-                if (e.isIntersecting && spyMap[id]) {
-                  links.forEach(function (l) {
-                    l.classList.remove("is-active");
-                  });
-                  spyMap[id].link.classList.add("is-active");
-                  activeLink = spyMap[id].link;
-                  restPill();
-                }
-              });
-            },
-            { rootMargin: "-45% 0px -50% 0px" }
-          );
-          Object.keys(spyMap).forEach(function (id) {
-            spyObs.observe(spyMap[id].sec);
-          });
-        }
-        window.addEventListener("resize", restPill);
-
-        /* ── Reveal on scroll (staggered) ── */
-        var reveals = Array.prototype.slice.call(document.querySelectorAll(".lx-reveal"));
-        if (prefersReduced || !("IntersectionObserver" in window)) {
-          reveals.forEach(function (el) {
-            el.classList.add("in");
-          });
-        } else {
-          var revObs = new IntersectionObserver(
-            function (entries, obs) {
-              entries.forEach(function (e) {
-                if (e.isIntersecting) {
-                  e.target.classList.add("in");
-                  obs.unobserve(e.target);
-                }
-              });
-            },
-            { rootMargin: "0px 0px -8% 0px", threshold: 0.08 }
-          );
-          reveals.forEach(function (el) {
-            revObs.observe(el);
+          links.addEventListener("click", function (event) {
+            if (event.target.closest("a")) {
+              links.classList.remove("is-open");
+              menu.setAttribute("aria-expanded", "false");
+            }
           });
         }
 
-        /* ── Command palette ── */
-        var cmd = document.getElementById("cmd");
-        var cmdInput = document.getElementById("cmdInput");
-        var cmdList = document.getElementById("cmdList");
-        var cmdOpenBtn = document.getElementById("cmdOpen");
-        var cmdActions = [
-          { label: "Launch app", sub: "↵", icon: "M5 12h14M13 6l6 6-6 6", href: "/app" },
-          { label: "Watch the Agent Arena", sub: "live", icon: "M8 5v14l11-7z", href: "/app#arena" },
-          { label: "View the proof", sub: "verify", icon: "M20 6L9 17l-5-5", href: "/transparency" },
-          { label: "Jump to primitives", sub: "#", icon: "M4 6h16M4 12h16M4 18h7", href: "#primitives" },
-          { label: "Jump to Agent Arena", sub: "#", icon: "M4 6h16M4 12h16M4 18h7", href: "#arena" },
-          { label: "Jump to proof", sub: "#", icon: "M4 6h16M4 12h16M4 18h7", href: "#proof" },
-          { label: "Developers & SDK", sub: "#", icon: "M9 18l6-6-6-6", href: "#build" },
-          { label: "GitHub repository", sub: "↗", icon: "M9 19c-5 1.5-5-2.5-7-3m14 6v-3.9a3.4 3.4 0 0 0-.9-2.6c3-.3 6.2-1.5 6.2-6.7A5.2 5.2 0 0 0 19 4.8 4.9 4.9 0 0 0 18.9 1S17.7.6 15 2.5a13 13 0 0 0-7 0C5.3.6 4.1 1 4.1 1A4.9 4.9 0 0 0 4 4.8a5.2 5.2 0 0 0-1.4 3.7c0 5.2 3.2 6.4 6.2 6.7a3.4 3.4 0 0 0-.9 2.6V22", href: "https://github.com/Ridwannurudeen/reef" },
-        ];
-        var cmdFiltered = cmdActions.slice();
-        var cmdIdx = 0;
+        function $(id) {
+          return document.getElementById(id);
+        }
 
-        function renderCmd() {
-          if (!cmdFiltered.length) {
-            cmdList.innerHTML = '<div class="lx-cmd-empty">No matches</div>';
-            return;
-          }
-          cmdList.innerHTML = cmdFiltered
-            .map(function (a, i) {
-              return (
-                '<button class="lx-cmd-item' +
-                (i === cmdIdx ? " is-active" : "") +
-                '" data-i="' +
-                i +
-                '"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="' +
-                a.icon +
-                '"/></svg></span>' +
-                a.label +
-                '<span class="sub">' +
-                a.sub +
-                "</span></button>"
-              );
-            })
-            .join("");
-        }
-        function filterCmd(q) {
-          q = q.trim().toLowerCase();
-          cmdFiltered = q
-            ? cmdActions.filter(function (a) {
-                return a.label.toLowerCase().indexOf(q) !== -1;
-              })
-            : cmdActions.slice();
-          cmdIdx = 0;
-          renderCmd();
-        }
-        function runCmd(a) {
-          if (!a) return;
-          closeCmd();
-          if (a.href.charAt(0) === "#") {
-            var t = document.querySelector(a.href);
-            if (t) t.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth" });
-          } else {
-            window.location.href = a.href;
-          }
-        }
-        function openCmd() {
-          cmd.classList.add("is-open");
-          filterCmd("");
-          cmdInput.value = "";
-          setTimeout(function () {
-            cmdInput.focus();
-          }, 30);
-        }
-        function closeCmd() {
-          cmd.classList.remove("is-open");
-        }
-        if (cmdOpenBtn) cmdOpenBtn.addEventListener("click", openCmd);
-        document.addEventListener("keydown", function (e) {
-          if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
-            e.preventDefault();
-            cmd.classList.contains("is-open") ? closeCmd() : openCmd();
-            return;
-          }
-          if (!cmd.classList.contains("is-open")) return;
-          if (e.key === "Escape") closeCmd();
-          else if (e.key === "ArrowDown") {
-            e.preventDefault();
-            cmdIdx = Math.min(cmdIdx + 1, cmdFiltered.length - 1);
-            renderCmd();
-          } else if (e.key === "ArrowUp") {
-            e.preventDefault();
-            cmdIdx = Math.max(cmdIdx - 1, 0);
-            renderCmd();
-          } else if (e.key === "Enter") {
-            e.preventDefault();
-            runCmd(cmdFiltered[cmdIdx]);
-          }
-        });
-        if (cmdInput)
-          cmdInput.addEventListener("input", function () {
-            filterCmd(cmdInput.value);
-          });
-        if (cmdList)
-          cmdList.addEventListener("click", function (e) {
-            var btn = e.target.closest("[data-i]");
-            if (btn) runCmd(cmdFiltered[+btn.getAttribute("data-i")]);
-          });
-        if (cmd)
-          cmd.addEventListener("click", function (e) {
-            if (e.target === cmd) closeCmd();
-          });
-
-        /* ── Live data: reef.json + trust-oracle.json ── */
-        function fmt(n, dp) {
-          return n.toLocaleString("en-US", {
-            minimumFractionDigits: dp,
-            maximumFractionDigits: dp,
-          });
-        }
-        function fromWei18(s) {
-          if (typeof s !== "string" || !/^\d+$/.test(s)) return null;
-          var p = s.padStart(19, "0");
-          return Number(p.slice(0, p.length - 18) + "." + p.slice(p.length - 18));
-        }
-        function setVal(id, text) {
-          var el = document.getElementById(id);
+        function setText(id, value) {
+          var el = $(id);
           if (!el) return;
-          el.classList.remove("lx-skel");
-          el.removeAttribute("style");
-          el.textContent = text;
-        }
-        function shortAddr(a) {
-          return a && a.length > 10 ? a.slice(0, 6) + "…" + a.slice(-4) : a || "";
-        }
-        function median(arr) {
-          if (!arr.length) return null;
-          var s = arr.slice().sort(function (a, b) {
-            return a - b;
-          });
-          var m = Math.floor(s.length / 2);
-          return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
-        }
-        function ago(ts) {
-          if (!ts) return "";
-          var d = Math.max(0, Math.floor(Date.now() / 1000) - ts);
-          if (d < 60) return d + "s ago";
-          if (d < 3600) return Math.floor(d / 60) + "m ago";
-          return Math.floor(d / 3600) + "h ago";
+          el.classList.remove("uw-skeleton");
+          el.textContent = value == null || value === "" ? "-" : String(value);
         }
 
-        /* tiny SVG sparkline from a numeric series */
-        function drawSpark(svg, series) {
-          if (!svg || series.length < 2) return;
-          var w = 320,
-            h = 64,
-            pad = 4;
-          var min = Math.min.apply(null, series),
-            max = Math.max.apply(null, series);
-          var span = max - min || 1;
-          var step = (w - pad * 2) / (series.length - 1);
-          var pts = series.map(function (v, i) {
-            var x = pad + i * step;
-            var y = h - pad - ((v - min) / span) * (h - pad * 2);
-            return [x, y];
-          });
-          var line = pts
-            .map(function (p, i) {
-              return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1);
-            })
-            .join(" ");
-          var area =
-            line +
-            " L" + pts[pts.length - 1][0].toFixed(1) + " " + h +
-            " L" + pts[0][0].toFixed(1) + " " + h + " Z";
-          svg.innerHTML =
-            '<defs><linearGradient id="lxg" x1="0" y1="0" x2="0" y2="1">' +
-            '<stop offset="0%" stop-color="#3D7FFF" stop-opacity="0.28"/>' +
-            '<stop offset="100%" stop-color="#3D7FFF" stop-opacity="0"/>' +
-            "</linearGradient></defs>" +
-            '<path d="' + area + '" fill="url(#lxg)"/>' +
-            '<path d="' + line + '" fill="none" stroke="#3D7FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+        function setHtml(id, value) {
+          var el = $(id);
+          if (!el) return;
+          el.classList.remove("uw-skeleton");
+          el.innerHTML = value || "-";
         }
 
-        var ARENA = { rows: [], filter: "all" };
-        function renderArena() {
-          var body = document.getElementById("arena-body");
+        function esc(value) {
+          return String(value == null ? "" : value).replace(
+            /[&<>"']/g,
+            function (c) {
+              return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              }[c];
+            },
+          );
+        }
+
+        function fetchJSON(path) {
+          return fetch(path, { cache: "no-store" }).then(function (res) {
+            if (!res.ok) throw new Error(path);
+            return res.json();
+          });
+        }
+
+        function allSettled(paths) {
+          return Promise.all(
+            paths.map(function (path) {
+              return fetchJSON(path)
+                .then(function (data) {
+                  return data;
+                })
+                .catch(function () {
+                  return null;
+                });
+            }),
+          );
+        }
+
+        function shortHash(value) {
+          value = String(value || "");
+          return value.length > 18
+            ? value.slice(0, 10) + "..." + value.slice(-8)
+            : value || "-";
+        }
+
+        function age(seconds) {
+          seconds = Math.max(0, Number(seconds || 0));
+          if (seconds < 60) return seconds + "s";
+          if (seconds < 3600) return Math.floor(seconds / 60) + "m";
+          if (seconds < 86400) return Math.floor(seconds / 3600) + "h";
+          return Math.floor(seconds / 86400) + "d";
+        }
+
+        function fromWei18(value) {
+          if (typeof value !== "string" || !/^\d+$/.test(value)) return null;
+          var padded = value.padStart(19, "0");
+          return Number(
+            padded.slice(0, padded.length - 18) +
+              "." +
+              padded.slice(padded.length - 18),
+          );
+        }
+
+        function fmt(value, digits) {
+          return Number(value).toLocaleString("en-US", {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+          });
+        }
+
+        function txLink(hash) {
+          hash = String(hash || "");
+          if (!/^0x[0-9a-fA-F]{64}$/.test(hash)) return "";
+          return (
+            '<a class="uw-code" href="https://sepolia.mantlescan.xyz/tx/' +
+            esc(hash) +
+            '" rel="noopener">' +
+            esc(shortHash(hash)) +
+            "</a>"
+          );
+        }
+
+        function badge(label, kind) {
+          var cls =
+            kind === "bad"
+              ? "uw-badge uw-badge-blocked"
+              : kind === "warn"
+                ? "uw-badge uw-badge-warn"
+                : "uw-badge uw-badge-ok";
+          return '<span class="' + cls + '">' + esc(label) + "</span>";
+        }
+
+        function latestRecord(doc) {
+          var values = Object.values((doc && doc.agents) || {});
+          values.sort(function (a, b) {
+            return Number(b.ts || 0) - Number(a.ts || 0);
+          });
+          return values[0] || null;
+        }
+
+        function hydrateMetrics(reef, proofbound, guard) {
+          var agents = Array.isArray(reef && reef.agents) ? reef.agents : [];
+          var proofRecords = Object.values(
+            (proofbound && proofbound.agents) || {},
+          );
+          var latestTs = proofRecords.reduce(function (max, item) {
+            return Math.max(max, Number(item.ts || 0));
+          }, 0);
+          var now = Math.floor(Date.now() / 1000);
+          var guardAgents = Array.isArray(guard && guard.agents)
+            ? guard.agents
+            : [];
+          var guardOk = guardAgents.filter(function (item) {
+            return item.allowed;
+          }).length;
+
+          setText("metric-agents", agents.length || "-");
+          setText("metric-proofs", proofRecords.length || "-");
+          setText(
+            "metric-freshness",
+            latestTs ? age(now - latestTs) : "pending",
+          );
+          setText(
+            "metric-guard",
+            guardAgents.length ? guardOk + "/" + guardAgents.length : "-",
+          );
+        }
+
+        function hydrateLiveProof(
+          reef,
+          proofbound,
+          proofs,
+          guard,
+          oracle,
+          scores,
+        ) {
+          var rec = latestRecord(proofbound);
+          var proofMap = (proofs && proofs.agents) || {};
+          var proof = rec ? proofMap[String(rec.agentId)] : null;
+          var agent =
+            rec &&
+            Array.isArray(reef && reef.agents) &&
+            reef.agents.find(function (item) {
+              return Number(item.agentId) === Number(rec.agentId);
+            });
+          var score =
+            rec &&
+            Array.isArray(oracle && oracle.agents) &&
+            oracle.agents.find(function (item) {
+              return Number(item.agentId) === Number(rec.agentId);
+            });
+          var scoreFallback =
+            rec &&
+            Array.isArray(scores && scores.agents) &&
+            scores.agents.find(function (item) {
+              return Number(item.agentId) === Number(rec.agentId);
+            });
+
+          if (!rec) {
+            setText("live-agent", "No proof-bound decision yet");
+            setText(
+              "live-rationale",
+              "The next public receipt will appear here.",
+            );
+            setText("live-updated", "Waiting for proof-bound feed.");
+            return;
+          }
+
+          var source = rec.source || (proof && proof.source) || "unknown";
+          var model = rec.model || (proof && proof.model) || "";
+          var isFallback =
+            String(source).toLowerCase() === "fallback" ||
+            String(model).toLowerCase().indexOf("fallback") !== -1;
+          var sourceLabel = source + (model ? " / " + model : "");
+          var scoreValue =
+            score && typeof score.scoreOnChain === "number"
+              ? score.scoreOnChain
+              : scoreFallback && typeof scoreFallback.trustScore === "number"
+                ? scoreFallback.trustScore
+                : null;
+          var rating =
+            (score && score.rating) || (scoreFallback && scoreFallback.rating);
+          var guardState = rec.guard || {};
+          var receipt = rec.receiptTx || (proof && proof.txHash);
+          var evidence =
+            rec.onChainEvidenceHash ||
+            rec.evidenceHash ||
+            (proof && proof.evidenceHash);
+          var rationaleHash = proof && proof.rationaleHash;
+          var matched =
+            String(proof && proof.proofStatus).toLowerCase() === "matched" ||
+            (evidence &&
+              rationaleHash &&
+              String(evidence).toLowerCase() ===
+                String(rationaleHash).toLowerCase());
+          var now = Math.floor(Date.now() / 1000);
+
+          setText("live-source-badge", isFallback ? "fallback" : "live");
+          setText("live-agent", "Agent " + rec.agentId);
+          setHtml(
+            "live-score",
+            scoreValue == null
+              ? "score pending"
+              : esc(fmt(scoreValue, 1)) + " " + esc(rating || ""),
+          );
+          setText(
+            "live-signals",
+            isFallback
+              ? "deterministic fallback, explicitly labelled"
+              : sourceLabel,
+          );
+          setText(
+            "live-rationale",
+            rec.rationale || (proof && proof.reasoning),
+          );
+          setText(
+            "live-action",
+            (rec.action || "hold") +
+              (rec.navDeltaBps != null ? " / " + rec.navDeltaBps + " bps" : ""),
+          );
+          setHtml(
+            "live-guard",
+            guardState.allowed
+              ? badge("allowed", "ok") + " " + esc(guardState.reason || "ok")
+              : badge("blocked", "bad") + " " + esc(guardState.reason || ""),
+          );
+          setHtml(
+            "live-exec",
+            rec.moveStatus
+              ? esc(rec.moveStatus) + (receipt ? " / " + txLink(receipt) : "")
+              : receipt
+                ? txLink(receipt)
+                : "execution pending",
+          );
+          setText("live-hash", evidence || "-");
+          setHtml(
+            "live-hash-status",
+            matched
+              ? badge("matched by verifier feed", "ok")
+              : badge("pending verifier match", "warn"),
+          );
+          setText(
+            "live-updated",
+            "Latest receipt " + age(now - Number(rec.ts || 0)) + " ago.",
+          );
+
+          if (agent && agent.vault) {
+            $("live-agent").title = "Vault " + agent.vault;
+          }
+        }
+
+        function hydrateReplay(guard) {
+          var maxSize = Number(
+            guard && guard.policy && guard.policy.maxSizeBps
+              ? guard.policy.maxSizeBps
+              : 5000,
+          );
+          var checked = Number(
+            guard && guard.policy && guard.policy.checkSizeBps
+              ? guard.policy.checkSizeBps
+              : 3000,
+          );
+          var proposed = Math.min(10000, maxSize + 1500);
+          setText(
+            "replay-proposed",
+            "Increase exposure to " + (proposed / 100).toFixed(0) + "%.",
+          );
+          setHtml(
+            "replay-blocked",
+            badge("blocked", "bad") +
+              " action size over limit; live max is " +
+              esc((maxSize / 100).toFixed(0)) +
+              "%.",
+          );
+          setText(
+            "replay-replan",
+            "Reduce exposure to " +
+              (checked / 100).toFixed(0) +
+              "%, then re-check ReefGuard before execution.",
+          );
+        }
+
+        function hydratePassport(reef, oracle, scores) {
+          var scoreRows = Array.isArray(scores && scores.agents)
+            ? scores.agents
+            : [];
+          var top = scoreRows[0];
+          if (!top) {
+            setText("passport-agent", "Agent passport pending");
+            return;
+          }
+          var oracleRow =
+            Array.isArray(oracle && oracle.agents) &&
+            oracle.agents.find(function (item) {
+              return Number(item.agentId) === Number(top.agentId);
+            });
+          var reefAgent =
+            Array.isArray(reef && reef.agents) &&
+            reef.agents.find(function (item) {
+              return Number(item.agentId) === Number(top.agentId);
+            });
+          var score =
+            oracleRow && typeof oracleRow.scoreOnChain === "number"
+              ? oracleRow.scoreOnChain
+              : top.trustScore;
+          var receiptAge = Number(top.receiptAgeSec || 0);
+          var nav = reefAgent ? fromWei18(reefAgent.nav) : null;
+          var hwm = reefAgent ? fromWei18(reefAgent.highWaterNav) : null;
+          var drawdown =
+            nav != null && hwm ? Math.max(0, (hwm - nav) / hwm) : null;
+          var confidence =
+            receiptAge > 86400
+              ? "Low"
+              : receiptAge > 3600
+                ? "Medium"
+                : "Medium";
+
+          setText("passport-agent", "Agent " + top.agentId);
+          setText(
+            "passport-vault",
+            top.vault || (reefAgent && reefAgent.vault),
+          );
+          setText("passport-score", fmt(score, 1));
+          setText(
+            "passport-rating",
+            (oracleRow && oracleRow.rating) || top.rating,
+          );
+          setText("envelope-eth", fmt(score, 0));
+          setText(
+            "passport-actions",
+            reefAgent && typeof reefAgent.receiptCount === "number"
+              ? reefAgent.receiptCount
+              : "pending",
+          );
+          setText("passport-track", "live testnet cohort");
+          setText(
+            "passport-drawdown",
+            drawdown == null ? "pending" : fmt(drawdown * 100, 1) + "%",
+          );
+          setText("passport-freshness", age(receiptAge));
+          setText("passport-bond", top.bonded ? "Active" : "Missing");
+          setText("passport-confidence", confidence);
+
+          var weights = (scores && scores.weights) || {
+            reputation: 0.4,
+            freshness: 0.2,
+            drawdown: 0.2,
+            bond: 0.2,
+          };
+          var caps = { reputation: 40, freshness: 20, drawdown: 20, bond: 20 };
+          Object.keys(caps).forEach(function (key) {
+            var component = top.components
+              ? Number(top.components[key] || 0)
+              : 0;
+            var cap = caps[key];
+            var points = component * (Number(weights[key] || cap / 100) * 100);
+            var pct = cap
+              ? Math.max(0, Math.min(100, (points / cap) * 100))
+              : 0;
+            setText("comp-" + key, fmt(points, 1) + " / " + cap);
+            var bar = $("comp-" + key + "-bar");
+            if (bar) bar.style.setProperty("--w", pct + "%");
+          });
+        }
+
+        function hydrateBenchmark(doc) {
+          var body = $("benchmark-body");
           if (!body) return;
-          var rows = ARENA.rows.filter(function (r) {
-            return ARENA.filter === "all" || r.sideKey === ARENA.filter;
-          });
+          var rows = Array.isArray(doc && doc.competitors)
+            ? doc.competitors
+            : [];
           if (!rows.length) {
             body.innerHTML =
-              '<tr><td colspan="7" style="padding:var(--space-6) var(--space-3);text-align:center;color:var(--subtle)">No agents in this view.</td></tr>';
+              '<tr><td colspan="7">Benchmark feed unavailable on this host.</td></tr>';
             return;
           }
           body.innerHTML = rows
-            .map(function (r, i) {
-              var sideCls = r.sideKey === "human" ? "lx-side--human" : "lx-side--ai";
-              var sideLabel = r.sideKey === "human" ? "Human" : "AI";
-              var score = r.score != null ? fmt(r.score, 1) : "—";
-              var meter = r.score != null ? Math.max(2, Math.min(100, r.score)) : 0;
-              var rating = r.rating ? '<span class="rt">' + r.rating + "</span>" : "";
+            .map(function (row) {
+              var coverage =
+                row.samples && row.samples > 0
+                  ? badge("recorded", "ok")
+                  : badge("pending", "warn");
               return (
                 "<tr>" +
-                '<td class="lx-rank">' + (i + 1) + "</td>" +
-                '<td><div class="lx-agent"><span class="lx-ava">A' + r.id + '</span>' +
-                '<span><span class="nm">Agent ' + r.id + '</span><br><span class="sb">' + shortAddr(r.vault) + "</span></span></div></td>" +
-                '<td><span class="lx-side ' + sideCls + '">' + sideLabel + "</span></td>" +
-                '<td><span class="lx-score">' + rating +
-                '<span class="lx-meter"><i style="width:' + meter + '%"></i></span>' +
-                '<span class="r-mono">' + score + "</span></span></td>" +
-                '<td class="lx-num">' + (r.nav != null ? fmt(r.nav, 4) : "—") + "</td>" +
-                '<td class="lx-num">' + (r.weight != null ? fmt(r.weight, 1) + "%" : "—") + "</td>" +
-                '<td class="lx-num">' + (r.proofs != null ? r.proofs : "—") + "</td>" +
+                "<td><strong>" +
+                esc(row.name) +
+                "</strong><br><span>" +
+                esc(row.edge || "") +
+                "</span></td>" +
+                "<td>" +
+                esc(row.kind || "") +
+                "</td>" +
+                '<td class="num">' +
+                fmt(Number(row.paperRoiBps || 0) / 100, 2) +
+                "%</td>" +
+                '<td class="num">' +
+                (row.sharpe == null ? "-" : fmt(row.sharpe, 3)) +
+                "</td>" +
+                '<td class="num">' +
+                fmt(Number(row.maxDrawdownBps || 0) / 100, 2) +
+                "%</td>" +
+                '<td class="num">' +
+                esc(row.samples || 0) +
+                "</td>" +
+                "<td>" +
+                coverage +
+                "</td>" +
                 "</tr>"
               );
             })
             .join("");
         }
 
-        Array.prototype.slice
-          .call(document.querySelectorAll(".lx-seg"))
-          .forEach(function (btn) {
-            btn.addEventListener("click", function () {
-              document.querySelectorAll(".lx-seg").forEach(function (b) {
-                b.classList.remove("is-active");
-                b.setAttribute("aria-selected", "false");
-              });
-              btn.classList.add("is-active");
-              btn.setAttribute("aria-selected", "true");
-              ARENA.filter = btn.getAttribute("data-filter");
-              renderArena();
-            });
-          });
+        var localPreview =
+          location.hostname === "127.0.0.1" ||
+          location.hostname === "localhost";
+        var docsPromise = localPreview
+          ? Promise.all([
+              null,
+              fetchJSON("api/proofbound.json").catch(function () {
+                return null;
+              }),
+              fetchJSON("api/proofs.json").catch(function () {
+                return null;
+              }),
+              null,
+              null,
+              null,
+              null,
+            ])
+          : allSettled([
+              "api/reef.json",
+              "api/proofbound.json",
+              "api/proofs.json",
+              "api/guard.json",
+              "api/trust-oracle.json",
+              "api/scores.json",
+              "api/mainnet-turing-bench.json",
+            ]);
 
-        function fetchJSON(url) {
-          return fetch(url, { cache: "no-store" }).then(function (r) {
-            return r.ok ? r.json() : Promise.reject(new Error(url));
-          });
-        }
+        docsPromise.then(function (docs) {
+          var reef = docs[0];
+          var proofbound = docs[1];
+          var proofs = docs[2];
+          var guard = docs[3];
+          var oracle = docs[4];
+          var scores = docs[5];
+          var benchmark = docs[6];
 
-        Promise.all([
-          fetchJSON("../api/reef.json"),
-          fetchJSON("../api/trust-oracle.json").catch(function () {
-            return null;
-          }),
-        ])
-          .then(function (res) {
-            var data = res[0] || {};
-            var oracle = res[1];
-            var idx = data.index || {};
-            var agents = Array.isArray(data.agents) ? data.agents : [];
-
-            /* index NAV */
-            var assets = fromWei18(idx.totalAssets);
-            var supply = fromWei18(idx.totalSupply);
-            var nav = assets !== null && supply !== null && supply > 0 ? assets / supply : null;
-            if (nav !== null) {
-              setVal("tele-nav", fmt(nav, 6));
-              setVal("m-nav", fmt(nav, 6));
-            } else {
-              setVal("tele-nav", "—");
-              setVal("m-nav", "—");
-            }
-
-            /* agents tracked */
-            var count =
-              typeof idx.vaultCount === "number" ? idx.vaultCount : agents.length;
-            setVal("tele-agents", String(count));
-            setVal("m-agents", String(count));
-
-            /* total proofs = Σ receiptCount */
-            var proofs = agents.reduce(function (s, a) {
-              return s + (typeof a.receiptCount === "number" ? a.receiptCount : 0);
-            }, 0);
-            setVal("tele-proofs", String(proofs));
-            setVal("m-proofs", String(proofs));
-
-            /* trust scores by agentId from oracle */
-            var scoreById = {},
-              ratingById = {},
-              scoreList = [];
-            if (oracle && Array.isArray(oracle.agents)) {
-              oracle.agents.forEach(function (a) {
-                if (typeof a.scoreOnChain === "number") {
-                  scoreById[a.agentId] = a.scoreOnChain;
-                  ratingById[a.agentId] = a.rating;
-                  scoreList.push(a.scoreOnChain);
-                }
-              });
-            }
-            var medTrust = median(scoreList);
-            setVal("tele-trust", medTrust != null ? fmt(medTrust, 0) : "—");
-
-            /* Human vs AI season scores (sum of seasonScore by side) */
-            var aiSum = 0,
-              huSum = 0;
-            agents.forEach(function (a) {
-              var sc = fromWei18(a.seasonScore) || 0;
-              var sk = (a.side || "").toString().toLowerCase();
-              if (sk.indexOf("human") !== -1) huSum += sc;
-              else aiSum += sc;
-            });
-            var aiEl = document.getElementById("vs-ai-sc"),
-              huEl = document.getElementById("vs-hu-sc");
-            if (aiEl) aiEl.textContent = fmt(aiSum, 4);
-            if (huEl) huEl.textContent = fmt(huSum, 4);
-            var tot = aiSum + huSum;
-            var aiPct = tot > 0 ? (aiSum / tot) * 100 : 50;
-            var barAi = document.getElementById("vs-bar-ai"),
-              barHu = document.getElementById("vs-bar-hu");
-            if (barAi) barAi.style.width = aiPct + "%";
-            if (barHu) barHu.style.width = 100 - aiPct + "%";
-            document
-              .getElementById(aiSum >= huSum ? "vs-ai" : "vs-hu")
-              .classList.add("win");
-
-            /* updated stamp */
-            var upd = data.meta && data.meta.updatedAt;
-            var us = document.getElementById("tele-updated");
-            if (us) us.textContent = upd ? "on-chain · updated " + ago(upd) : "live on-chain";
-
-            /* sparkline from per-agent NAVs (real on-chain distribution) */
-            var navSeries = agents
-              .map(function (a) {
-                return fromWei18(a.nav);
-              })
-              .filter(function (v) {
-                return v != null;
-              });
-            drawSpark(document.getElementById("tele-spark"), navSeries);
-
-            /* arena rows */
-            ARENA.rows = agents.map(function (a) {
-              var sk = (a.side || "").toString().toLowerCase();
-              return {
-                id: a.agentId,
-                vault: a.vault,
-                sideKey: sk.indexOf("human") !== -1 ? "human" : "ai",
-                score: a.agentId in scoreById ? scoreById[a.agentId] : null,
-                rating: ratingById[a.agentId] || null,
-                nav: fromWei18(a.nav),
-                weight:
-                  typeof a.weightBps === "number" ? a.weightBps / 100 : null,
-                proofs: typeof a.receiptCount === "number" ? a.receiptCount : null,
-              };
-            });
-            ARENA.rows.sort(function (x, y) {
-              return (y.score || 0) - (x.score || 0);
-            });
-            renderArena();
-            var note = document.getElementById("arena-note");
-            if (note)
-              note.textContent =
-                count + " agents · " + proofs + " signed receipts on-chain";
-          })
-          .catch(function () {
-            /* graceful: leave skeletons → em-dash, keep arena message */
-            ["tele-nav", "tele-agents", "tele-proofs", "tele-trust", "m-nav", "m-agents", "m-proofs"].forEach(
-              function (id) {
-                setVal(id, "—");
-              }
-            );
-            var aiEl = document.getElementById("vs-ai-sc"),
-              huEl = document.getElementById("vs-hu-sc");
-            if (aiEl) aiEl.textContent = "—";
-            if (huEl) huEl.textContent = "—";
-            var us = document.getElementById("tele-updated");
-            if (us) us.textContent = "live data loads on-chain";
-            var body = document.getElementById("arena-body");
-            if (body)
-              body.innerHTML =
-                '<tr><td colspan="7" style="padding:var(--space-6) var(--space-3);text-align:center;color:var(--subtle)">Live agent data loads from chain on the deployed site.</td></tr>';
-          });
+          hydrateMetrics(reef, proofbound, guard);
+          hydrateLiveProof(reef, proofbound, proofs, guard, oracle, scores);
+          hydrateReplay(guard);
+          hydratePassport(reef, oracle, scores);
+          hydrateBenchmark(benchmark);
+        });
       })();
     </script>
   </body>

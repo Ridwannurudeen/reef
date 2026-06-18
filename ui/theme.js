@@ -10,7 +10,7 @@
       document.documentElement.setAttribute("data-theme", "dark");
     else document.documentElement.removeAttribute("data-theme");
     if (meta)
-      meta.setAttribute("content", t === "dark" ? "#0a0a0b" : "#f7f8fa");
+      meta.setAttribute("content", t === "dark" ? "#061211" : "#f4faf7");
     try {
       localStorage.setItem("reef-theme", t);
     } catch (e) {}
