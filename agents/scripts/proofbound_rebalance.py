@@ -139,6 +139,36 @@ def _fallback_for_state(state: dict[str, Any]) -> Decision:
     )
 
 
+def _forced_decision() -> Decision | None:
+    forced = os.getenv("PROOFBOUND_FORCE_DECISION")
+    if not forced:
+        return None
+
+    action = str(forced).strip().lower()
+    if action not in VALID_ACTIONS:
+        print(
+            f"Invalid PROOFBOUND_FORCE_DECISION={forced}; expected increase|hold|decrease",
+            file=sys.stderr,
+        )
+        return None
+
+    try:
+        nav_delta = int(os.getenv("PROOFBOUND_FORCE_NAV_DELTA_BPS", "0"))
+    except ValueError:
+        print(
+            "Invalid PROOFBOUND_FORCE_NAV_DELTA_BPS; using 0",
+            file=sys.stderr,
+        )
+        nav_delta = 0
+    reasoning = os.getenv("PROOFBOUND_FORCE_REASON") or f"forced scenario: {action}"
+    return Decision(
+        action=action,
+        nav_delta_bps=_clip_bps(nav_delta),
+        reasoning=reasoning,
+        source="fallback",
+    )
+
+
 def _zai_cfg() -> tuple[str | None, str, str]:
     return (
         os.getenv("ZAI_API_KEY") or None,
@@ -153,6 +183,10 @@ def _decide_all(
     prediction: dict | None,
     flow: dict | None,
 ) -> dict[int, Decision]:
+    forced = _forced_decision()
+    if forced is not None:
+        return {int(s["agentId"]): forced for s in states}
+
     fallbacks = {int(s["agentId"]): _fallback_for_state(s) for s in states}
     key, base, model = _zai_cfg()
     if not key:
@@ -385,7 +419,11 @@ def _process_vault(
         ).call()
     )
 
-    model = os.getenv("ZAI_MODEL") or "glm-4.7-flash"
+    model = (
+        os.getenv("ZAI_MODEL") or "glm-4.7-flash"
+        if decision.source == "glm"
+        else "deterministic-fallback"
+    )
     record: dict[str, Any] = {
         "agentId": agent_id,
         "vault": w3.to_checksum_address(vault_info["vault"]),
