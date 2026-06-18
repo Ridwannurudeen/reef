@@ -2,9 +2,10 @@
 """ReefGuard snapshot — query the on-chain policy gate for each agent.
 
 Calls ReefGuard.canExecute(agentId, asset, sizeBps) for each live indexed agent and writes
-API_OUT_DIR/guard.json {guard, policy, agents:[{agentId, allowed, reason}]}. Read-only;
-powers the "ReefGuard verdict" shown on each Agent Passport so anyone can see whether a
-given agent is currently cleared to act, and why.
+API_OUT_DIR/guard.json {guard, policy, agents:[{agentId, allowed, reason}],
+blockedAction}. Read-only; powers the "ReefGuard verdict" shown on each Agent
+Passport and the homepage policy-veto proof so anyone can see whether a given
+agent is currently cleared to act, and why.
 
 Usage: API_OUT_DIR=/opt/reef/web/api python -m agents.scripts.guard_snapshot
 """
@@ -44,6 +45,7 @@ _GUARD_ABI = [
     },
 ]
 CHECK_SIZE_BPS = 3000
+BLOCKED_SIZE_MARGIN_BPS = 1500
 
 
 def main() -> int:
@@ -69,6 +71,13 @@ def main() -> int:
             int(v["agentId"]) for v in data.get("seeded", {}).get("vaults", [])
         ]
 
+    policy = {
+        "minBondE18": str(rpc_read(lambda: guard.functions.minBond().call())),
+        "maxSizeBps": rpc_read(lambda: guard.functions.maxSizeBps().call()),
+        "asset": asset,
+        "checkSizeBps": CHECK_SIZE_BPS,
+    }
+
     agents = []
     for aid in agent_ids:
         ok, reason = rpc_read(
@@ -79,18 +88,37 @@ def main() -> int:
         agents.append({"agentId": aid, "allowed": bool(ok), "reason": reason})
         print(f"agent {aid}: {'ALLOW' if ok else 'DENY'} ({reason})")
 
-    policy = {
-        "minBondE18": str(rpc_read(lambda: guard.functions.minBond().call())),
-        "maxSizeBps": rpc_read(lambda: guard.functions.maxSizeBps().call()),
+    blocked_agent_id = agent_ids[0] if agent_ids else 1
+    blocked_size_bps = int(policy["maxSizeBps"]) + BLOCKED_SIZE_MARGIN_BPS
+    blocked_fn = guard.functions.canExecute(blocked_agent_id, asset, blocked_size_bps)
+    blocked_ok, blocked_reason = rpc_read(lambda: blocked_fn.call())
+    blocked_action = {
+        "agentId": blocked_agent_id,
         "asset": asset,
-        "checkSizeBps": CHECK_SIZE_BPS,
+        "requestedSizeBps": blocked_size_bps,
+        "approvedSizeBps": min(CHECK_SIZE_BPS, int(policy["maxSizeBps"])),
+        "allowed": bool(blocked_ok),
+        "reason": blocked_reason,
+        "evidence": "read-only eth_call",
+        "call": {
+            "chainId": chain.chain_id,
+            "to": guard.address,
+            "data": blocked_fn._encode_transaction_data(),
+            "function": "canExecute(uint256,address,uint256)",
+        },
     }
+    print(
+        f"blockedAction agent {blocked_agent_id}: "
+        f"{'ALLOW' if blocked_ok else 'DENY'} size={blocked_size_bps} ({blocked_reason})"
+    )
+
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / "guard.json"
     doc = {
         "guard": rg["address"],
         "policy": policy,
         "agents": agents,
+        "blockedAction": blocked_action,
         "updatedAt": int(time.time()),
     }
     tmp = path.with_name(path.name + ".tmp")
