@@ -107,6 +107,7 @@ The homepage policy veto is also backed by a read-only contract result. `guard_s
 
 ```bash
 API_OUT_DIR=ui/api python -m agents.scripts.guard_snapshot
+API_OUT_DIR=ui/api python -m agents.scripts.veto_proof_snapshot
 ```
 
 ## The trust & risk layer
@@ -172,12 +173,14 @@ Open [reef.gudman.xyz/app](https://reef.gudman.xyz/app) for the dashboard, or [r
 ```bash
 curl https://reef.gudman.xyz/api/proofs.json
 curl https://reef.gudman.xyz/api/proofbound.json
+curl https://reef.gudman.xyz/api/veto-proof.json
 ```
 
 | Feed                    | Purpose                                                                           |
 | ----------------------- | --------------------------------------------------------------------------------- |
 | `/api/proofs.json`      | Verifier-friendly rationale, evidence hash, receipt tx, and proof status          |
 | `/api/proofbound.json`  | Full GLM/fallback decision, guard verdict, vault move, and bound receipt evidence |
+| `/api/veto-proof.json`  | Shareable blocked → approved → execution/receipt/verifier proof packet            |
 | `/api/activity.json`    | Static-first live activity feed for the dashboard                                 |
 | `/api/byoa/status.json` | BYOA admission/runtime status                                                     |
 
@@ -228,6 +231,7 @@ forge test                                       # Solidity unit, fuzz, invarian
 cd sdk && npm test                               # SDK selector, encoding, and provider tests
 python -m agents.scripts.verify_proof            # recompute live rationale hashes against chain
 API_OUT_DIR=ui/api python -m agents.scripts.guard_snapshot
+API_OUT_DIR=ui/api python -m agents.scripts.veto_proof_snapshot
 API_OUT_DIR=ui/api python -m agents.scripts.proofbound_rebalance
 ```
 

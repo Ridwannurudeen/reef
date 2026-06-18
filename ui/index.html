@@ -1835,6 +1835,7 @@ if (!gate.allowed) throw new Error(gate.reason);</code></pre>
             <div>
               <h4>Proof</h4>
               <a href="/transparency">Transparency</a>
+              <a href="/transparency#veto-proof">Veto proof packet</a>
               <a href="api/proofbound.json">Proof-bound feed</a>
               <a href="api/guard.json">ReefGuard feed</a>
             </div>
@@ -2156,8 +2157,10 @@ if (!gate.allowed) throw new Error(gate.reason);</code></pre>
           }
         }
 
-        function hydrateReplay(guard) {
-          var blocked = guard && guard.blockedAction;
+        function hydrateReplay(guard, vetoProof) {
+          var blocked =
+            (vetoProof && vetoProof.blockedAction) ||
+            (guard && guard.blockedAction);
           var maxSize = Number(
             guard && guard.policy && guard.policy.maxSizeBps
               ? guard.policy.maxSizeBps
@@ -2173,10 +2176,13 @@ if (!gate.allowed) throw new Error(gate.reason);</code></pre>
               ? blocked.requestedSizeBps
               : maxSize + 1500,
           );
+          var approvedAction = vetoProof && vetoProof.approvedAction;
           var approved = Number(
-            blocked && blocked.approvedSizeBps
-              ? blocked.approvedSizeBps
-              : checked,
+            approvedAction && approvedAction.sizeBps
+              ? approvedAction.sizeBps
+              : blocked && blocked.approvedSizeBps
+                ? blocked.approvedSizeBps
+                : checked,
           );
           var call = (blocked && blocked.call) || {};
           var callTarget = call.to || (guard && guard.guard);
@@ -2216,19 +2222,24 @@ if (!gate.allowed) throw new Error(gate.reason);</code></pre>
             "replay-replan",
             "Reduce exposure to " +
               (approved / 100).toFixed(0) +
-              "%, then re-check ReefGuard before execution.",
+              "%; ReefGuard returns " +
+              esc((approvedAction && approvedAction.reason) || "ok") +
+              " before receipt/execution.",
           );
           setHtml(
             "replay-proof",
-            blocked
-              ? "Published in guard.json: " +
+            vetoProof
+              ? "Published in veto-proof.json: blocked eth_call, approved eth_call, receipt, and verifier match. " +
+                  '<a class="uw-code" href="/transparency#veto-proof">Open packet</a>.'
+              : blocked
+                ? "Published in guard.json: " +
                   esc(call.function || "canExecute") +
                   " on " +
                   (addressLink(callTarget) || esc(shortHash(callTarget))) +
                   " with calldata " +
                   esc(shortHash(callData)) +
                   "."
-              : "Rationale hash, receipt hash, and vault evidence hash are linked after the approved action executes.",
+                : "Rationale hash, receipt hash, and vault evidence hash are linked after the approved action executes.",
           );
         }
 
@@ -2379,6 +2390,7 @@ if (!gate.allowed) throw new Error(gate.reason);</code></pre>
               null,
               null,
               null,
+              null,
             ])
           : allSettled([
               "api/reef.json",
@@ -2388,6 +2400,7 @@ if (!gate.allowed) throw new Error(gate.reason);</code></pre>
               "api/trust-oracle.json",
               "api/scores.json",
               "api/mainnet-turing-bench.json",
+              "api/veto-proof.json",
             ]);
 
         docsPromise.then(function (docs) {
@@ -2398,10 +2411,11 @@ if (!gate.allowed) throw new Error(gate.reason);</code></pre>
           var oracle = docs[4];
           var scores = docs[5];
           var benchmark = docs[6];
+          var vetoProof = docs[7];
 
           hydrateMetrics(reef, proofbound, guard);
           hydrateLiveProof(reef, proofbound, proofs, guard, oracle, scores);
-          hydrateReplay(guard);
+          hydrateReplay(guard, vetoProof);
           hydratePassport(reef, oracle, scores);
           hydrateBenchmark(benchmark);
         });
