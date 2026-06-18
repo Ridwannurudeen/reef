@@ -13,12 +13,12 @@ agents, the rebalance keeper, the receipt loop, and monitoring/restart.
 
 ## Components
 
-| Component | What it does | How to run |
-|---|---|---|
-| Reference agent (`agents.nansen_agent.agent` / `allora_agent.agent`) | Per-vault loop: read signal → decide → publish signed receipt | systemd service (one per vault) |
-| Receipt loop (`agents/scripts/tick.sh`) | Publishes a paper-mode receipt to **all** seeded vaults each tick | cron |
-| Rebalance keeper | Calls permissionless `AgentIndex.rebalance()` so allocations track reputation | cron |
-| Health check (`agents.scripts.health`) | Flags vaults with stalled receipts; non-zero exit on staleness | cron + alert |
+| Component                                                            | What it does                                                                  | How to run                      |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------- |
+| Reference agent (`agents.nansen_agent.agent` / `allora_agent.agent`) | Per-vault loop: read signal → decide → publish signed receipt                 | systemd service (one per vault) |
+| Receipt loop (`agents/scripts/tick.sh`)                              | Publishes a paper-mode receipt to **all** seeded vaults each tick             | cron                            |
+| Rebalance keeper                                                     | Calls permissionless `AgentIndex.rebalance()` so allocations track reputation | cron                            |
+| Health check (`agents.scripts.health`)                               | Flags vaults with stalled receipts; non-zero exit on staleness                | cron + alert                    |
 
 ## Reference agent as a systemd service (one per vault)
 
@@ -64,8 +64,10 @@ JSONs under `out/` + `deployments/mantle-sepolia.json` + `.env`; the host has `p
 */30 * * * * cd /opt/reef/app && /usr/bin/python3 -m agents.scripts.keeper >> /var/log/reef-keeper.log 2>&1
 # health check every 15 min (non-zero exit on staleness — wire to an alert)
 */15 * * * * cd /opt/reef/app && /usr/bin/python3 -m agents.scripts.health >> /var/log/reef-health.log 2>&1
-# public API snapshot + history roll every 10 min -> static /api/{reef,history}.json served by nginx
-*/10 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.api_snapshot >> /var/log/reef-api.log 2>&1 && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.history >> /var/log/reef-api.log 2>&1
+# public API snapshot + history/guard rolls every 10 min -> static /api/*.json served by nginx
+*/10 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.api_snapshot >> /var/log/reef-api.log 2>&1 && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.history >> /var/log/reef-api.log 2>&1 && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.guard_snapshot >> /var/log/reef-api.log 2>&1
+# proof-bound receipt replay + veto proof packet every 10 min
+*/10 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.proofbound_rebalance >> /var/log/reef-proofbound.log 2>&1 && API_OUT_DIR=/opt/reef/web/api /usr/bin/python3 -m agents.scripts.veto_proof_snapshot >> /var/log/reef-proofbound.log 2>&1
 # automated risk management hourly: signal -> target exposure -> on-chain de-risk/re-risk on the DEX-NAV vault -> /api/risk.json
 17 * * * * cd /opt/reef/app && API_OUT_DIR=/opt/reef/web/api MANTLE_SEPOLIA_RPC="https://rpc.sepolia.mantle.xyz,https://mantle-sepolia.drpc.org" /usr/bin/python3 -m agents.scripts.risk_manager >> /var/log/reef-risk.log 2>&1
 # portable reputation: publish Trust Scores to Mantle's canonical ERC-8004 Reputation Registry (diff-gated — txs only when a score changes) + /api/canonical.json

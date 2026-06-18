@@ -174,6 +174,38 @@
         background: var(--gold-soft);
         color: var(--gold);
       }
+      .t-proof-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: var(--space-3);
+      }
+      .t-proof-card {
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        padding: var(--space-4);
+      }
+      .t-proof-card h3 {
+        margin: var(--space-3) 0 var(--space-2);
+        color: var(--text);
+        font-size: 15px;
+        line-height: 1.25;
+      }
+      .t-proof-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .t-proof-card code {
+        display: block;
+        margin-top: var(--space-3);
+        overflow-wrap: anywhere;
+        color: var(--subtle);
+        font-family: var(--mono);
+        font-size: 11px;
+      }
       .t-action-dot {
         width: 6px;
         height: 6px;
@@ -307,6 +339,9 @@
         .t-row {
           grid-template-columns: 1fr;
           gap: var(--space-2);
+        }
+        .t-proof-grid {
+          grid-template-columns: 1fr;
         }
         .t-when {
           margin-left: 0;
@@ -638,6 +673,29 @@
           </div>
           <div id="reefguard-feed">
             <p class="t-empty">Loading policy gate…</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="r-section" id="veto-proof">
+        <div class="r-container">
+          <div class="r-section-head">
+            <span class="r-eyebrow">Veto-to-approved proof packet</span>
+            <h2 class="r-h2">
+              Blocked by policy, then re-checked inside limits
+            </h2>
+            <p class="r-lead">
+              This packet ties one oversized ReefGuard read, one compliant
+              ReefGuard read, the latest execution state, the receipt
+              transaction, and the receipt verifier into a single shareable
+              record. The veto and approval legs are read-only
+              <code>eth_call</code> results; execution is only
+              transaction-backed when the latest compliant plan actually moved
+              vault capital.
+            </p>
+          </div>
+          <div id="veto-proof-feed">
+            <p class="t-empty">Loading veto proof packet…</p>
           </div>
         </div>
       </section>
@@ -1014,6 +1072,12 @@
               return null;
             });
         }
+        function shortHash(value) {
+          value = String(value || "");
+          return value.length > 20
+            ? value.slice(0, 10) + "…" + value.slice(-8)
+            : value || "—";
+        }
         function explorerBase(data) {
           var ex = data && data.explorer;
           if (typeof ex === "string") return ex.replace(/\/+$/, "");
@@ -1127,6 +1191,154 @@
               "</a></p></div>";
           }
           host.innerHTML = head + rows;
+        }
+
+        function renderVetoProof(data) {
+          var host = document.getElementById("veto-proof-feed");
+          if (!host) return;
+          if (!data || !data.blockedAction || !data.approvedAction) {
+            host.innerHTML =
+              '<div class="r-panel"><p class="t-empty">Run <span class="r-mono">python -m agents.scripts.veto_proof_snapshot</span> to publish the veto proof packet.</p></div>';
+            return;
+          }
+          var blocked = data.blockedAction || {};
+          var approved = data.approvedAction || {};
+          var execution = data.execution || {};
+          var receipt = data.receipt || {};
+          var verifier = data.verifier || {};
+          var labels = data.labels || {};
+          var executionOk = execution.status === "transaction-backed";
+          var executionNeutral = execution.status === "not-required";
+          var verifierOk = verifier.status === "matched";
+          function pct(bps) {
+            return (Number(bps || 0) / 100).toFixed(0) + "%";
+          }
+          function status(label, kind) {
+            return (
+              '<span class="t-action t-action--' +
+              kind +
+              '"><span class="t-action-dot"></span>' +
+              esc(label) +
+              "</span>"
+            );
+          }
+          function maybeTx(url, hash, label) {
+            if (!url || !hash) return "";
+            return (
+              '<a class="t-swap" href="' +
+              esc(url) +
+              '" target="_blank" rel="noopener">' +
+              esc(label || shortHash(hash)) +
+              " " +
+              EXT +
+              "</a>"
+            );
+          }
+          function card(kicker, kind, title, body, code, link) {
+            return (
+              '<article class="t-proof-card">' +
+              status(kicker, kind) +
+              "<h3>" +
+              esc(title) +
+              "</h3><p>" +
+              body +
+              "</p>" +
+              (link || "") +
+              (code ? "<code>" + esc(code) + "</code>" : "") +
+              "</article>"
+            );
+          }
+          var cards = [
+            card(
+              blocked.allowed ? "allowed" : "blocked",
+              blocked.allowed ? "up" : "down",
+              "Oversized proposal",
+              esc(pct(blocked.sizeBps)) +
+                " requested. ReefGuard returned " +
+                esc(blocked.reason || "no reason") +
+                ".",
+              (blocked.call || {}).data,
+              "",
+            ),
+            card(
+              approved.allowed ? "approved" : "denied",
+              approved.allowed ? "up" : "down",
+              "Compliant re-check",
+              esc(pct(approved.sizeBps)) +
+                " requested. ReefGuard returned " +
+                esc(approved.reason || "no reason") +
+                ".",
+              (approved.call || {}).data,
+              "",
+            ),
+            card(
+              executionOk
+                ? "executed"
+                : executionNeutral
+                  ? "not required"
+                  : "not recorded",
+              executionOk ? "up" : executionNeutral ? "flat" : "down",
+              "Execution state",
+              esc(execution.moveStatus || "not recorded") +
+                (execution.note ? ". " + esc(execution.note) : "."),
+              execution.txHash,
+              maybeTx(execution.txUrl, execution.txHash, execution.function),
+            ),
+            card(
+              "receipt",
+              receipt.txHash ? "up" : "flat",
+              "Receipt committed",
+              "AgentVault receipt " +
+                esc(receipt.seq == null ? "pending" : "#" + receipt.seq) +
+                " records the rationale evidence hash.",
+              receipt.evidenceHash,
+              maybeTx(receipt.txUrl, receipt.txHash, "receipt tx"),
+            ),
+            card(
+              verifierOk ? "matched" : "review",
+              verifierOk ? "up" : "down",
+              "Verifier result",
+              verifierOk
+                ? "Rationale hash, receipt evidence, and vault evidence match."
+                : esc(verifier.chainReadError || "Verifier match pending."),
+              verifier.vaultEvidenceHash || verifier.evidenceHash,
+              maybeTx(verifier.receiptTxUrl, verifier.receiptTx, "verify tx"),
+            ),
+          ].join("");
+          host.innerHTML =
+            '<div class="r-panel"><div class="t-feed-row"><div class="t-feed-top">' +
+            '<span class="t-action t-action--up"><span class="t-action-dot"></span>Agent ' +
+            esc(String(data.agentId)) +
+            "</span>" +
+            '<span class="t-signal">' +
+            esc(data.network || "Mantle Sepolia") +
+            " · " +
+            esc(data.source || "source") +
+            " / " +
+            esc(data.model || "model") +
+            "</span>" +
+            '<span class="t-when">veto-proof.json</span></div>' +
+            '<p class="t-rationale"><span class="t-rationale-label">rationale</span>' +
+            esc(data.rationale || "No rationale recorded.") +
+            "</p>" +
+            (data.vaultUrl
+              ? '<a class="t-swap" href="' +
+                esc(data.vaultUrl) +
+                '" target="_blank" rel="noopener">vault ' +
+                EXT +
+                "</a>"
+              : "") +
+            "</div>" +
+            '<div class="t-proof-grid">' +
+            cards +
+            "</div>" +
+            '<div class="t-feed-row"><p class="t-rationale"><span class="t-rationale-label">labels</span>' +
+            esc(labels.blockedAction || "Blocked leg is read-only.") +
+            " " +
+            esc(labels.approvedAction || "Approved leg is read-only.") +
+            " " +
+            esc(labels.execution || "Execution status is labelled.") +
+            "</p></div></div>";
         }
 
         function renderContracts(data) {
@@ -2121,12 +2333,14 @@
           fetchJson("../api/trust-oracle.json"),
           fetchJson("../api/turing-bench.json"),
           fetchJson("../api/mainnet-turing-bench.json"),
+          fetchJson("../api/veto-proof.json"),
         ]).then(function (res) {
           renderContracts(res[0]);
           renderTrustOracle(res[9], explorerBase(res[0]));
           renderTuring(res[10]);
           renderMainnetBench(res[11]);
           renderReefGuard(res[0], explorerBase(res[0]));
+          renderVetoProof(res[12]);
           renderFeed(res[1], res[2], explorerBase(res[0]));
           renderRisk(res[3], explorerBase(res[0]));
           renderAllocator(res[4], explorerBase(res[0]));
