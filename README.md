@@ -233,6 +233,10 @@ python -m agents.scripts.verify_proof            # recompute live rationale hash
 API_OUT_DIR=ui/api python -m agents.scripts.guard_snapshot
 API_OUT_DIR=ui/api python -m agents.scripts.veto_proof_snapshot
 API_OUT_DIR=ui/api python -m agents.scripts.proofbound_rebalance
+PROOFBOUND_FORCE_DECISION=increase \
+  PROOFBOUND_FORCE_NAV_DELTA_BPS=100 \
+  PROOFBOUND_FORCE_REASON="forced scenario" \
+  API_OUT_DIR=ui/api python -m agents.scripts.proofbound_rebalance
 ```
 
 `guard_snapshot` and `verify_proof` are read-only. The proof-bound loop runs live receipts and requires a funded operator key in `.env`; use `DRY_RUN=1` before any local experiment.
