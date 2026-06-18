@@ -9,7 +9,7 @@ Reef turns autonomous-agent trust into an on-chain primitive: portable ERC-8004 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/forge%20test-253%20passing-brightgreen.svg)](#quickstart)
 [![Network](https://img.shields.io/badge/Mantle-Sepolia%20%2B%20Mainnet-000000.svg)](https://reef.gudman.xyz/transparency)
-[![Hackathon](https://img.shields.io/badge/Mantle%20Turing%20Test%202026-AI%20%C3%97%20RWA-3D7FFF.svg)](https://dorahacks.io/hackathon/mantleturingtesthackathon2026)
+[![Hackathon](https://img.shields.io/badge/Mantle%20Turing%20Test%202026-AI%20%C3%97%20RWA-007F70.svg)](https://dorahacks.io/hackathon/mantleturingtesthackathon2026)
 
 **[Live site](https://reef.gudman.xyz)** · **[On-chain proof](https://reef.gudman.xyz/transparency)** · [SDK](sdk/) · [Integration guide](INTEGRATION.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md)
 
@@ -17,7 +17,9 @@ Reef turns autonomous-agent trust into an on-chain primitive: portable ERC-8004 
 
 </div>
 
-![Reef — verifiable AI yield agents on Mantle](docs/landing.png)
+![Reef Judge Mode - live AI decision proof path](docs/judge-mode.png)
+
+<p align="center"><em>Judge Mode turns one live agent decision into a 60-second proof path: model rationale, ReefGuard verdict, on-chain receipt, matched hash, TrustOracle score, and BYOA status.</em></p>
 
 ---
 
@@ -50,9 +52,17 @@ Supporting surfaces: A2A signal market, Human-vs-AI seasons, reputation-weighted
 
 ## See It In Action
 
-![On-chain proof — every contract verified](docs/transparency.png)
+![Reef landing - live index telemetry](docs/landing.png)
+
+The landing page frames Reef as verifiable AI yield agents on Mantle and keeps the live rINDEX telemetry visible in the first viewport.
+
+![On-chain proof - every contract verified](docs/transparency.png)
 
 The transparency page exposes verified contracts, TrustOracle parity, receipt proofs, mainnet RWA custody, and the Financial Turing Test benchmark from live feeds.
+
+![Reef Judge Mode - dark mode](docs/judge-mode-dark.png)
+
+Dark mode preserves the same proof path and keeps the live decision trace readable for demos, recordings, and judge review.
 
 ## How it works
 
@@ -95,18 +105,18 @@ Three independent checks per agent: the recomputed `keccak256(rationale)` equals
 
 ## The trust & risk layer
 
-| Contract | Role |
-|---|---|
-| `TrustOracle` / `TrustOracleConsumer` | Public 0–100 Trust Score (`scoreOf`/`report`) + a reference trust-gated/sized credit consumer |
-| `ReefGuard` / `ReefGuarded` | On-chain policy gate (`canExecute`) + an inheritable base with an `onlyCleared` modifier |
-| `Allocator` | Trust-weighted capital allocation under named risk mandates (bar + concentration cap; permissioned-LP mode) |
-| `ReputationBond` | Stake-backed bonds; challenge → dispute → slash, with a two-step unbonding cooldown |
-| `AgentIdentity` / `AgentIndex` | ERC-8004 identity + reputation; reputation-weighted index token (rINDEX) |
-| `AgentVault` / `AdapterRegistry` | Sovereign per-agent vault (realized-PnL reputation) + governor-vetted strategy adapter allowlist |
-| `Seasons` / `SignalMarket` | On-chain Human-vs-AI seasons + agent-to-agent signal marketplace |
-| `ComplianceRegistry` | On-chain KYC / accreditation / ISO-3166 jurisdiction attestations (`screen(address)`) — a composable RWA compliance gate any protocol can read |
-| `ArbiterCouncil` | M-of-N (2-of-3) multisig that holds the `ReputationBond` arbiter — decentralized dispute resolution (no single key can slash) |
-| Adapters | `Usdy` · `Meth` · `MethRate` · `FusionX` · `Fbtc` · `Usde` · `Mi4` · `MockYield` |
+| Contract                              | Role                                                                                                                                           |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TrustOracle` / `TrustOracleConsumer` | Public 0–100 Trust Score (`scoreOf`/`report`) + a reference trust-gated/sized credit consumer                                                  |
+| `ReefGuard` / `ReefGuarded`           | On-chain policy gate (`canExecute`) + an inheritable base with an `onlyCleared` modifier                                                       |
+| `Allocator`                           | Trust-weighted capital allocation under named risk mandates (bar + concentration cap; permissioned-LP mode)                                    |
+| `ReputationBond`                      | Stake-backed bonds; challenge → dispute → slash, with a two-step unbonding cooldown                                                            |
+| `AgentIdentity` / `AgentIndex`        | ERC-8004 identity + reputation; reputation-weighted index token (rINDEX)                                                                       |
+| `AgentVault` / `AdapterRegistry`      | Sovereign per-agent vault (realized-PnL reputation) + governor-vetted strategy adapter allowlist                                               |
+| `Seasons` / `SignalMarket`            | On-chain Human-vs-AI seasons + agent-to-agent signal marketplace                                                                               |
+| `ComplianceRegistry`                  | On-chain KYC / accreditation / ISO-3166 jurisdiction attestations (`screen(address)`) — a composable RWA compliance gate any protocol can read |
+| `ArbiterCouncil`                      | M-of-N (2-of-3) multisig that holds the `ReputationBond` arbiter — decentralized dispute resolution (no single key can slash)                  |
+| Adapters                              | `Usdy` · `Meth` · `MethRate` · `FusionX` · `Fbtc` · `Usde` · `Mi4` · `MockYield`                                                               |
 
 ## Live deployments
 
@@ -116,11 +126,11 @@ Everything is on-chain and verifiable — the source of truth is [`deployments/`
 
 **Mantle Mainnet (chain 5000) — real mETH RWA vault.** A vault custodying real **mETH** (Mantle's liquid-staked ETH). Because mETH is non-rebasing (yield accrues in the mETH→ETH rate maintained on L1), `MethRateAdapter` marks the held mETH to ETH via an on-chain `MethRate` store, so the vault's `nav()` reflects **real staking yield**. All 6 contracts Mantlescan-verified; addresses in [`deployments/mantle-mainnet.json`](deployments/mantle-mainnet.json):
 
-| Contract | Address |
-|---|---|
-| AgentVault (mETH) | [`0x76f129…cFA5`](https://mantlescan.xyz/address/0x76f129D56a4BE538f7E3bd44DAC70b23BcDFcFA5) |
-| MethRateAdapter | [`0xb7Ceedf6…a90A`](https://mantlescan.xyz/address/0xb7Ceedf6BDC4Cf8bdBE8610EAe1D1f962E35a90A) |
-| MethRate | [`0xf765d02A…6b4E`](https://mantlescan.xyz/address/0xf765d02A7F04bFDB8f72d97D5584d80475dF6b4E) |
+| Contract          | Address                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------- |
+| AgentVault (mETH) | [`0x76f129…cFA5`](https://mantlescan.xyz/address/0x76f129D56a4BE538f7E3bd44DAC70b23BcDFcFA5)   |
+| MethRateAdapter   | [`0xb7Ceedf6…a90A`](https://mantlescan.xyz/address/0xb7Ceedf6BDC4Cf8bdBE8610EAe1D1f962E35a90A) |
+| MethRate          | [`0xf765d02A…6b4E`](https://mantlescan.xyz/address/0xf765d02A7F04bFDB8f72d97D5584d80475dF6b4E) |
 
 > The mainnet position is **demo scale** and the code is **unaudited** — see [`SECURITY.md`](SECURITY.md) before any real TVL.
 
@@ -158,12 +168,12 @@ curl https://reef.gudman.xyz/api/proofs.json
 curl https://reef.gudman.xyz/api/proofbound.json
 ```
 
-| Feed | Purpose |
-|---|---|
-| `/api/proofs.json` | Verifier-friendly rationale, evidence hash, receipt tx, and proof status |
-| `/api/proofbound.json` | Full GLM/fallback decision, guard verdict, vault move, and bound receipt evidence |
-| `/api/activity.json` | Static-first live activity feed for the dashboard |
-| `/api/byoa/status.json` | BYOA admission/runtime status |
+| Feed                    | Purpose                                                                           |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| `/api/proofs.json`      | Verifier-friendly rationale, evidence hash, receipt tx, and proof status          |
+| `/api/proofbound.json`  | Full GLM/fallback decision, guard verdict, vault move, and bound receipt evidence |
+| `/api/activity.json`    | Static-first live activity feed for the dashboard                                 |
+| `/api/byoa/status.json` | BYOA admission/runtime status                                                     |
 
 ## Build on Reef
 
@@ -183,8 +193,8 @@ function act(uint256 id, address asset, uint256 sizeBps)
 ```js
 import { ReefClient } from "@reef/sdk";
 const reef = new ReefClient({ rpcUrl, oracleAddress, guardAddress, apiBase });
-await reef.trustScoreOf(5);                 // 99.9
-await reef.report(5, asset, 1000);          // { score, rating, guardCleared, guardReason }
+await reef.trustScoreOf(5); // 99.9
+await reef.report(5, asset, 1000); // { score, rating, guardCleared, guardReason }
 ```
 
 Live reference integrations (Mantlescan-verified): `MockProtocol` (ReefGuard gate) and `TrustOracleConsumer` (trust-weighted credit).
@@ -228,12 +238,14 @@ The last command runs the live proof-bound loop and requires a funded operator k
 Reef is a working prototype that demonstrates the idea end-to-end and live — **not** production-ready. We ran an adversarial, multi-agent security pass on our own contracts and would rather state the boundaries than oversell. See [`SECURITY.md`](SECURITY.md) for the full findings ledger (#1–#28) and [`AI_USAGE.md`](AI_USAGE.md) for how the AI components work.
 
 **Fixed and live:**
-- **Reputation is realized-PnL / donation-proof.** The two ways an agent could fake its own reputation — a self-donation (#15) and a flash-loaned price mark (#13) — are closed: reputation now credits only *realized* performance (`reputableNav`), and the displayed Trust Score is the authoritative **on-chain** oracle value.
+
+- **Reputation is realized-PnL / donation-proof.** The two ways an agent could fake its own reputation — a self-donation (#15) and a flash-loaned price mark (#13) — are closed: reputation now credits only _realized_ performance (`reputableNav`), and the displayed Trust Score is the authoritative **on-chain** oracle value.
 - **Reputation-writer binding (#21, Critical).** An agent can no longer repoint its reputation source to its own wallet to mint an arbitrary score — proven on-chain (the call reverts `source already set`).
 
 **Open and disclosed (honest boundaries):**
+
 - **Unaudited, and deployed contracts are immutable.** A third-party audit is the prerequisite for any real TVL.
-- **Some gaming surface remains.** Receipt *freshness* is fakeable (inherent to a cheap heartbeat) and the reputation component is cohort-relative. Two subtle accounting edge cases (#22 withdraw-ratchet, #28 spot-mark share pricing) are **not exploitable in the live setup** (no DEX-marked strategy is deployed) and are audit-deferred with written remediation specs.
+- **Some gaming surface remains.** Receipt _freshness_ is fakeable (inherent to a cheap heartbeat) and the reputation component is cohort-relative. Two subtle accounting edge cases (#22 withdraw-ratchet, #28 spot-mark share pricing) are **not exploitable in the live setup** (no DEX-marked strategy is deployed) and are audit-deferred with written remediation specs.
 - **The real-money piece is a tiny proof.** The mainnet mETH vault holds ~$1–2 and is **deposit-paused** (a known mark-vs-realizable accounting flaw, #16). It proves real-RWA custody works; it is not an economically useful vault.
 - **Centralized trust points.** The dispute arbiter is already a live **2-of-3 `ArbiterCouncil`** on testnet (the M-of-N slash mechanism is proven on-chain; members are our keys here, independent parties in production). The rate keeper and most governance remain single EOAs (rotatable to a multisig; a 2-of-3 Safe is committed pre-mainnet). The live system runs on one server with ~10-min snapshot freshness.
 - **The live AI is intermittent.** On a free LLM tier with rate limits, agents fall back to a deterministic rule when the model/signals are unavailable — recorded honestly per decision.
