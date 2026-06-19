@@ -2,12 +2,12 @@
 
 <h1>Reef</h1>
 
-<strong>Proof-bound agent underwriting on Mantle — transaction risk, evidence, and capital gates you can check on-chain.</strong>
+<strong>The transaction-risk gate for autonomous financial agents on Mantle.</strong>
 
-Reef is a prototype risk and authorization layer for autonomous financial agents: portable ERC-8004 identity, evidence-envelope receipts, realized-PnL reputation, transaction policy checks, Safe transaction enforcement, and a public TrustOracle any Mantle protocol can read.
+Reef answers one question before capital moves: **can this exact agent execute this exact transaction right now?** The prototype combines ERC-8004 identity, signed decision receipts, realized-PnL reputation, ReefGuard policy checks, ReefSafeGuard source, and a public TrustOracle any Mantle protocol can read.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/forge%20test-263%20passing-brightgreen.svg)](#quickstart)
+[![Tests](https://img.shields.io/badge/forge%20test-274%20passing-brightgreen.svg)](#quickstart)
 [![Network](https://img.shields.io/badge/Mantle-Sepolia%20%2B%20Mainnet-000000.svg)](https://reef.gudman.xyz/transparency)
 [![Hackathon](https://img.shields.io/badge/Mantle%20Turing%20Test%202026-AI%20%C3%97%20RWA-007F70.svg)](https://dorahacks.io/hackathon/mantleturingtesthackathon2026)
 
@@ -19,15 +19,15 @@ Reef is a prototype risk and authorization layer for autonomous financial agents
 
 ![Reef Judge Mode - live AI decision proof path](docs/judge-mode.png)
 
-<p align="center"><em>Judge Mode turns one live agent decision into a 60-second proof path: model rationale, ReefGuard verdict, on-chain receipt, matched hash, TrustOracle score, and BYOA status.</em></p>
+<p align="center"><em>Judge Mode turns one proposed agent action into a 60-second proof path: ReefGuard verdict, receipt transaction, matched hash, TrustOracle score, and BYOA status.</em></p>
 
 ---
 
 ## Why Reef Exists
 
-Reef answers one question: **should this autonomous agent be allowed to execute this financial action right now?**
+Reef is not trying to be another yield bot. It is the safety layer between an autonomous financial agent and a wallet, vault, or protocol.
 
-Software agents can now hold and move money on their own, but wallets and protocols still need a non-bypassable risk check before capital moves. Reef is an **agent transaction safety and underwriting prototype**: every agent has a portable ERC-8004 identity, a sovereign vault, source-labelled decision records, strict-sequence EIP-712 evidence-envelope receipts, realized-PnL reputation, and policy gates that can block unsafe actions before execution. The current receipt proof is intentionally narrow: it proves the canonical envelope and rationale hash match what was stored on-chain. It does not yet prove model provenance, runtime integrity, data-source authenticity, or that the model caused the transaction.
+The core flow is simple: an agent proposes an action, Reef checks policy and risk, the action is allowed or blocked, and the decision leaves a receipt that can be checked on-chain. The current public proof is intentionally narrow: it proves the published rationale hash matches the receipt stored on-chain. The v2 source extends that into full evidence-envelope receipts, but it still does not prove model provenance, runtime integrity, data-source authenticity, or that the model caused the transaction.
 
 Built for the **Mantle Turing Test Hackathon 2026 — AI × RWA track**.
 
@@ -35,26 +35,26 @@ Built for the **Mantle Turing Test Hackathon 2026 — AI × RWA track**.
 
 <table>
 <tr>
-<td width="50%"><strong>Composable TrustOracle</strong><br /><code>TrustOracle.scoreOf(agentId)</code> returns a prototype 0–100 Trust Score in one on-chain call: absolute-target reputation 40%, decision-time receipt freshness 20%, drawdown 20%, bond 20%, plus a T1-T5 risk tier. It is a demo risk score, not a production credit rating.</td>
-<td width="50%"><strong>Policy and capital gating</strong><br /><code>ReefGuard.canExecuteAction(...)</code> derives size from native/ERC-20 transaction data, checks registration, bond, disputes, asset allowlist, optional TrustOracle score, and max size. <code>canExecute</code> remains for legacy size-bps integrations.</td>
+<td width="50%"><strong>Policy gate</strong><br /><code>ReefGuard</code> answers allow/block with an exact reason before an agent action is executed. Current source includes <code>canExecuteAction</code>, which derives size from native/ERC-20 transaction data instead of trusting caller-supplied basis points.</td>
+<td width="50%"><strong>Proof trail</strong><br />Each live agent decision produces a signed receipt and a hash that can be recomputed against the chain. The submitted deployment proves published-rationale integrity; v2 source adds richer evidence envelopes.</td>
 </tr>
 <tr>
-<td width="50%"><strong>Proof-bound decision loop</strong><br />Reference agents read Allora predictions, Nansen smart-money flow, CoinGecko momentum, and vault NAV, then decide via Z.ai GLM or an explicit deterministic fallback. The receipt binds a canonical evidence envelope on-chain; model/runtime attestation is future work.</td>
-<td width="50%"><strong>Bring your own agent</strong><br /><code>create-reef-agent</code> plus the zero-dependency <code>@reef/sdk</code> let any builder register an ERC-8004 identity, post a bond, self-list into the index, and run the proof-bound receipt loop. Agent 6 is live through this path.</td>
+<td width="50%"><strong>Trust signal</strong><br /><code>TrustOracle.scoreOf(agentId)</code> returns a prototype 0-100 risk signal from reputation, receipt freshness, drawdown, and bond. It is useful for demos and integrations; it is not a production credit rating.</td>
+<td width="50%"><strong>Bring your own agent</strong><br /><code>create-reef-agent</code> and <code>@reef/sdk</code> let a builder register an ERC-8004 identity, post a bond, self-list into the index, and run the receipt loop. Agent 6 is live through this path.</td>
 </tr>
 <tr>
-<td width="50%"><strong>RWA-aware compliance</strong><br /><code>ComplianceRegistry.screen(address)</code> provides KYC, accreditation, and ISO-3166 jurisdiction attestations. The app soft-gates deposits, and the AI screener writes verdict evidence hashes on-chain.</td>
-<td width="50%"><strong>Mantle-native yield proof</strong><br />Reef includes a live Mantle-mainnet mETH custody proof and a FusionX-backed benchmark. The mETH vault is demo-scale and paused, but the custody, NAV mark, and contract verification are real.</td>
+<td width="50%"><strong>Wallet enforcement path</strong><br /><code>ReefSafeGuard</code> exists in source as the Safe-guard route toward non-bypassable execution. Production use still requires external audit and careful Safe/module configuration.</td>
+<td width="50%"><strong>RWA proof surface</strong><br />The live Mantle-mainnet mETH vault is demo-scale and deposit-paused, but it proves real custody, NAV marking, and verified contracts on Mantle mainnet.</td>
 </tr>
 </table>
 
-Reef Labs surfaces kept for evaluation and demos: A2A signal market, Human-vs-AI seasons, reputation-weighted rINDEX, automated risk management, mainnet benchmark, proof page, and agent passport pages. The core wedge is transaction authorization and underwriting.
+Supporting surfaces such as rINDEX, seasons, SignalMarket, compliance, and the benchmark exist to show where the gate can be consumed. They are not the wedge. The wedge is transaction authorization and underwriting.
 
 ## See It In Action
 
 ![Reef landing - live index telemetry](docs/landing.png)
 
-The landing page frames Reef as verifiable AI yield agents on Mantle and keeps the live rINDEX telemetry visible in the first viewport.
+The landing page keeps live agent/index telemetry visible, but the judge takeaway is the gate/proof path: policy verdict, receipt, hash match, and TrustOracle read.
 
 ![On-chain proof - every contract verified](docs/transparency.png)
 
@@ -88,22 +88,22 @@ Dark mode preserves the same proof path and keeps the live decision trace readab
 
 ## Verify it yourself
 
-Current source uses v2 evidence-envelope receipts: `evidenceHash = keccak256(canonical evidence envelope)`. The envelope carries the rationale hash plus agent/vault identity, decision timestamp, validity window, action context, policy result, execution context, post-state, outcome context, and content-addressed evidence URI hash. The verifier checks both the envelope hash against `AgentVault.lastReceiptEvidenceHash` and `keccak256(rationale)` against the envelope's `rationaleHash`.
+The submitted live deployment commits each matched decision as a published-rationale proof: `keccak256(reasoning) == evidenceHash == AgentVault.lastReceiptEvidenceHash`. Current v2 source extends that into `evidenceHash = keccak256(canonical evidence envelope)` when an `evidenceEnvelope` is published.
 
-Reef commits each matched decision on-chain as `evidenceHash = keccak256(canonical evidence envelope)`. You don't have to trust the dashboard for that narrow claim — recompute it. This read-only check (no keys, no clone state) pulls the published envelopes from `/api/proofs.json`, recomputes the hash, and matches it against each vault's on-chain `AgentVault.lastReceiptEvidenceHash`:
+You don't have to trust the dashboard for either claim. This read-only check (no keys, no clone state) pulls `/api/proofs.json`, recomputes the proof hash, and matches it against each vault's on-chain `AgentVault.lastReceiptEvidenceHash`:
 
 ```bash
 python -m agents.scripts.verify_proof
 ```
 
 ```text
-agent 1: OK - envelope==evidence==on-chain 0xe826d948...745e8d80; rationale=0x...
+agent 1: OK - legacy-rationale evidence==on-chain 0xe826d948...745e8d80; rationale=0x...
 ...
 5 matched proof(s) verified, 0 liveness-only, 0 failed
 REEF_PROOF_VALID
 ```
 
-Three independent checks per agent: the recomputed envelope hash equals the published `evidenceHash`, the on-chain `lastReceiptEvidenceHash` equals that evidence hash, and `keccak256(rationale)` equals the envelope's `rationaleHash`. This is evidence-envelope integrity, not proof that a specific model binary produced the rationale. The same proof renders in the browser on the [proof page](https://reef.gudman.xyz/transparency).
+Three independent checks per agent: the recomputed proof hash equals the published `evidenceHash`, the on-chain `lastReceiptEvidenceHash` equals that evidence hash, and `keccak256(rationale)` equals the published `rationaleHash`. This is receipt integrity, not proof that a specific model binary produced the rationale. The same proof renders in the browser on the [proof page](https://reef.gudman.xyz/transparency).
 
 The homepage policy veto is also backed by a read-only contract result. `guard_snapshot` calls the live Sepolia `ReefGuard.canExecute(agentId, asset, sizeBps)` twice: once at the approved check size for each agent, and once with an oversized proposal that should return `allowed=false` and the exact policy reason. The result is published as the `blockedAction` field in `/api/guard.json`; no transaction or private key is involved.
 
@@ -147,7 +147,7 @@ A second mainnet deployment runs the **Financial Turing Test as a live benchmark
 
 ## Tech stack
 
-- **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); unit + fuzz/invariant suites + live mainnet-fork tests. **263 tests passing, 1 skipped**.
+- **Contracts** — Solidity 0.8.24, Foundry 1.7.1 (`evm_version = paris`); unit + fuzz/invariant suites + live mainnet-fork tests. **274 tests passing, 1 skipped**.
 - **Agents** — Python (web3.py) reference agents, keeper, receipt loop, and read-only snapshots in `agents/`; decisions via Z.ai GLM with a deterministic fallback.
 - **Frontend** — static, no build step (`ui/`): `index.html` (landing), `app.html` (dashboard), `transparency.html` (on-chain proof), `agent.html` (agent passport), with a site-wide light/dark theme (light default), served at [reef.gudman.xyz](https://reef.gudman.xyz).
 - **SDK** — `@reef/sdk` (`sdk/`), a zero-dependency JS/TS client.
@@ -161,7 +161,7 @@ git clone https://github.com/Ridwannurudeen/reef.git
 cd reef
 cp .env.example .env     # fill in PRIVATE_KEY + API keys (all optional for build/test)
 forge build
-forge test                # 263 passing, 1 skipped
+forge test                # 274 passing, 1 skipped
 ```
 
 The static site needs no build — open `ui/index.html`.
