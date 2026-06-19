@@ -8,8 +8,10 @@ import {AgentVault} from "../src/AgentVault.sol";
 import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {ReputationBond} from "../src/ReputationBond.sol";
 import {ReefGuard} from "../src/ReefGuard.sol";
+import {ReefSafeGuard} from "../src/ReefSafeGuard.sol";
 import {TrustOracle} from "../src/TrustOracle.sol";
 import {TrustOracleConsumer} from "../src/TrustOracleConsumer.sol";
+import {IAgentVault} from "../src/interfaces/IAgentVault.sol";
 import {MockERC20} from "../test/mocks/MockERC20.sol";
 import {MockStrategyAdapter} from "../test/mocks/MockStrategyAdapter.sol";
 
@@ -23,24 +25,74 @@ import {MockStrategyAdapter} from "../test/mocks/MockStrategyAdapter.sol";
 /// Run: forge script script/DeployHardenedSepolia.s.sol:DeployHardenedSepolia --rpc-url <url> --broadcast --legacy
 contract DeployHardenedSepolia is Script {
     bytes32 constant RECEIPT_TYPEHASH =
-        keccak256("Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,int256 claimedDelta,uint64 period)");
+        keccak256(
+            "Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,bytes32 contextHash,uint64 decisionTimestamp,uint64 validUntil,uint64 period,uint256 decisionBlock,int256 claimedDelta)"
+        );
+    bytes32 constant EVIDENCE_URI_HASH = keccak256("ipfs://reef-seed-evidence");
 
     AgentIdentity identity;
     AgentIndex index;
     ReputationBond bond;
     ReefGuard guard;
+    ReefSafeGuard safeGuard;
     AdapterRegistry registry;
     TrustOracle oracle;
     TrustOracleConsumer consumer;
     address[5] vaults;
 
-    function _sign(uint256 pk, AgentVault vault, uint256 agentId, bytes32 evidence, int256 delta)
+    function _receipt(AgentVault vault, uint256 agentId, bytes32 evidence, int256 delta)
+        internal
+        view
+        returns (IAgentVault.Receipt memory receipt)
+    {
+        uint64 period = 86_400;
+        receipt = IAgentVault.Receipt({
+            agentId: agentId,
+            seq: vault.nextReceiptSeq(),
+            evidenceHash: evidence,
+            actionHash: keccak256(abi.encode("seed-action", address(vault))),
+            policyHash: keccak256(abi.encode("seed-policy", address(vault))),
+            executionHash: keccak256(abi.encode("seed-execution", address(vault))),
+            postStateHash: keccak256(abi.encode("seed-post-state", address(vault))),
+            outcomeHash: keccak256(abi.encode("seed-outcome", address(vault))),
+            evidenceUriHash: EVIDENCE_URI_HASH,
+            decisionTimestamp: uint64(block.timestamp),
+            validUntil: uint64(block.timestamp + period),
+            period: period,
+            decisionBlock: block.number,
+            claimedDelta: delta
+        });
+    }
+
+    function _sign(uint256 pk, AgentVault vault, IAgentVault.Receipt memory receipt)
         internal
         view
         returns (bytes memory)
     {
-        bytes32 structHash =
-            keccak256(abi.encode(RECEIPT_TYPEHASH, agentId, uint256(0), evidence, delta, uint64(86_400)));
+        bytes32 contextHash = keccak256(
+            abi.encode(
+                receipt.actionHash,
+                receipt.policyHash,
+                receipt.executionHash,
+                receipt.postStateHash,
+                receipt.outcomeHash,
+                receipt.evidenceUriHash
+            )
+        );
+        bytes32 structHash = keccak256(
+            abi.encode(
+                RECEIPT_TYPEHASH,
+                receipt.agentId,
+                receipt.seq,
+                receipt.evidenceHash,
+                contextHash,
+                receipt.decisionTimestamp,
+                receipt.validUntil,
+                receipt.period,
+                receipt.decisionBlock,
+                receipt.claimedDelta
+            )
+        );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", vault.domainSeparator(), structHash));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(pk, digest);
         return abi.encodePacked(r, s, v);
@@ -59,8 +111,9 @@ contract DeployHardenedSepolia is Script {
         _realizeYield(asset, vault, pk, delta);
 
         bytes32 evidence = keccak256(abi.encode("seed", i));
-        bytes memory sig = _sign(pk, vault, agentId, evidence, delta);
-        vault.publishReceipt(0, evidence, delta, uint64(86_400), sig);
+        IAgentVault.Receipt memory receipt = _receipt(vault, agentId, evidence, delta);
+        bytes memory sig = _sign(pk, vault, receipt);
+        vault.publishReceipt(receipt, sig);
         console.log("agent", agentId, "vault", address(vault));
         return address(vault);
     }
@@ -96,6 +149,7 @@ contract DeployHardenedSepolia is Script {
         index = new AgentIndex(address(asset), address(identity));
         bond = new ReputationBond(address(asset), address(identity), deployer, 1e18, 5e18, 1 days);
         guard = new ReefGuard(address(identity), address(bond), deployer, 0, 0, 10_000);
+        safeGuard = new ReefSafeGuard(address(guard), deployer);
         registry = new AdapterRegistry();
 
         // Index capital to allocate.
@@ -105,8 +159,13 @@ contract DeployHardenedSepolia is Script {
         // Seed 5 agents with realized, donation-proof reputation.
         for (uint256 i = 0; i < navDeltas.length; i++) {
             vaults[i] = _seedAgent(asset, pk, i, navDeltas[i]);
+            uint256 agentId = i + 1;
+            asset.mint(deployer, 50e18);
+            asset.approve(address(bond), 50e18);
+            bond.postBond(agentId, 50e18);
         }
 
+        index.setReputationBond(address(bond), 10e18);
         index.deposit(deposit);
         index.rebalance();
 
@@ -116,6 +175,10 @@ contract DeployHardenedSepolia is Script {
             oracle.registerVault(vaults[i]);
         }
         consumer = new TrustOracleConsumer(address(oracle), 55e16);
+        guard.setAssetAllowed(address(asset), true);
+        guard.setAssetAllowed(address(0), true);
+        guard.setPolicy(0, 10e18, 5000);
+        guard.setTrustPolicy(address(oracle), 55e16);
 
         vm.stopBroadcast();
 
@@ -124,6 +187,7 @@ contract DeployHardenedSepolia is Script {
         console.log("AgentIndex      :", address(index));
         console.log("ReputationBond  :", address(bond));
         console.log("ReefGuard       :", address(guard));
+        console.log("ReefSafeGuard   :", address(safeGuard));
         console.log("AdapterRegistry :", address(registry));
         console.log("TrustOracle     :", address(oracle));
         console.log("Consumer        :", address(consumer));

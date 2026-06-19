@@ -40,8 +40,8 @@ contract DeployAllocator is Script {
         }
         // Mandate menu (Trust Score is WAD: 1e18 == 100/100):
         uint256 balanced = allocator.addMandate("Balanced", 60e16, 5000); // >=60, 50% cap
-        uint256 conservative = allocator.addMandate("Conservative", 70e16, 3500); // >=70 (AA), 35% cap
-        allocator.addMandate("Aggressive", 40e16, 10_000); // >=40 (BBB), uncapped
+        uint256 conservative = allocator.addMandate("Conservative", 70e16, 3500); // >=70 (T2), 35% cap
+        allocator.addMandate("Aggressive", 40e16, 10_000); // >=40 (T4), uncapped
         allocator.setActiveMandate(conservative);
 
         // Fund a small LP position and allocate it trust-weighted across qualifying agents.

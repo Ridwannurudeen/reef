@@ -14,6 +14,8 @@ out/
 # Docs (keep README screenshots; ignore any generated docs)
 docs/*
 !docs/*.png
+!docs/REEF_V2_ARCHITECTURE.md
+!docs/REEF_V2_DEPLOYMENT.md
 
 # Generated public-API snapshots (built by agents/scripts/api_snapshot.py on the VPS)
 ui/api/

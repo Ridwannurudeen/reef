@@ -7,6 +7,7 @@ import {AgentVault} from "../src/AgentVault.sol";
 import {AgentIndex} from "../src/AgentIndex.sol";
 import {AdapterRegistry} from "../src/AdapterRegistry.sol";
 import {ReputationBond} from "../src/ReputationBond.sol";
+import {IAgentVault} from "../src/interfaces/IAgentVault.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockStrategyAdapter} from "./mocks/MockStrategyAdapter.sol";
 
@@ -24,7 +25,10 @@ contract AgentIndexTest is Test {
     uint256 opBPk;
 
     bytes32 constant RECEIPT_TYPEHASH =
-        keccak256("Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,int256 claimedDelta,uint64 period)");
+        keccak256(
+            "Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,bytes32 contextHash,uint64 decisionTimestamp,uint64 validUntil,uint64 period,uint256 decisionBlock,int256 claimedDelta)"
+        );
+    bytes32 constant TEST_URI_HASH = keccak256("ipfs://reef-test");
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
 
@@ -89,18 +93,25 @@ contract AgentIndexTest is Test {
         vm.prank(alice);
         index.deposit(100e18);
         index.rebalance();
-        assertGt(index.vaultShares(address(vaultA)), 0);
+        uint256 held = index.vaultShares(address(vaultA));
+        assertGt(held, 0);
 
         index.removeVault(address(vaultA));
         assertEq(index.vaultCount(), 1);
         assertFalse(index.isRegistered(address(vaultA)));
         assertEq(index.vaultShares(address(vaultA)), 0);
+        assertEq(index.quarantinedVaultShares(address(vaultA)), held);
 
         // totalAssets still computes (the removed vault is never called) and getAllocation excludes it.
         index.totalAssets();
         AgentIndex.Allocation[] memory alloc = index.getAllocation();
         assertEq(alloc.length, 1);
         assertEq(alloc[0].vault, address(vaultB));
+
+        uint256 idleBefore = token.balanceOf(address(index));
+        index.recoverRemovedVault(address(vaultA), held);
+        assertEq(index.quarantinedVaultShares(address(vaultA)), 0);
+        assertGt(token.balanceOf(address(index)), idleBefore);
 
         vm.expectRevert(bytes("not registered"));
         index.removeVault(address(vaultA));
@@ -443,10 +454,49 @@ contract AgentIndexTest is Test {
         v.recallFromStrategy(address(adapter), 1e18 + repAmount); // realize it (cost-basis model)
         uint256 seq = v.nextReceiptSeq();
         bytes32 evidence = keccak256(abi.encode("rep", address(v), seq));
-        bytes32 structHash = keccak256(abi.encode(RECEIPT_TYPEHASH, v.agentId(), seq, evidence, int256(0), uint64(60)));
+        IAgentVault.Receipt memory receipt = IAgentVault.Receipt({
+            agentId: v.agentId(),
+            seq: seq,
+            evidenceHash: evidence,
+            actionHash: keccak256(abi.encode("action", address(v), seq)),
+            policyHash: keccak256(abi.encode("policy", address(v), seq)),
+            executionHash: keccak256(abi.encode("execution", address(v), seq)),
+            postStateHash: keccak256(abi.encode("post-state", address(v), seq)),
+            outcomeHash: keccak256(abi.encode("outcome", address(v), seq)),
+            evidenceUriHash: TEST_URI_HASH,
+            decisionTimestamp: uint64(block.timestamp),
+            validUntil: uint64(block.timestamp + 60),
+            period: uint64(60),
+            decisionBlock: block.number,
+            claimedDelta: int256(0)
+        });
+        bytes32 contextHash = keccak256(
+            abi.encode(
+                receipt.actionHash,
+                receipt.policyHash,
+                receipt.executionHash,
+                receipt.postStateHash,
+                receipt.outcomeHash,
+                receipt.evidenceUriHash
+            )
+        );
+        bytes32 structHash = keccak256(
+            abi.encode(
+                RECEIPT_TYPEHASH,
+                receipt.agentId,
+                receipt.seq,
+                receipt.evidenceHash,
+                contextHash,
+                receipt.decisionTimestamp,
+                receipt.validUntil,
+                receipt.period,
+                receipt.decisionBlock,
+                receipt.claimedDelta
+            )
+        );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", v.domainSeparator(), structHash));
         (uint8 vv, bytes32 r, bytes32 s) = vm.sign(opPk, digest);
-        v.publishReceipt(seq, evidence, int256(0), uint64(60), abi.encodePacked(r, s, vv));
+        v.publishReceipt(receipt, abi.encodePacked(r, s, vv));
     }
 
     function _bondGate() internal returns (ReputationBond rb) {

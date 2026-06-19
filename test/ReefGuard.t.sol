@@ -35,20 +35,41 @@ contract MockBond {
     }
 }
 
+contract MockTrustOracle {
+    mapping(uint256 => uint256) public scores;
+    bool public shouldRevert;
+
+    function setScore(uint256 id, uint256 score) external {
+        scores[id] = score;
+    }
+
+    function setShouldRevert(bool v) external {
+        shouldRevert = v;
+    }
+
+    function scoreOf(uint256 agentId) external view returns (uint256) {
+        if (shouldRevert) revert("oracle down");
+        return scores[agentId];
+    }
+}
+
 contract ReefGuardTest is Test {
     ReefGuard guard;
     MockIdentity ident;
     MockBond bnd;
+    MockTrustOracle oracle;
     address asset = address(0xA55E7);
 
     function setUp() public {
         ident = new MockIdentity();
         bnd = new MockBond();
+        oracle = new MockTrustOracle();
         guard = new ReefGuard(address(ident), address(bnd), address(this), int256(1e18), 50e18, 8000);
         guard.setAssetAllowed(asset, true);
         // agent 1 in good standing
         ident.setRep(1, int256(2e18));
         bnd.setBond(1, 50e18);
+        oracle.setScore(1, 9e17);
     }
 
     function _check(uint256 id, address a, uint256 bps) internal view returns (bool, string memory) {
@@ -100,10 +121,76 @@ contract ReefGuardTest is Test {
         assertEq(r, "reputation below threshold");
     }
 
+    function test_compositeTrustScoreBelowThreshold() public {
+        guard.setTrustPolicy(address(oracle), 95e16);
+        (bool ok, string memory r) = _check(1, asset, 5000);
+        assertFalse(ok);
+        assertEq(r, "trust score below threshold");
+
+        oracle.setScore(1, 95e16);
+        (bool ok2, string memory r2) = _check(1, asset, 5000);
+        assertTrue(ok2);
+        assertEq(r2, "ok");
+    }
+
+    function test_compositeTrustScoreUnavailable() public {
+        guard.setTrustPolicy(address(oracle), 1);
+        oracle.setShouldRevert(true);
+        (bool ok, string memory r) = _check(1, asset, 5000);
+        assertFalse(ok);
+        assertEq(r, "trust score unavailable");
+    }
+
+    function test_canExecuteAction_derivesErc20TransferSize() public view {
+        bytes memory data = abi.encodeWithSelector(bytes4(0xa9059cbb), address(0xCAFE), 20e18);
+        ReefGuard.Action memory action =
+            ReefGuard.Action({target: asset, value: 0, data: data, asset: asset, portfolioValue: 100e18});
+
+        (bool ok, string memory r, uint256 amount, uint256 sizeBps) = guard.canExecuteAction(1, action);
+
+        assertTrue(ok);
+        assertEq(r, "ok");
+        assertEq(amount, 20e18);
+        assertEq(sizeBps, 2000);
+    }
+
+    function test_canExecuteAction_blocksOversizedDerivedAmount() public view {
+        bytes memory data = abi.encodeWithSelector(bytes4(0xa9059cbb), address(0xCAFE), 90e18);
+        ReefGuard.Action memory action =
+            ReefGuard.Action({target: asset, value: 0, data: data, asset: asset, portfolioValue: 100e18});
+
+        (bool ok, string memory r, uint256 amount, uint256 sizeBps) = guard.canExecuteAction(1, action);
+
+        assertFalse(ok);
+        assertEq(r, "action size over limit");
+        assertEq(amount, 90e18);
+        assertEq(sizeBps, 9000);
+    }
+
+    function test_canExecuteAction_failsClosedOnUnsupportedAction() public view {
+        ReefGuard.Action memory action = ReefGuard.Action({
+            target: asset,
+            value: 0,
+            data: abi.encodeWithSelector(bytes4(0xdeadbeef), uint256(1)),
+            asset: asset,
+            portfolioValue: 100e18
+        });
+
+        (bool ok, string memory r, uint256 amount, uint256 sizeBps) = guard.canExecuteAction(1, action);
+
+        assertFalse(ok);
+        assertEq(r, "unsupported action");
+        assertEq(amount, 0);
+        assertEq(sizeBps, 0);
+    }
+
     function test_onlyGovernor() public {
         vm.prank(address(0xBAD));
         vm.expectRevert(bytes("not governor"));
         guard.setPolicy(0, 0, 1000);
+        vm.prank(address(0xBAD));
+        vm.expectRevert(bytes("not governor"));
+        guard.setTrustPolicy(address(oracle), 1);
     }
 
     function test_governorCanRetune() public {
@@ -112,5 +199,14 @@ contract ReefGuardTest is Test {
         (bool ok, string memory r) = _check(1, asset, 1000);
         assertFalse(ok);
         assertEq(r, "insufficient bond"); // bond check precedes reputation; 50e18 < 100e18
+    }
+
+    function test_governorCanSetTrustPolicy() public {
+        guard.setTrustPolicy(address(oracle), 8e17);
+        assertEq(guard.trustOracle(), address(oracle));
+        assertEq(guard.minTrustScore(), 8e17);
+
+        vm.expectRevert(bytes("trust"));
+        guard.setTrustPolicy(address(oracle), 1e18 + 1);
     }
 }

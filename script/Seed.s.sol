@@ -6,6 +6,7 @@ import {AgentIdentity} from "../src/AgentIdentity.sol";
 import {AgentIndex} from "../src/AgentIndex.sol";
 import {AgentVault} from "../src/AgentVault.sol";
 import {AdapterRegistry} from "../src/AdapterRegistry.sol";
+import {IAgentVault} from "../src/interfaces/IAgentVault.sol";
 import {MockERC20} from "../test/mocks/MockERC20.sol";
 import {MockStrategyAdapter} from "../test/mocks/MockStrategyAdapter.sol";
 
@@ -23,16 +24,65 @@ import {MockStrategyAdapter} from "../test/mocks/MockStrategyAdapter.sol";
 ///   forge script script/Seed.s.sol --rpc-url <rpc> --broadcast
 contract Seed is Script {
     bytes32 constant RECEIPT_TYPEHASH =
-        keccak256("Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,int256 claimedDelta,uint64 period)");
+        keccak256(
+            "Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,bytes32 contextHash,uint64 decisionTimestamp,uint64 validUntil,uint64 period,uint256 decisionBlock,int256 claimedDelta)"
+        );
+    bytes32 constant EVIDENCE_URI_HASH = keccak256("ipfs://reef-seed-evidence");
 
-    /// EIP-712-sign a seq-0 receipt for `vault` with key `pk` (operator).
-    function _sign(uint256 pk, AgentVault vault, uint256 agentId, bytes32 evidence, int256 delta)
+    function _receipt(AgentVault vault, uint256 agentId, bytes32 evidence, int256 delta)
+        internal
+        view
+        returns (IAgentVault.Receipt memory receipt)
+    {
+        uint64 period = 86_400;
+        receipt = IAgentVault.Receipt({
+            agentId: agentId,
+            seq: vault.nextReceiptSeq(),
+            evidenceHash: evidence,
+            actionHash: keccak256(abi.encode("seed-action", address(vault))),
+            policyHash: keccak256(abi.encode("seed-policy", address(vault))),
+            executionHash: keccak256(abi.encode("seed-execution", address(vault))),
+            postStateHash: keccak256(abi.encode("seed-post-state", address(vault))),
+            outcomeHash: keccak256(abi.encode("seed-outcome", address(vault))),
+            evidenceUriHash: EVIDENCE_URI_HASH,
+            decisionTimestamp: uint64(block.timestamp),
+            validUntil: uint64(block.timestamp + period),
+            period: period,
+            decisionBlock: block.number,
+            claimedDelta: delta
+        });
+    }
+
+    /// EIP-712-sign a receipt for `vault` with key `pk` (operator).
+    function _sign(uint256 pk, AgentVault vault, IAgentVault.Receipt memory receipt)
         internal
         view
         returns (bytes memory)
     {
-        bytes32 structHash =
-            keccak256(abi.encode(RECEIPT_TYPEHASH, agentId, uint256(0), evidence, delta, uint64(86_400)));
+        bytes32 contextHash = keccak256(
+            abi.encode(
+                receipt.actionHash,
+                receipt.policyHash,
+                receipt.executionHash,
+                receipt.postStateHash,
+                receipt.outcomeHash,
+                receipt.evidenceUriHash
+            )
+        );
+        bytes32 structHash = keccak256(
+            abi.encode(
+                RECEIPT_TYPEHASH,
+                receipt.agentId,
+                receipt.seq,
+                receipt.evidenceHash,
+                contextHash,
+                receipt.decisionTimestamp,
+                receipt.validUntil,
+                receipt.period,
+                receipt.decisionBlock,
+                receipt.claimedDelta
+            )
+        );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", vault.domainSeparator(), structHash));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(pk, digest);
         return abi.encodePacked(r, s, v);
@@ -70,7 +120,8 @@ contract Seed is Script {
         vault.recallFromStrategy(address(adapter), 1e18 + uint256(delta)); // realize it (cost basis)
 
         bytes32 evidence = keccak256(abi.encode("seed", i));
-        vault.publishReceipt(0, evidence, delta, uint64(86_400), _sign(pk, vault, agentId, evidence, delta));
+        IAgentVault.Receipt memory receipt = _receipt(vault, agentId, evidence, delta);
+        vault.publishReceipt(receipt, _sign(pk, vault, receipt));
         console.log("agent", agentId, "vault", address(vault));
     }
 

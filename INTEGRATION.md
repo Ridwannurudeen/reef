@@ -8,9 +8,18 @@ There are two integration surfaces. Use either or both.
 
 ## 1. On-chain gate (Solidity)
 
-`ReefGuard.canExecute(agentId, asset, sizeBps)` is a pure view returning `(bool allowed, string
-reason)`. It checks the agent's registration, ERC-8004 reputation, posted bond, open disputes, an
-asset allowlist, and the action size against governor-set limits.
+`ReefGuard.canExecuteAction(agentId, action)` is the preferred pure-view gate. It inspects a
+standard native/ERC-20 action, derives the amount and `sizeBps`, then checks registration,
+ERC-8004 reputation, posted bond, open disputes, asset allowlist, optional TrustOracle score, and
+the action size against governor-set limits. Unsupported calldata fails closed.
+
+`ReefGuard.canExecute(agentId, asset, sizeBps)` remains for integrations that already compute
+their own size internally. Do not pass agent-supplied `sizeBps` through blindly.
+
+For Safe accounts, configure `ReefSafeGuard` as the Safe transaction guard and bind the Safe to a
+local Reef agent id. The guard calls `canExecuteAction` before execution and blocks delegatecall by
+default, so standard native/ERC-20 transactions cannot bypass Reef policy through the Safe
+transaction path.
 
 Inherit `ReefGuarded` (`src/ReefGuarded.sol`) and gate any entrypoint with the `onlyCleared`
 modifier — the call reverts with ReefGuard's **exact** reason if the agent isn't cleared:
@@ -37,19 +46,41 @@ Prefer not to inherit? Call it directly:
 require(ok, reason);
 ```
 
+For standard token/native actions, call the inspection API instead:
+
+```solidity
+ReefGuard.Action memory action = ReefGuard.Action({
+    target: token,
+    value: 0,
+    data: abi.encodeWithSelector(IERC20.transfer.selector, recipient, amount),
+    asset: token,
+    portfolioValue: currentPortfolioValue
+});
+
+(bool ok, string memory reason, uint256 parsedAmount, uint256 derivedSizeBps) =
+    reefGuard.canExecuteAction(agentId, action);
+require(ok, reason);
+```
+
 `MockProtocol` (`src/MockProtocol.sol`, deployed + Mantlescan-verified at
 `0x44E2324BBd1A645c776c442DCa418b791E93fbb2`) is a live reference: it gated a real agent action
 on-chain and reverts with the policy reason when an agent isn't cleared.
 
 ## 2. Off-chain reads (JS / TS)
 
-The `@reef/sdk` package (`sdk/`) is zero-dependency — `canExecute` is a raw `eth_call`; the
-passport methods fetch public JSON. See `sdk/README.md`.
+The `@reef/sdk` package (`sdk/`) is zero-dependency — `canExecuteAction` and `canExecute` are raw
+`eth_call`s; the passport methods fetch public JSON. See `sdk/README.md`.
 
 ```js
 import { ReefClient } from "@reef/sdk";
 const reef = new ReefClient({ rpcUrl, guardAddress, apiBase: "https://reef.gudman.xyz/api" });
-const { allowed, reason } = await reef.canExecute(agentId, asset, sizeBps);
+const { allowed, reason, amount, sizeBps } = await reef.canExecuteAction(agentId, {
+  target: token,
+  value: 0,
+  data: erc20TransferCalldata,
+  asset: token,
+  portfolioValue,
+});
 const passport = await reef.passport(agentId);
 ```
 
@@ -58,7 +89,7 @@ const passport = await reef.passport(agentId);
 Per-agent JSON, regenerated from the live feeds:
 
 - `GET /api/agent/index.json` — list of agent ids.
-- `GET /api/agent/<id>.json` — trust score + rating + components, ReefGuard verdict, allocation
+- `GET /api/agent/<id>.json` — trust score + T-tier + components, ReefGuard verdict, allocation
   under the active mandate, and the latest decision/receipt.
 
 ## Addresses (Mantle Sepolia, chain 5003)

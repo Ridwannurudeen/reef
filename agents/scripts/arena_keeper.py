@@ -38,7 +38,7 @@ from agents.shared.client import (
 from agents.shared.config import DEPLOYMENTS_DIR, REPO_ROOT, load_chain
 from agents.shared.nansen import fetch_smart_money_flow
 from agents.shared.personas import PERSONAS
-from agents.shared.receipt import build_evidence, sign_receipt
+from agents.shared.receipt import build_evidence, evidence_uri_for_hash, sign_receipt
 from agents.shared.signal import fetch_signal
 
 ROUTER = "0x272465431A6b86E3B9E5b9bD33f5D103a3F59eDb"
@@ -212,16 +212,19 @@ def main() -> int:
                 print(f"agent {aid} exposure tx failed: {e}", file=sys.stderr)
 
         seq = rpc_read(lambda vc=vc: vc.functions.nextReceiptSeq().call())
-        ev, _ = build_evidence(
+        decision_ts = int(time.time())
+        ev, envelope = build_evidence(
             {
+                "schema": "reef.receipt.v2",
                 "agent": aid,
                 "strategy": name,
                 "action": d.action,
                 "nav": str(nav),
-                "ts": int(time.time()),
+                "ts": decision_ts,
             }
         )
-        args = sign_receipt(
+        evidence_uri = evidence_uri_for_hash(ev)
+        receipt_struct, signature = sign_receipt(
             acct.key,
             vault=v["vault"],
             chain_id=w3.eth.chain_id,
@@ -230,9 +233,22 @@ def main() -> int:
             evidence_hash=ev,
             claimed_delta=int(d.nav_delta_bps),
             period=600,
+            decision_timestamp=decision_ts,
+            valid_until=decision_ts + 600,
+            decision_block=rpc_read(lambda: w3.eth.block_number),
+            action_hash={
+                "strategy": name,
+                "action": d.action,
+                "navDeltaBps": d.nav_delta_bps,
+            },
+            policy_hash={},
+            execution_hash=envelope,
+            post_state_hash={},
+            outcome_hash={},
+            evidence_uri=evidence_uri,
         )
         try:
-            send_tx(w3, acct, vc.functions.publishReceipt(*args))
+            send_tx(w3, acct, vc.functions.publishReceipt(receipt_struct, signature))
         except Exception as e:  # noqa: BLE001
             print(f"agent {aid} receipt failed: {e}", file=sys.stderr)
 

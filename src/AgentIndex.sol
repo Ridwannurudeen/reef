@@ -52,9 +52,13 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard, Pausable {
     mapping(address => bool) public isRegistered;
     /// @dev shares of each underlying AgentVault held by this index
     mapping(address => uint256) public vaultShares;
+    /// @dev Removed-vault shares held outside active accounting. They can be recovered if the
+    /// vault becomes callable again, but do not brick totalAssets()/withdrawals while quarantined.
+    mapping(address => uint256) public quarantinedVaultShares;
 
     event VaultAdded(address indexed vault);
     event VaultRemoved(address indexed vault);
+    event VaultRecovered(address indexed vault, uint256 shares, uint256 assets);
     event BondGateSet(address reputationBond, uint256 minBond);
     event ReserveSet(uint256 reserveBps);
 
@@ -100,11 +104,15 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard, Pausable {
 
     /// @notice Evict a vault from the index without calling it, so a single reverting
     /// vault (whose `nav()` bricks `totalAssets()` and locks every redemption) can be
-    /// removed and the index restored. The index forgets any shares it held in the vault.
+    /// removed and the index restored. Held shares are quarantined for later recovery.
     function removeVault(address vault) external onlyGovernor {
         require(isRegistered[vault], "not registered");
         isRegistered[vault] = false;
-        vaultShares[vault] = 0;
+        uint256 held = vaultShares[vault];
+        if (held > 0) {
+            quarantinedVaultShares[vault] += held;
+            vaultShares[vault] = 0;
+        }
         uint256 n = vaults.length;
         for (uint256 i = 0; i < n; i++) {
             if (address(vaults[i]) == vault) {
@@ -114,6 +122,16 @@ contract AgentIndex is IAgentIndex, ReentrancyGuard, Pausable {
             }
         }
         emit VaultRemoved(vault);
+    }
+
+    /// @notice Recover shares from a removed vault if it becomes callable again. Recovered assets
+    /// return to idle index liquidity; the vault stays removed unless governance re-adds it.
+    function recoverRemovedVault(address vault, uint256 shares) external onlyGovernor nonReentrant {
+        uint256 q = quarantinedVaultShares[vault];
+        require(shares > 0 && shares <= q, "shares");
+        quarantinedVaultShares[vault] = q - shares;
+        uint256 assets = AgentVault(vault).withdraw(shares);
+        emit VaultRecovered(vault, shares, assets);
     }
 
     function vaultCount() external view returns (uint256) {

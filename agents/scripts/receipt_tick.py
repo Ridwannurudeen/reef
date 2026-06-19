@@ -31,7 +31,7 @@ from eth_utils import keccak
 
 from agents.shared.client import get_w3, load_account, rpc_read, send_tx, vault_contract
 from agents.shared.config import DEPLOYMENTS_DIR, REPO_ROOT, load_chain
-from agents.shared.receipt import build_evidence, sign_receipt
+from agents.shared.receipt import build_evidence, evidence_uri_for_hash, sign_receipt
 
 
 def _latest_rationales(out_dir: Path) -> dict[int, dict]:
@@ -95,19 +95,45 @@ def main() -> int:
             reasoning = rec.get("reasoning") if (rec and fresh) else None
             bound = bool(reasoning and reasoning.strip())
             if bound:
-                # Bind the on-chain evidence to the verbatim rationale.
-                evidence = keccak(reasoning.encode("utf-8"))
+                rationale_hash = keccak(reasoning.encode("utf-8"))
+                decision_ts = int(rec.get("ts", int(time.time())))
+                evidence, envelope = build_evidence(
+                    {
+                        "schema": "reef.receipt.v2",
+                        "agentIdentity": {
+                            "localAgentId": agent_id,
+                            "vault": vc.address,
+                            "chainId": chain_id,
+                        },
+                        "decision": {
+                            "timestamp": decision_ts,
+                            "rationale": reasoning,
+                            "rationaleHash": "0x" + rationale_hash.hex(),
+                            "source": rec.get("source"),
+                            "model": rec.get("model"),
+                        },
+                        "inputs": rec.get("inputs") or rec.get("signals") or {},
+                        "policy": rec.get("guard") or {},
+                        "execution": {
+                            "txHash": rec.get("txHash"),
+                            "status": rec.get("status"),
+                        },
+                    }
+                )
             else:
                 # No decision for this agent yet: cheap cadence receipt (liveness).
-                evidence, _ = build_evidence(
+                decision_ts = int(time.time())
+                evidence, envelope = build_evidence(
                     {
+                        "schema": "reef.receipt.v2",
                         "agent": agent_id,
                         "seq": seq,
-                        "ts": int(time.time()),
+                        "ts": decision_ts,
                         "src": "cadence",
                     }
                 )
-            args = sign_receipt(
+            evidence_uri = evidence_uri_for_hash(evidence)
+            receipt_struct, signature = sign_receipt(
                 account.key,
                 vault=vc.address,
                 chain_id=chain_id,
@@ -116,17 +142,32 @@ def main() -> int:
                 evidence_hash=evidence,
                 claimed_delta=0,
                 period=period,
+                decision_timestamp=decision_ts,
+                valid_until=decision_ts + min(bind_max_age, 86_400),
+                decision_block=rpc_read(lambda: w3.eth.block_number),
+                action_hash=envelope.get("decision") or envelope,
+                policy_hash=envelope.get("policy") or {},
+                execution_hash=envelope.get("execution") or {},
+                post_state_hash=envelope.get("postState") or {},
+                outcome_hash=envelope.get("outcome") or {},
+                evidence_uri=evidence_uri,
             )
-            receipt = send_tx(w3, account, vc.functions.publishReceipt(*args))
+            receipt = send_tx(
+                w3, account, vc.functions.publishReceipt(receipt_struct, signature)
+            )
             tx_hash = w3.to_hex(receipt["transactionHash"])
             ev_hex = "0x" + evidence.hex()
             proofs[str(agent_id)] = {
                 "seq": seq,
                 "evidenceHash": ev_hex,
-                "rationaleHash": ev_hex if bound else None,
+                "rationaleHash": "0x" + rationale_hash.hex() if bound else None,
                 "reasoning": reasoning if bound else None,
                 "source": (rec or {}).get("source") if bound else None,
                 "model": (rec or {}).get("model") if bound else None,
+                "evidenceUri": evidence_uri,
+                "evidenceEnvelope": envelope,
+                "decisionTimestamp": decision_ts,
+                "validUntil": receipt_struct["validUntil"],
                 "txHash": tx_hash,
                 "proofStatus": "matched" if bound else "liveness-only",
                 "ts": int(time.time()),

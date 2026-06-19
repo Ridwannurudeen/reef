@@ -10,6 +10,7 @@ import {ReefGuard} from "../src/ReefGuard.sol";
 import {TrustOracle} from "../src/TrustOracle.sol";
 import {Allocator} from "../src/Allocator.sol";
 import {TrustOracleConsumer} from "../src/TrustOracleConsumer.sol";
+import {IAgentVault} from "../src/interfaces/IAgentVault.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockStrategyAdapter} from "./mocks/MockStrategyAdapter.sol";
 
@@ -38,7 +39,10 @@ contract TrustOracleTest is Test {
     uint256 constant WAD = 1e18;
 
     bytes32 constant RECEIPT_TYPEHASH =
-        keccak256("Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,int256 claimedDelta,uint64 period)");
+        keccak256(
+            "Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,bytes32 contextHash,uint64 decisionTimestamp,uint64 validUntil,uint64 period,uint256 decisionBlock,int256 claimedDelta)"
+        );
+    bytes32 constant TEST_URI_HASH = keccak256("ipfs://reef-test");
 
     function setUp() public {
         (opA, opAPk) = makeAddrAndKey("opA");
@@ -130,7 +134,7 @@ contract TrustOracleTest is Test {
     // --- Trust score: known values (same model as Allocator/_trustScore) ---
 
     function test_scoreOf_fullMarks_forTopBondedFreshAgent() public {
-        _giveRep(vaultA, opAPk, 8e18);
+        _giveRep(vaultA, opAPk, 10e18);
         _bondAgent(idA, opA, 50e18);
         assertEq(oracle.scoreOf(idA), WAD);
         assertEq(oracle.scoreOfVault(address(vaultA)), WAD);
@@ -142,21 +146,24 @@ contract TrustOracleTest is Test {
     }
 
     function test_componentsOf_breakdown() public {
-        _giveRep(vaultA, opAPk, 8e18);
+        _giveRep(vaultA, opAPk, 10e18);
         _bondAgent(idA, opA, 50e18);
         (uint256 repC, uint256 freshC, uint256 ddC, uint256 bondC) = oracle.componentsOf(idA);
-        assertEq(repC, WAD); // cohort max reputation
+        assertEq(repC, WAD);
         assertEq(freshC, WAD); // just published
         assertEq(ddC, WAD); // nav == hwm
         assertEq(bondC, WAD); // bond at 50e18 target
     }
 
     function test_setReputationTarget_absoluteScale() public {
-        _giveRep(vaultA, opAPk, 8e18); // agent A reputation = 8e18 (the cohort max)
-        (uint256 repCrel,,,) = oracle.componentsOf(idA);
-        assertEq(repCrel, WAD); // default: cohort-relative -> best of field = full marks
+        _giveRep(vaultA, opAPk, 8e18);
+        (uint256 repCdefault,,,) = oracle.componentsOf(idA);
+        assertEq(repCdefault, 8e17); // default: absolute 10e18 target
 
-        // Absolute target 16e18: A's 8e18 reputation is only half of full marks now.
+        oracle.setReputationTarget(0);
+        (uint256 repCrel,,,) = oracle.componentsOf(idA);
+        assertEq(repCrel, WAD); // explicit demo mode: cohort-relative
+
         oracle.setReputationTarget(16e18);
         (uint256 repCabs,,,) = oracle.componentsOf(idA);
         assertEq(repCabs, 5e17);
@@ -179,7 +186,7 @@ contract TrustOracleTest is Test {
     // --- Cross-parity: the standalone oracle reproduces the Allocator's on-chain number exactly ---
 
     function test_parity_withAllocatorTrustScore() public {
-        _giveRep(vaultA, opAPk, 8e18);
+        _giveRep(vaultA, opAPk, 10e18);
         _giveRep(vaultB, opBPk, 3e18);
         _bondAgent(idA, opA, 50e18);
         _bondAgent(idB, opB, 25e18);
@@ -197,21 +204,21 @@ contract TrustOracleTest is Test {
     // --- Ratings ---
 
     function test_ratingOf_thresholds() public {
-        _giveRep(vaultA, opAPk, 8e18);
+        _giveRep(vaultA, opAPk, 10e18);
         _bondAgent(idA, opA, 50e18);
-        assertEq(oracle.ratingOf(idA), "AAA"); // full marks
-        assertEq(oracle.ratingOf(idC), "BB"); // 0.2
+        assertEq(oracle.ratingOf(idA), "T1"); // full marks
+        assertEq(oracle.ratingOf(idC), "T5"); // 0.2
 
-        // Let the freshness component fully decay: full marks -> 0.8 -> "AA".
+        // Let the freshness component fully decay: full marks -> 0.8 -> T2.
         vm.warp(block.timestamp + 25 hours);
         assertEq(oracle.scoreOf(idA), WAD - 2e17);
-        assertEq(oracle.ratingOf(idA), "AA");
+        assertEq(oracle.ratingOf(idA), "T2");
     }
 
     // --- allScores ---
 
     function test_allScores_returnsEveryAgent() public {
-        _giveRep(vaultA, opAPk, 8e18);
+        _giveRep(vaultA, opAPk, 10e18);
         _bondAgent(idA, opA, 50e18);
         (uint256[] memory ids, uint256[] memory wad) = oracle.allScores();
         assertEq(ids.length, 3);
@@ -223,12 +230,12 @@ contract TrustOracleTest is Test {
     // --- report(): trust + live ReefGuard verdict in one call ---
 
     function test_report_clearedWhenBondedAndAllowlisted() public {
-        _giveRep(vaultA, opAPk, 8e18);
+        _giveRep(vaultA, opAPk, 10e18);
         _bondAgent(idA, opA, 50e18);
         (uint256 score, string memory rating, bool cleared, string memory reason) =
             oracle.report(idA, address(token), 1000);
         assertEq(score, WAD);
-        assertEq(rating, "AAA");
+        assertEq(rating, "T1");
         assertTrue(cleared);
         assertEq(reason, "ok");
     }
@@ -253,7 +260,7 @@ contract TrustOracleTest is Test {
     // --- TrustOracleConsumer: trust-weighted, trust-gated capital ---
 
     function test_consumer_gatesAndSizesByScore() public {
-        _giveRep(vaultA, opAPk, 8e18);
+        _giveRep(vaultA, opAPk, 10e18);
         _bondAgent(idA, opA, 50e18); // score = WAD
 
         TrustOracleConsumer consumer = new TrustOracleConsumer(address(oracle), 7e17); // min 0.70
@@ -311,9 +318,48 @@ contract TrustOracleTest is Test {
         v.recallFromStrategy(address(adapter), 1e18 + repAmount); // realize it (cost-basis model)
         uint256 seq = v.nextReceiptSeq();
         bytes32 evidence = keccak256(abi.encode("rep", address(v), seq));
-        bytes32 structHash = keccak256(abi.encode(RECEIPT_TYPEHASH, v.agentId(), seq, evidence, int256(0), uint64(60)));
+        IAgentVault.Receipt memory receipt = IAgentVault.Receipt({
+            agentId: v.agentId(),
+            seq: seq,
+            evidenceHash: evidence,
+            actionHash: keccak256(abi.encode("action", address(v), seq)),
+            policyHash: keccak256(abi.encode("policy", address(v), seq)),
+            executionHash: keccak256(abi.encode("execution", address(v), seq)),
+            postStateHash: keccak256(abi.encode("post-state", address(v), seq)),
+            outcomeHash: keccak256(abi.encode("outcome", address(v), seq)),
+            evidenceUriHash: TEST_URI_HASH,
+            decisionTimestamp: uint64(block.timestamp),
+            validUntil: uint64(block.timestamp + 60),
+            period: uint64(60),
+            decisionBlock: block.number,
+            claimedDelta: int256(0)
+        });
+        bytes32 contextHash = keccak256(
+            abi.encode(
+                receipt.actionHash,
+                receipt.policyHash,
+                receipt.executionHash,
+                receipt.postStateHash,
+                receipt.outcomeHash,
+                receipt.evidenceUriHash
+            )
+        );
+        bytes32 structHash = keccak256(
+            abi.encode(
+                RECEIPT_TYPEHASH,
+                receipt.agentId,
+                receipt.seq,
+                receipt.evidenceHash,
+                contextHash,
+                receipt.decisionTimestamp,
+                receipt.validUntil,
+                receipt.period,
+                receipt.decisionBlock,
+                receipt.claimedDelta
+            )
+        );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", v.domainSeparator(), structHash));
         (uint8 vv, bytes32 r, bytes32 s) = vm.sign(opPk, digest);
-        v.publishReceipt(seq, evidence, int256(0), uint64(60), abi.encodePacked(r, s, vv));
+        v.publishReceipt(receipt, abi.encodePacked(r, s, vv));
     }
 }

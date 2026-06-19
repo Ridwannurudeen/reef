@@ -5,6 +5,8 @@ import {
   ReefClient,
   encodeApproveAdapter,
   encodeApproveStrategy,
+  decodeCanExecuteAction,
+  encodeCanExecuteAction,
   encodeDeployVault,
   encodeErc20Approve,
   encodePostBond,
@@ -18,6 +20,10 @@ const A = "0x00000000000000000000000000000000000000a1";
 const B = "0x00000000000000000000000000000000000000b2";
 const C = "0x00000000000000000000000000000000000000c3";
 const FROM = "0x0000000000000000000000000000000000000f00";
+
+function word(n) {
+  return BigInt(n).toString(16).padStart(64, "0");
+}
 
 test("encodes Reef write calls with verified selectors", () => {
   assert.equal(encodeRegisterAgent(), "0x1aa3a008");
@@ -37,6 +43,37 @@ test("encodes publishReceipt dynamic signature bytes", () => {
   assert.equal(data.slice(10 + 64 * 4, 10 + 64 * 5), "0".repeat(61) + "0a0");
   assert.equal(data.slice(10 + 64 * 5, 10 + 64 * 6), "0".repeat(62) + "41");
   assert.equal(data.length, 2 + 8 + 64 * 9);
+});
+
+test("encodes and decodes canExecuteAction", () => {
+  const actionData = encodeErc20Approve(B, 123n);
+  const data = encodeCanExecuteAction(7, {
+    target: A,
+    value: 0,
+    data: actionData,
+    asset: A,
+    portfolioValue: 1000n,
+  });
+  assert.equal(data.slice(0, 10), "0x7e056c47");
+  assert.equal(data.slice(10, 74), word(7));
+  assert.equal(data.slice(74, 138), word(64)); // dynamic Action tuple offset
+  assert.equal(data.slice(138, 202), A.slice(2).padStart(64, "0"));
+  assert.equal(data.slice(202 + 64, 202 + 128), word(160)); // bytes field offset inside tuple
+
+  const okReturn =
+    "0x" +
+    word(1) +
+    word(128) +
+    word(123) +
+    word(456) +
+    word(2) +
+    Buffer.from("ok").toString("hex").padEnd(64, "0");
+  assert.deepEqual(decodeCanExecuteAction(okReturn), {
+    allowed: true,
+    reason: "ok",
+    amount: 123n,
+    sizeBps: 456,
+  });
 });
 
 test("builds AgentVault deployment data", () => {

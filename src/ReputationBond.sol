@@ -163,6 +163,7 @@ contract ReputationBond is ReentrancyGuard {
         require(msg.sender == arbiter, "not arbiter");
         Dispute storage d = disputes[id];
         require(d.status == Status.Open, "not open");
+        require(block.timestamp <= d.deadline, "dispute expired");
         activeDisputes[d.agentId] -= 1;
         if (uphold) {
             uint256 slash = slashAmount > bondOf[d.agentId] ? bondOf[d.agentId] : slashAmount;

@@ -26,7 +26,7 @@ from agents.shared.client import (
     vault_contract,
 )
 from agents.shared.config import load_agent_runtime, load_chain
-from agents.shared.receipt import build_evidence, sign_receipt
+from agents.shared.receipt import build_evidence, evidence_uri_for_hash, sign_receipt
 
 log = logging.getLogger("allora_agent")
 
@@ -138,6 +138,7 @@ def run_once(w3, account, vault, identity, runtime, period_s: int) -> None:
     decision = _get_decision(prediction, seq, runtime)
 
     decision_record = {
+        "schema": "reef.receipt.v2",
         "agent": "allora",
         "seq": seq,
         "allora_topic_id": runtime.allora_topic_id,
@@ -150,10 +151,11 @@ def run_once(w3, account, vault, identity, runtime, period_s: int) -> None:
         "ts": int(time.time()),
     }
     evidence_hash, _ = build_evidence(decision_record)
+    evidence_uri = evidence_uri_for_hash(evidence_hash)
     # nav_delta_bps is a basis-points delta in [-500, 500]; the on-chain navDelta
     # is an int256, so we publish the bps integer directly (no scaling needed for
     # the toy paper-mode loop; production would scale to 18 decimals).
-    receipt_args = sign_receipt(
+    receipt_struct, signature = sign_receipt(
         account.key,
         vault=vault.address,
         chain_id=w3.eth.chain_id,
@@ -162,6 +164,15 @@ def run_once(w3, account, vault, identity, runtime, period_s: int) -> None:
         evidence_hash=evidence_hash,
         claimed_delta=int(decision.nav_delta_bps),
         period=int(period_s),
+        decision_timestamp=decision_record["ts"],
+        valid_until=decision_record["ts"] + int(period_s),
+        decision_block=w3.eth.block_number,
+        action_hash={"action": decision.action, "navDeltaBps": decision.nav_delta_bps},
+        policy_hash={},
+        execution_hash={},
+        post_state_hash={},
+        outcome_hash={},
+        evidence_uri=evidence_uri,
     )
 
     log.info(
@@ -171,7 +182,9 @@ def run_once(w3, account, vault, identity, runtime, period_s: int) -> None:
         decision.nav_delta_bps,
         decision.source,
     )
-    receipt = send_tx(w3, account, vault.functions.publishReceipt(*receipt_args))
+    receipt = send_tx(
+        w3, account, vault.functions.publishReceipt(receipt_struct, signature)
+    )
     cum, count = identity.functions.getSummary(vault.functions.agentId().call()).call()
     log.info(
         "tx %s mined in block %d status=%s | reputation cumulative=%s count=%d",

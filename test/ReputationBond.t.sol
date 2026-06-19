@@ -114,7 +114,7 @@ contract ReputationBondTest is Test {
         uint256 id = _open();
 
         // Even once the cooldown has elapsed, an open dispute blocks the withdrawal outright.
-        vm.warp(block.timestamp + WINDOW + 1);
+        vm.warp(block.timestamp + WINDOW);
         vm.prank(operator);
         vm.expectRevert(bytes("active dispute"));
         bond.withdrawBond(agentId, SLASH);
@@ -212,6 +212,19 @@ contract ReputationBondTest is Test {
         vm.prank(stranger);
         vm.expectRevert(bytes("not arbiter"));
         bond.resolveDispute(id, true);
+    }
+
+    function test_resolveDispute_revertsAfterDeadline() public {
+        _post(100e18);
+        uint256 id = _open();
+        vm.warp(block.timestamp + WINDOW + 1);
+        vm.prank(arbiter);
+        vm.expectRevert(bytes("dispute expired"));
+        bond.resolveDispute(id, true);
+
+        vm.prank(challenger);
+        bond.claimExpiredStake(id);
+        assertEq(bond.activeDisputes(agentId), 0);
     }
 
     function test_arbiterRotation_twoStep() public {

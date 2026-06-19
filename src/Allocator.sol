@@ -21,7 +21,7 @@ interface IBond {
 /// per-agent concentration cap (automated risk management). The Trust Score is computed
 /// in-source from data already emitted on-chain (ERC-8004 reputation, receipt freshness,
 /// drawdown vs high-water, posted bond) — the same four components as the off-chain
-/// rating, so the allocation is verifiable rather than asserted.
+/// T-tier, so the allocation is verifiable rather than asserted.
 contract Allocator is ReentrancyGuard, Pausable {
     using SafeTransferLib for IERC20;
 
@@ -34,14 +34,15 @@ contract Allocator is ReentrancyGuard, Pausable {
     uint256 internal constant W_FRESH = 2000;
     uint256 internal constant W_DD = 2000;
     uint256 internal constant W_BOND = 2000;
+    uint256 internal constant DEFAULT_REPUTATION_TARGET = 10e18;
 
     IERC20 public immutable asset;
     AgentIdentity public immutable identity;
     address public bond; // ReputationBond; if unset, the bond component scores 0
     address public governor;
-    /// @notice Reputation basis: 0 (default) = cohort-relative; non-zero = absolute full-marks
-    /// target (`min(rep / reputationTarget, 1)`), so a weak field can't all read as top trust.
-    uint256 public reputationTarget;
+    /// @notice Reputation basis: 0 = cohort-relative; the default non-zero value is an absolute
+    /// full-marks target (`min(rep / reputationTarget, 1)`), so a weak field can't all read as top trust.
+    uint256 public reputationTarget = DEFAULT_REPUTATION_TARGET;
 
     struct Mandate {
         string name;
@@ -68,9 +69,13 @@ contract Allocator is ReentrancyGuard, Pausable {
     AgentVault[] public vaults;
     mapping(address => bool) public isRegistered;
     mapping(address => uint256) public vaultShares; // AgentVault shares held by this allocator
+    /// @dev Removed-vault shares held outside active accounting. They can be recovered if the
+    /// vault becomes callable again, but do not brick totalAssets()/withdrawals while quarantined.
+    mapping(address => uint256) public quarantinedVaultShares;
 
     event VaultAdded(address indexed vault);
     event VaultRemoved(address indexed vault);
+    event VaultRecovered(address indexed vault, uint256 shares, uint256 assets);
     event MandateAdded(uint256 indexed id, string name, uint256 minTrustScore, uint256 maxWeightBps);
     event ActiveMandateSet(uint256 indexed id);
     event BondSet(address bond);
@@ -110,11 +115,15 @@ contract Allocator is ReentrancyGuard, Pausable {
 
     /// @notice Evict a vault from the allocator without calling it, so a single reverting
     /// vault (whose `nav()` bricks `totalAssets()` and locks every withdrawal) can be removed
-    /// and the allocator restored. The allocator forgets any shares it held in the vault.
+    /// and the allocator restored. Held shares are quarantined for later recovery.
     function removeVault(address vault) external onlyGovernor {
         require(isRegistered[vault], "not registered");
         isRegistered[vault] = false;
-        vaultShares[vault] = 0;
+        uint256 held = vaultShares[vault];
+        if (held > 0) {
+            quarantinedVaultShares[vault] += held;
+            vaultShares[vault] = 0;
+        }
         uint256 n = vaults.length;
         for (uint256 i = 0; i < n; i++) {
             if (address(vaults[i]) == vault) {
@@ -124,6 +133,16 @@ contract Allocator is ReentrancyGuard, Pausable {
             }
         }
         emit VaultRemoved(vault);
+    }
+
+    /// @notice Recover shares from a removed vault if it becomes callable again. Recovered assets
+    /// return to idle allocator liquidity; the vault stays removed unless governance re-adds it.
+    function recoverRemovedVault(address vault, uint256 shares) external onlyGovernor nonReentrant {
+        uint256 q = quarantinedVaultShares[vault];
+        require(shares > 0 && shares <= q, "shares");
+        quarantinedVaultShares[vault] = q - shares;
+        uint256 assets = AgentVault(vault).withdraw(shares);
+        emit VaultRecovered(vault, shares, assets);
     }
 
     function addMandate(string calldata name_, uint256 minTrustScore_, uint256 maxWeightBps_)
@@ -249,12 +268,12 @@ contract Allocator is ReentrancyGuard, Pausable {
 
     // --- Trust score (on-chain, verifiable) ---
 
-    /// @notice The agent's on-chain Trust Score in WAD (1e18 = 100/100), cohort-relative on the
-    /// reputation component. Combines reputation (40%), receipt freshness (20%), drawdown vs
+    /// @notice The agent's on-chain Trust Score in WAD (1e18 = 100/100), absolute by default and
+    /// cohort-relative only when reputationTarget is zero. Combines reputation (40%), receipt freshness (20%), drawdown vs
     /// high-water (20%) and posted bond (20%).
     function trustScoreOf(address vault) external view returns (uint256) {
         require(isRegistered[vault], "unknown vault");
-        return _trustScore(AgentVault(vault), _maxRep());
+        return _trustScore(AgentVault(vault), _repBasis());
     }
 
     /// @notice Full allocation preview for the active mandate: per-vault trust score, whether it
@@ -270,7 +289,7 @@ contract Allocator is ReentrancyGuard, Pausable {
         )
     {
         uint256 n = vaults.length;
-        uint256 maxRep = _maxRep();
+        uint256 maxRep = _repBasis();
         Mandate storage m = mandates[activeMandate];
         vaultAddrs = new address[](n);
         scores = new uint256[](n);
@@ -306,13 +325,17 @@ contract Allocator is ReentrancyGuard, Pausable {
         if (m == 0) m = 1; // avoid div-by-zero; matches the off-chain `max_rep or 1`
     }
 
+    function _repBasis() internal view returns (uint256) {
+        return reputationTarget == 0 ? _maxRep() : reputationTarget;
+    }
+
     function _trustScore(AgentVault v, uint256 maxRep) internal view returns (uint256) {
         uint256 aid = v.agentId();
 
         (int256 cum,) = identity.getSummary(aid);
         uint256 rep = cum > 0 ? uint256(cum) : 0;
         uint256 repC = reputationTarget == 0
-            ? (rep * WAD) / maxRep  // cohort-relative (default)
+            ? (rep * WAD) / maxRep // cohort-relative when explicitly selected
             : (rep >= reputationTarget ? WAD : (rep * WAD) / reputationTarget); // absolute
 
         uint256 last = v.lastReceiptAt();
@@ -367,7 +390,7 @@ contract Allocator is ReentrancyGuard, Pausable {
     /// equal weight if every qualifier scored exactly 0), 0 for non-qualifiers.
     function _qualifyWeights() internal view returns (uint256[] memory w, uint256 totalW, uint256 qualifying) {
         uint256 n = vaults.length;
-        uint256 maxRep = _maxRep();
+        uint256 maxRep = _repBasis();
         uint256 minTrust = mandates[activeMandate].minTrustScore;
         w = new uint256[](n);
         uint256[] memory score = new uint256[](n);

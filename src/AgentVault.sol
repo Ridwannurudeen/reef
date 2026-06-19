@@ -40,7 +40,15 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
 
     uint256 public nextReceiptSeq;
     bytes32 public lastReceiptEvidenceHash;
+    bytes32 public lastReceiptActionHash;
+    bytes32 public lastReceiptPolicyHash;
+    bytes32 public lastReceiptExecutionHash;
+    bytes32 public lastReceiptPostStateHash;
+    bytes32 public lastReceiptOutcomeHash;
+    bytes32 public lastReceiptEvidenceUriHash;
     uint64 public lastReceiptAt;
+    uint64 public lastReceiptValidUntil;
+    uint64 public lastReceiptSubmittedAt;
     /// @dev All-time-high per-share NAV. Reputation credits only growth ABOVE this
     /// high-water mark, so a drawdown-then-recovery is never double-counted — the score
     /// is risk-adjusted (rewards sustained new highs) and capital-normalized (per-share).
@@ -53,11 +61,19 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     /// still uses raw balances — the virtual-offset (#2) already neutralizes donation there.
     uint256 public managedIdle;
 
-    /// @dev Cost basis of capital currently in the strategy (what was deployed, NOT its live mark).
-    /// `reputableNav()` values the strategy portion at this cost, so an inflated/flash-loaned spot
-    /// `totalUnderlying()` mark cannot raise reputation — only a real recall that returns MORE than
-    /// cost (realized PnL, which lands in `managedIdle`) does (SECURITY #13).
+    /// @dev Cost basis of capital currently in the strategy. Recalls remove basis
+    /// proportionally to the position that was actually exited, so partial loss recalls
+    /// realize loss immediately instead of hiding it until the last wei is closed.
     uint256 public deployedCostBasis;
+
+    /// @dev Donation-proof reputation basis for current shares. Deposits mint this basis at
+    /// the current `reputableNav()` and withdrawals burn it pro-rata, so capital flows do not
+    /// move reputation per share. Strategy recalls add/subtract realized PnL only.
+    uint256 public reputationAssets;
+
+    /// @notice Cumulative realized strategy PnL, in asset units. This is observability for the
+    /// realized-PnL ledger; reputation itself is derived from `reputationAssets` per share.
+    int256 public realizedPnl;
 
     // --- EIP-712 receipt signing ---
     // Receipts are typed-data signed by the agent's operator and may be submitted by
@@ -67,7 +83,10 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     bytes32 private constant _DOMAIN_TYPEHASH =
         keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
     bytes32 private constant _RECEIPT_TYPEHASH =
-        keccak256("Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,int256 claimedDelta,uint64 period)");
+        keccak256(
+            "Receipt(uint256 agentId,uint256 seq,bytes32 evidenceHash,bytes32 contextHash,uint64 decisionTimestamp,uint64 validUntil,uint64 period,uint256 decisionBlock,int256 claimedDelta)"
+        );
+    uint64 public constant MAX_RECEIPT_VALIDITY = 1 days;
     uint256 private immutable _cachedChainId;
     bytes32 private immutable _cachedDomainSeparator;
 
@@ -102,8 +121,10 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         // next depositor. First real deposit still mints 1:1 (assets·1/1).
         shares = (assets * (totalShares + 1)) / (totalAssets() + 1);
         require(shares > 0, "zero shares");
+        uint256 repNavBefore = reputableNav();
         asset.safeTransferFrom(msg.sender, address(this), assets);
         managedIdle += assets; // accounted idle in (donations are excluded — they never call deposit)
+        reputationAssets += (shares * repNavBefore) / 1e18;
         balanceOf[msg.sender] += shares;
         totalShares += shares;
         emit Deposited(msg.sender, assets, shares);
@@ -112,6 +133,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     function withdraw(uint256 shares) external override nonReentrant returns (uint256 assets) {
         require(shares > 0, "zero shares");
         require(balanceOf[msg.sender] >= shares, "insufficient shares");
+        uint256 sharesBefore = totalShares;
         assets = (shares * (totalAssets() + 1)) / (totalShares + 1);
         require(assets > 0, "zero assets");
 
@@ -128,12 +150,14 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
             // overdraw the vault and revert the final withdrawer / overpay earlier ones. Shares
             // were already burned at the pre-recall ratio, so the withdrawer bears their own
             // realization slippage and remaining holders are left whole.
-            uint256 recalled = IStrategyAdapter(currentStrategy).recall(assets - idle);
+            uint256 recalled = _recallAndAccount(currentStrategy, assets - idle);
             managedIdle += recalled; // realized assets pulled back from the strategy
-            _reduceCostBasis(recalled);
-            if (IStrategyAdapter(currentStrategy).totalUnderlying() == 0) deployedCostBasis = 0;
             assets = idle + recalled;
         }
+
+        uint256 repBurn = totalShares == 0 ? reputationAssets : (reputationAssets * shares) / sharesBefore;
+        reputationAssets = repBurn > reputationAssets ? 0 : reputationAssets - repBurn;
+        if (totalShares == 0) highWaterNav = 1e18;
 
         // Accounted idle out (floored: if donations let `assets` exceed managed idle, treat the
         // donation as spent first — reputation can only be under-credited, never inflated).
@@ -163,6 +187,7 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         require(approvedStrategies[adapter], "not approved");
         require(currentStrategy == address(0) || currentStrategy == adapter, "recall current first");
         require(amount <= asset.balanceOf(address(this)), "amount > idle");
+        require(amount <= managedIdle, "amount > managed idle");
         currentStrategy = adapter;
         asset.safeTransfer(adapter, amount);
         managedIdle -= amount; // idle moved into the strategy
@@ -173,9 +198,8 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
 
     function recallFromStrategy(address adapter, uint256 amount) external override onlyOperator nonReentrant {
         require(adapter == currentStrategy, "not current");
-        uint256 recalled = IStrategyAdapter(adapter).recall(amount);
+        uint256 recalled = _recallAndAccount(adapter, amount);
         managedIdle += recalled; // realized assets pulled back into accounted idle
-        _reduceCostBasis(recalled);
         emit StrategyRecalled(adapter, amount);
         // When the strategy is fully drained, clear the slot + write off any residual cost.
         if (IStrategyAdapter(adapter).totalUnderlying() == 0) {
@@ -192,21 +216,30 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     /// per-share NAV change since the last receipt, computed on-chain — the operator's
     /// `claimedDelta` is signed (an attestation matched by the evidence hash) but ignored
     /// for reputation, closing the operator-overstatement vector.
-    function publishReceipt(
-        uint256 seq,
-        bytes32 evidenceHash,
-        int256 claimedDelta,
-        uint64 period,
-        bytes calldata signature
-    ) external override {
-        require(seq == nextReceiptSeq, "bad seq");
-        require(evidenceHash != bytes32(0), "zero evidence");
-        require(period > 0, "zero period");
-        _verifyReceiptSig(seq, evidenceHash, claimedDelta, period, signature);
+    function publishReceipt(Receipt calldata receipt, bytes calldata signature) external override {
+        require(receipt.agentId == agentId, "agent mismatch");
+        require(receipt.seq == nextReceiptSeq, "bad seq");
+        require(receipt.evidenceHash != bytes32(0), "zero evidence");
+        require(receipt.evidenceUriHash != bytes32(0), "zero evidence uri");
+        require(receipt.period > 0, "zero period");
+        require(receipt.decisionTimestamp <= block.timestamp, "future decision");
+        require(receipt.validUntil >= receipt.decisionTimestamp, "bad validity");
+        require(receipt.validUntil - receipt.decisionTimestamp <= MAX_RECEIPT_VALIDITY, "validity too long");
+        require(block.timestamp <= receipt.validUntil, "receipt expired");
+        require(receipt.decisionBlock <= block.number, "future block");
+        _verifyReceiptSig(receipt, signature);
 
-        nextReceiptSeq = seq + 1;
-        lastReceiptEvidenceHash = evidenceHash;
-        lastReceiptAt = uint64(block.timestamp);
+        nextReceiptSeq = receipt.seq + 1;
+        lastReceiptEvidenceHash = receipt.evidenceHash;
+        lastReceiptActionHash = receipt.actionHash;
+        lastReceiptPolicyHash = receipt.policyHash;
+        lastReceiptExecutionHash = receipt.executionHash;
+        lastReceiptPostStateHash = receipt.postStateHash;
+        lastReceiptOutcomeHash = receipt.outcomeHash;
+        lastReceiptEvidenceUriHash = receipt.evidenceUriHash;
+        lastReceiptAt = receipt.decisionTimestamp;
+        lastReceiptValidUntil = receipt.validUntil;
+        lastReceiptSubmittedAt = uint64(block.timestamp);
 
         // Risk-adjusted + donation-proof: credit only per-share growth of the DONATION-PROOF
         // `reputableNav()` above the all-time high-water mark. Recovering from a drawdown earns
@@ -220,21 +253,46 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
         }
         identity.giveFeedback(agentId, _clipToInt128(credit), 18);
 
-        emit ReceiptPublished(seq, evidenceHash, credit);
+        emit ReceiptPublished(receipt.seq, receipt.evidenceHash, credit);
+        emit ReceiptEnvelopePublished(receipt.seq, receipt.evidenceHash, receipt.decisionTimestamp, receipt.validUntil);
     }
 
     /// @dev Recover the receipt signer and require it is the agent's operator.
-    function _verifyReceiptSig(
-        uint256 seq,
-        bytes32 evidenceHash,
-        int256 claimedDelta,
-        uint64 period,
-        bytes calldata signature
-    ) private view {
-        bytes32 structHash = keccak256(abi.encode(_RECEIPT_TYPEHASH, agentId, seq, evidenceHash, claimedDelta, period));
+    function _verifyReceiptSig(Receipt calldata receipt, bytes calldata signature) private view {
+        bytes32 structHash = _hashReceipt(receipt);
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator(), structHash));
         address signer = _recover(digest, signature);
         require(signer != address(0) && signer == identity.getAgentWallet(agentId), "bad signature");
+    }
+
+    function _hashReceipt(Receipt calldata receipt) private pure returns (bytes32) {
+        return keccak256(
+            abi.encode(
+                _RECEIPT_TYPEHASH,
+                receipt.agentId,
+                receipt.seq,
+                receipt.evidenceHash,
+                _contextHash(receipt),
+                receipt.decisionTimestamp,
+                receipt.validUntil,
+                receipt.period,
+                receipt.decisionBlock,
+                receipt.claimedDelta
+            )
+        );
+    }
+
+    function _contextHash(Receipt calldata receipt) private pure returns (bytes32) {
+        return keccak256(
+            abi.encode(
+                receipt.actionHash,
+                receipt.policyHash,
+                receipt.executionHash,
+                receipt.postStateHash,
+                receipt.outcomeHash,
+                receipt.evidenceUriHash
+            )
+        );
     }
 
     /// @notice EIP-712 domain separator for this vault (recomputed if the chain forked).
@@ -279,22 +337,45 @@ contract AgentVault is IAgentVault, ReentrancyGuard, Pausable {
     }
 
     /// @notice Donation-proof per-share value used for reputation + trust scoring. Counts only the
-    /// internally-accounted idle (`managedIdle`, which excludes bare token donations) plus the
-    /// strategy mark — so a raw transfer into the vault cannot ratchet `highWaterNav` / mint
-    /// reputation (SECURITY #15). The drawdown component of the Trust Score reads this too.
+    /// realized-PnL reputation ledger. A raw transfer, deposit, or withdrawal cannot ratchet
+    /// `highWaterNav`; only a strategy recall that realizes gain/loss moves this value.
     function reputableNav() public view returns (uint256) {
         if (totalShares == 0) return 1e18;
-        // Strategy capital is valued at COST (deployedCostBasis), never its live mark — so a
-        // flash-loaned/inflated spot `totalUnderlying()` cannot raise reputation. Only a recall that
-        // realizes MORE than cost (the surplus lands in managedIdle) lifts reputableNav (#13).
-        return ((managedIdle + deployedCostBasis) * 1e18) / totalShares;
+        return (reputationAssets * 1e18) / totalShares;
     }
 
-    /// @dev Reduce the strategy cost basis on a recall by the realized amount (capped at the basis;
-    /// surplus over cost stays in managedIdle as realized yield).
-    function _reduceCostBasis(uint256 recalled) private {
-        uint256 reduce = recalled < deployedCostBasis ? recalled : deployedCostBasis;
-        deployedCostBasis -= reduce;
+    /// @dev Recall from the active strategy and realize PnL against proportional cost basis.
+    function _recallAndAccount(address adapter, uint256 amount) private returns (uint256 recalled) {
+        uint256 preUnderlying = IStrategyAdapter(adapter).totalUnderlying();
+        uint256 preCost = deployedCostBasis;
+        recalled = IStrategyAdapter(adapter).recall(amount);
+        uint256 postUnderlying = IStrategyAdapter(adapter).totalUnderlying();
+
+        uint256 exitedUnderlying = preUnderlying > postUnderlying ? preUnderlying - postUnderlying : 0;
+        uint256 costRemoved;
+        if (postUnderlying == 0) {
+            costRemoved = preCost;
+        } else if (preUnderlying > 0) {
+            costRemoved = (preCost * exitedUnderlying) / preUnderlying;
+        } else {
+            costRemoved = recalled < preCost ? recalled : preCost;
+        }
+        if (costRemoved > preCost) costRemoved = preCost;
+        deployedCostBasis = preCost - costRemoved;
+
+        int256 pnl = _toInt256(recalled) - _toInt256(costRemoved);
+        realizedPnl += pnl;
+        if (pnl >= 0) {
+            reputationAssets += uint256(pnl);
+        } else {
+            uint256 loss = uint256(-pnl);
+            reputationAssets = loss > reputationAssets ? 0 : reputationAssets - loss;
+        }
+    }
+
+    function _toInt256(uint256 x) private pure returns (int256) {
+        require(x <= uint256(type(int256).max), "int overflow");
+        return int256(x);
     }
 
     function snapshot() external view override returns (VaultView memory) {

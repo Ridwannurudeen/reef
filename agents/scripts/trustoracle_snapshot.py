@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-"""TrustOracle snapshot — read the standalone on-chain Trust Score for each agent.
+"""TrustOracle snapshot - read the standalone on-chain Trust Score for each agent.
 
 Calls TrustOracle.allScores() (one RPC) and writes API_OUT_DIR/trust-oracle.json with each
-agent's on-chain Trust Score (0-100) + letter rating, alongside the off-chain scores.json value
+agent's on-chain Trust Score (0-100) + T-tier, alongside the off-chain scores.json value
 and the delta — proving the public oracle reproduces the dashboard number (verifiable parity).
 Read-only; powers the "Trust Oracle" proof card.
 
@@ -33,16 +33,16 @@ WAD = 10**18
 
 
 def _rating(wad: int) -> str:
-    # Match src/TrustOracle.sol cutoffs (WAD): AAA>=0.85, AA>=0.70, A>=0.55, BBB>=0.40.
+    # Match src/TrustOracle.sol cutoffs (WAD): T1>=0.85, T2>=0.70, T3>=0.55, T4>=0.40.
     if wad >= 85 * 10**16:
-        return "AAA"
+        return "T1"
     if wad >= 70 * 10**16:
-        return "AA"
+        return "T2"
     if wad >= 55 * 10**16:
-        return "A"
+        return "T3"
     if wad >= 40 * 10**16:
-        return "BBB"
-    return "BB"
+        return "T4"
+    return "T5"
 
 
 def main() -> int:

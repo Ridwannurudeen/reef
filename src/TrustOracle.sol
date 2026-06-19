@@ -29,9 +29,9 @@ interface IGuardView {
 /// @notice The single public read surface for "how much should capital trust this agent?" on
 /// Mantle. `scoreOf(agentId)` returns a 0..1e18 Trust Score computed in-source from data already
 /// on-chain — ERC-8004 reputation (40%), receipt freshness (20%), drawdown vs high-water (20%) and
-/// posted bond (20%) — the same four components as Reef's off-chain rating and its Allocator, so
+/// posted bond (20%) — the same four components as Reef's off-chain tier and its Allocator, so
 /// the number is verifiable rather than asserted. `report(...)` folds in ReefGuard's live policy
-/// verdict so an integrating protocol gets score, letter rating and "is this allowed right now"
+/// verdict so an integrating protocol gets score, T-tier and "is this allowed right now"
 /// from one call. Pure views (free to call): any Mantle protocol can read trust without running
 /// Reef's stack.
 contract TrustOracle {
@@ -45,23 +45,23 @@ contract TrustOracle {
     uint256 internal constant W_DD = 2000;
     uint256 internal constant W_BOND = 2000;
 
-    // Letter-rating cutoffs in WAD (match agents/scripts/trust_score.py: AAA>=85, AA>=70, A>=55, BBB>=40).
-    uint256 internal constant R_AAA = 85e16;
-    uint256 internal constant R_AA = 70e16;
-    uint256 internal constant R_A = 55e16;
-    uint256 internal constant R_BBB = 40e16;
+    uint256 internal constant DEFAULT_REPUTATION_TARGET = 10e18;
+    uint256 internal constant R_T1 = 85e16;
+    uint256 internal constant R_T2 = 70e16;
+    uint256 internal constant R_T3 = 55e16;
+    uint256 internal constant R_T4 = 40e16;
 
     IIdentityView public immutable identity;
     address public bond; // ReputationBond; if unset, the bond component scores 0
     address public guard; // ReefGuard; if unset, report() returns guardCleared=false / "guard not set"
     address public governor;
-    /// @notice Reputation-component basis. 0 (default) = cohort-relative (`rep / cohort-max`), so a
-    /// score is a ranking within the registered set. A non-zero value switches to an ABSOLUTE scale:
+    /// @notice Reputation-component basis. 0 = cohort-relative (`rep / cohort-max`), so a score is
+    /// a ranking within the registered set. The default non-zero value uses an ABSOLUTE scale:
     /// `min(rep / reputationTarget, 1)` — full marks require `reputationTarget` of cumulative
     /// NAV-derived reputation (WAD units), so "best of a weak field" no longer reads as top trust.
-    uint256 public reputationTarget;
+    uint256 public reputationTarget = DEFAULT_REPUTATION_TARGET;
 
-    // --- Agent registry (cohort): the reputation component is normalized against the cohort max. ---
+    // --- Agent registry (cohort): used for optional cohort-relative scoring and snapshots. ---
     address[] public vaults;
     mapping(uint256 => address) public vaultOf; // agentId => its AgentVault
     mapping(address => bool) public isRegistered;
@@ -153,13 +153,13 @@ contract TrustOracle {
     function scoreOf(uint256 agentId) public view returns (uint256) {
         address v = vaultOf[agentId];
         require(v != address(0), "unknown agent");
-        return _trustScore(v, _maxRep());
+        return _trustScore(v, _repBasis());
     }
 
     /// @notice Trust Score by vault address (same value as scoreOf(vault.agentId())).
     function scoreOfVault(address vault) external view returns (uint256) {
         require(isRegistered[vault], "unknown vault");
-        return _trustScore(vault, _maxRep());
+        return _trustScore(vault, _repBasis());
     }
 
     /// @notice The four trust components in WAD (reputation, freshness, drawdown, bond) before weighting.
@@ -170,16 +170,16 @@ contract TrustOracle {
     {
         address v = vaultOf[agentId];
         require(v != address(0), "unknown agent");
-        return _components(v, _maxRep());
+        return _components(v, _repBasis());
     }
 
-    /// @notice Letter rating (AAA/AA/A/BBB/BB) for the agent's current score.
+    /// @notice T-tier (T1/T2/T3/T4/T5) for the agent's current score.
     function ratingOf(uint256 agentId) public view returns (string memory) {
         return _rating(scoreOf(agentId));
     }
 
-    /// @notice One-call trust verdict for an integrating protocol: the Trust Score, its letter
-    /// rating, and whether ReefGuard would currently clear `agentId` to move `sizeBps` of `asset`.
+    /// @notice One-call trust verdict for an integrating protocol: the Trust Score, its T-tier,
+    /// and whether ReefGuard would currently clear `agentId` to move `sizeBps` of `asset`.
     function report(uint256 agentId, address asset, uint256 sizeBps)
         external
         view
@@ -198,7 +198,7 @@ contract TrustOracle {
         uint256 n = vaults.length;
         agentIds = new uint256[](n);
         wad = new uint256[](n);
-        uint256 maxRep = _maxRep();
+        uint256 maxRep = _repBasis();
         for (uint256 i = 0; i < n; i++) {
             address v = vaults[i];
             agentIds[i] = IVaultView(v).agentId();
@@ -207,6 +207,10 @@ contract TrustOracle {
     }
 
     // --- Internals (1:1 with Allocator._trustScore) ---
+
+    function _repBasis() internal view returns (uint256) {
+        return reputationTarget == 0 ? _maxRep() : reputationTarget;
+    }
 
     function _maxRep() internal view returns (uint256 m) {
         for (uint256 i = 0; i < vaults.length; i++) {
@@ -227,7 +231,7 @@ contract TrustOracle {
         (int256 cum,) = identity.getSummary(aid);
         uint256 rep = cum > 0 ? uint256(cum) : 0;
         repC = reputationTarget == 0
-            ? (rep * WAD) / maxRep  // cohort-relative (default)
+            ? (rep * WAD) / maxRep // cohort-relative when explicitly selected
             : (rep >= reputationTarget ? WAD : (rep * WAD) / reputationTarget); // absolute
 
         uint256 last = v.lastReceiptAt();
@@ -257,10 +261,10 @@ contract TrustOracle {
     }
 
     function _rating(uint256 score) internal pure returns (string memory) {
-        if (score >= R_AAA) return "AAA";
-        if (score >= R_AA) return "AA";
-        if (score >= R_A) return "A";
-        if (score >= R_BBB) return "BBB";
-        return "BB";
+        if (score >= R_T1) return "T1";
+        if (score >= R_T2) return "T2";
+        if (score >= R_T3) return "T3";
+        if (score >= R_T4) return "T4";
+        return "T5";
     }
 }

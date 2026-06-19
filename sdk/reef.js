@@ -19,6 +19,7 @@
 //   await reef.passport(1);                           // full agent passport JSON
 
 const CAN_EXECUTE_SELECTOR = "0x1907e986"; // canExecute(uint256,address,uint256)
+const CAN_EXECUTE_ACTION_SELECTOR = "0x7e056c47"; // canExecuteAction(uint256,(address,uint256,bytes,address,uint256))
 const SCORE_OF_SELECTOR = "0x752821e9"; // scoreOf(uint256)
 const REPORT_SELECTOR = "0x282470f5"; // report(uint256,address,uint256)
 const REGISTER_SELECTOR = "0x1aa3a008"; // register()
@@ -95,6 +96,22 @@ export function encodeCanExecute(agentId, asset, sizeBps) {
   );
 }
 
+/** ABI-encode calldata for canExecuteAction(uint256,Action). */
+export function encodeCanExecuteAction(agentId, action) {
+  const dataTail = bytesTail(action.data || "0x");
+  return (
+    CAN_EXECUTE_ACTION_SELECTOR +
+    uintWord(agentId) +
+    uintWord(64) +
+    addrWord(action.target) +
+    uintWord(action.value || 0) +
+    uintWord(160) +
+    addrWord(action.asset) +
+    uintWord(action.portfolioValue) +
+    dataTail
+  );
+}
+
 function hexToUtf8(hexNo0x) {
   const bytes = new Uint8Array(hexNo0x.length / 2);
   for (let i = 0; i < bytes.length; i++)
@@ -110,6 +127,16 @@ export function decodeCanExecute(hex) {
   const len = Number(BigInt("0x" + h.slice(off, off + 64)));
   const reason = hexToUtf8(h.slice(off + 64, off + 64 + len * 2));
   return { allowed, reason };
+}
+
+/** Decode canExecuteAction() return into { allowed, reason, amount, sizeBps }. */
+export function decodeCanExecuteAction(hex) {
+  const h = String(hex).replace(/^0x/, "");
+  const allowed = BigInt("0x" + h.slice(0, 64)) !== 0n;
+  const reason = readStringAt(h, 64);
+  const amount = BigInt("0x" + h.slice(128, 192));
+  const sizeBps = Number(BigInt("0x" + h.slice(192, 256)));
+  return { allowed, reason, amount, sizeBps };
 }
 
 /** Read a dynamic `string` whose head word sits at hex-char position `headPos`. */
@@ -271,6 +298,16 @@ export class ReefClient {
       encodeCanExecute(agentId, asset, sizeBps),
     );
     return decodeCanExecute(out);
+  }
+
+  /** On-chain action inspection via ReefGuard.canExecuteAction. */
+  async canExecuteAction(agentId, action) {
+    if (!this.guardAddress) throw new Error("guardAddress required");
+    const out = await this._ethCall(
+      this.guardAddress,
+      encodeCanExecuteAction(agentId, action),
+    );
+    return decodeCanExecuteAction(out);
   }
 
   /** On-chain Trust Score via TrustOracle.scoreOf. Returns a number 0-100. */

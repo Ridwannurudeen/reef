@@ -53,7 +53,7 @@ from agents.shared.client import (
 from agents.shared.config import DEPLOYMENTS_DIR, REPO_ROOT, load_chain
 from agents.shared.glm import GlmUnavailable, chat
 from agents.shared.nansen import fetch_smart_money_flow
-from agents.shared.receipt import build_evidence, sign_receipt
+from agents.shared.receipt import build_evidence, evidence_uri_for_hash, sign_receipt
 from agents.shared.signal import fetch_signal
 
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -261,7 +261,9 @@ def _decide_all(
     return decisions
 
 
-def _adapter_candidates(vault_info: dict[str, Any], seeded: dict[str, Any]) -> list[str]:
+def _adapter_candidates(
+    vault_info: dict[str, Any], seeded: dict[str, Any]
+) -> list[str]:
     candidates: list[str] = []
     for key in ("strategyAdapter", "adapter"):
         if vault_info.get(key):
@@ -329,9 +331,26 @@ def _adapter_for_vault(
     return None
 
 
-def _publish_receipt(w3, account, vc, agent_id: int, evidence: bytes, period: int):
+def _publish_receipt(
+    w3,
+    account,
+    vc,
+    agent_id: int,
+    evidence: bytes,
+    period: int,
+    *,
+    decision_timestamp: int,
+    valid_until: int,
+    decision_block: int,
+    evidence_uri: str,
+    action_hash,
+    policy_hash,
+    execution_hash,
+    post_state_hash,
+    outcome_hash,
+):
     seq = rpc_read(lambda: vc.functions.nextReceiptSeq().call())
-    args = sign_receipt(
+    receipt_struct, signature = sign_receipt(
         account.key,
         vault=vc.address,
         chain_id=w3.eth.chain_id,
@@ -340,9 +359,20 @@ def _publish_receipt(w3, account, vc, agent_id: int, evidence: bytes, period: in
         evidence_hash=evidence,
         claimed_delta=0,
         period=period,
+        decision_timestamp=decision_timestamp,
+        valid_until=valid_until,
+        decision_block=decision_block,
+        action_hash=action_hash,
+        policy_hash=policy_hash,
+        execution_hash=execution_hash,
+        post_state_hash=post_state_hash,
+        outcome_hash=outcome_hash,
+        evidence_uri=evidence_uri,
     )
-    receipt = send_tx(w3, account, vc.functions.publishReceipt(*args))
-    return seq, w3.to_hex(receipt["transactionHash"])
+    receipt = send_tx(
+        w3, account, vc.functions.publishReceipt(receipt_struct, signature)
+    )
+    return seq, w3.to_hex(receipt["transactionHash"]), receipt_struct
 
 
 def _wait_for_evidence(w3, vc, expected: str) -> tuple[str, bool]:
@@ -362,7 +392,7 @@ def _proof_record(record: dict[str, Any]) -> dict[str, Any]:
     return {
         "seq": record.get("seq"),
         "evidenceHash": record.get("evidenceHash"),
-        "rationaleHash": record.get("evidenceHash")
+        "rationaleHash": record.get("rationaleHash")
         if record.get("proofStatus") == "bound"
         else None,
         "reasoning": record.get("rationale")
@@ -371,9 +401,11 @@ def _proof_record(record: dict[str, Any]) -> dict[str, Any]:
         "source": record.get("source")
         if record.get("proofStatus") == "bound"
         else None,
-        "model": record.get("model")
-        if record.get("proofStatus") == "bound"
-        else None,
+        "model": record.get("model") if record.get("proofStatus") == "bound" else None,
+        "evidenceUri": record.get("evidenceUri"),
+        "evidenceEnvelope": record.get("evidenceEnvelope"),
+        "decisionTimestamp": record.get("decisionTimestamp"),
+        "validUntil": record.get("validUntil"),
         "txHash": record.get("receiptTx"),
         "proofStatus": "matched"
         if record.get("proofStatus") == "bound"
@@ -402,7 +434,9 @@ def _process_vault(
     nav_before = rpc_read(lambda: vc.functions.nav().call())
     hwm = rpc_read(lambda: vc.functions.highWaterNav().call())
     idle = rpc_read(
-        lambda: erc20.functions.balanceOf(w3.to_checksum_address(vault_info["vault"])).call()
+        lambda: erc20.functions.balanceOf(
+            w3.to_checksum_address(vault_info["vault"])
+        ).call()
     )
     current_strategy = rpc_read(lambda: vc.functions.currentStrategy().call())
     adapter = _adapter_for_vault(w3, vault_info, seeded, current_strategy, asset)
@@ -463,7 +497,9 @@ def _process_vault(
             receipt = send_tx(
                 w3,
                 account,
-                vc.functions.deployToStrategy(w3.to_checksum_address(adapter), deploy_amt),
+                vc.functions.deployToStrategy(
+                    w3.to_checksum_address(adapter), deploy_amt
+                ),
             )
             record["deployTx"] = w3.to_hex(receipt["transactionHash"])
             record["moveStatus"] = "deployed"
@@ -497,7 +533,9 @@ def _process_vault(
 
     if dry_run:
         record["proofStatus"] = "dry-run"
-        print("  DRY_RUN plan: gate -> move decision -> publishReceipt(keccak(rationale))")
+        print(
+            "  DRY_RUN plan: gate -> move decision -> publishReceipt(v2 evidence envelope)"
+        )
         return agent_id, record, None
 
     if account is None:
@@ -505,18 +543,108 @@ def _process_vault(
 
     reasoning = decision.reasoning.strip()
     if reasoning:
-        evidence = keccak(reasoning.encode("utf-8"))
+        rationale_hash = keccak(reasoning.encode("utf-8"))
+        action_context = {
+            "action": decision.action,
+            "navDeltaBps": decision.nav_delta_bps,
+            "adapter": adapter,
+            "sizeBps": size_bps,
+        }
+        execution_context = {
+            "moveStatus": record.get("moveStatus"),
+            "deployTx": record.get("deployTx"),
+            "recallTx": record.get("recallTx"),
+        }
+        post_state = {
+            "nav": str(rpc_read(lambda: vc.functions.nav().call())),
+            "reputableNav": str(rpc_read(lambda: vc.functions.reputableNav().call())),
+            "strategy": rpc_read(lambda: vc.functions.currentStrategy().call()),
+        }
+        evidence, envelope = build_evidence(
+            {
+                "schema": "reef.receipt.v2",
+                "agentIdentity": {
+                    "localAgentId": agent_id,
+                    "vault": vc.address,
+                    "chainId": w3.eth.chain_id,
+                },
+                "runtime": {
+                    "codeHash": os.getenv("REEF_AGENT_CODE_HASH"),
+                    "runtimeHash": os.getenv("REEF_AGENT_RUNTIME_HASH"),
+                    "modelConfigHash": os.getenv("REEF_MODEL_CONFIG_HASH"),
+                },
+                "decision": {
+                    "timestamp": record["ts"],
+                    "blockNumber": rpc_read(lambda: w3.eth.block_number),
+                    "rationale": reasoning,
+                    "rationaleHash": "0x" + rationale_hash.hex(),
+                    "source": decision.source,
+                    "model": record["model"],
+                },
+                "inputs": {
+                    "navBefore": record["navBefore"],
+                    "idle": record["idle"],
+                    "currentStrategy": record["currentStrategy"],
+                },
+                "action": action_context,
+                "policy": record["guard"],
+                "execution": execution_context,
+                "postState": post_state,
+                "outcome": {
+                    "receiptSeq": rpc_read(lambda: vc.functions.nextReceiptSeq().call())
+                },
+            }
+        )
         record["evidenceSource"] = "rationale"
     else:
+        rationale_hash = None
+        decision_ts = int(time.time())
         evidence, _ = build_evidence(
-            {"agent": agent_id, "seq": rpc_read(lambda: vc.functions.nextReceiptSeq().call()), "ts": int(time.time()), "src": "cadence"}
+            {
+                "agent": agent_id,
+                "seq": rpc_read(lambda: vc.functions.nextReceiptSeq().call()),
+                "ts": decision_ts,
+                "src": "cadence",
+            }
         )
+        envelope = {"schema": "reef.receipt.v2", "agent": agent_id, "src": "cadence"}
         record["evidenceSource"] = "cadence"
 
-    seq, receipt_tx = _publish_receipt(w3, account, vc, agent_id, evidence, period)
+    decision_ts = int(record.get("ts", int(time.time())))
+    evidence_uri = evidence_uri_for_hash(evidence)
+    action_hash = envelope.get("action") or envelope
+    policy_hash = envelope.get("policy") or {}
+    execution_hash = envelope.get("execution") or {}
+    post_state_hash = envelope.get("postState") or {}
+    outcome_hash = envelope.get("outcome") or {}
+    seq, receipt_tx, receipt_struct = _publish_receipt(
+        w3,
+        account,
+        vc,
+        agent_id,
+        evidence,
+        period,
+        decision_timestamp=decision_ts,
+        valid_until=decision_ts + period,
+        decision_block=int(
+            (envelope.get("decision") or {}).get("blockNumber")
+            or rpc_read(lambda: w3.eth.block_number)
+        ),
+        evidence_uri=evidence_uri,
+        action_hash=action_hash,
+        policy_hash=policy_hash,
+        execution_hash=execution_hash,
+        post_state_hash=post_state_hash,
+        outcome_hash=outcome_hash,
+    )
     record["receiptTx"] = receipt_tx
     record["seq"] = seq
     record["evidenceHash"] = _hex(w3, evidence)
+    record["rationaleHash"] = "0x" + rationale_hash.hex() if rationale_hash else None
+    record["evidenceEnvelope"] = envelope
+    record["evidenceUri"] = evidence_uri
+    record["decisionTimestamp"] = receipt_struct["decisionTimestamp"]
+    record["validUntil"] = receipt_struct["validUntil"]
 
     on_chain_ev, bound = _wait_for_evidence(w3, vc, record["evidenceHash"])
     nav_after = rpc_read(lambda: vc.functions.nav().call())
@@ -535,7 +663,9 @@ def _process_vault(
 
 
 def _write_outputs(
-    out_dir: Path, proofbound: dict[str, dict[str, Any]], proofs: dict[str, dict[str, Any]]
+    out_dir: Path,
+    proofbound: dict[str, dict[str, Any]],
+    proofs: dict[str, dict[str, Any]],
 ) -> None:
     now = int(time.time())
     _atomic_write(out_dir / "proofbound.json", {"agents": proofbound, "updatedAt": now})

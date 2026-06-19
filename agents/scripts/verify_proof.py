@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-"""Reef proof verifier — recompute the rationale↔receipt binding, anyone, anywhere.
+"""Reef proof verifier - recompute the v2 evidence-envelope binding.
 
-Reef commits each agent decision on-chain as evidenceHash = keccak256(verbatim
-rationale). This script independently recomputes that hash from the published
-rationale and checks it three ways:
+Reef commits each agent decision on-chain as evidenceHash = keccak256(canonical
+evidenceEnvelope). This script independently recomputes that envelope hash and
+also checks the embedded rationale hash:
 
-  1. crypto:   keccak256(reasoning) == proofs.json evidenceHash
-  2. on-chain: AgentVault.lastReceiptEvidenceHash() == proofs.json evidenceHash
-  3. published: rationaleHash field == evidenceHash
+  1. crypto:   keccak256(canonical evidenceEnvelope) == proofs.json evidenceHash
+  2. crypto:   keccak256(reasoning) == proofs.json rationaleHash
+  3. on-chain: AgentVault.lastReceiptEvidenceHash() == proofs.json evidenceHash
 
 It is READ-ONLY (no private key) and defaults to the live deployment, so a judge
-can verify Reef's claims in one command without trusting our server.
+can verify Reef's envelope integrity in one command without trusting our server.
 
 Usage:
     python -m agents.scripts.verify_proof              # live api + public RPC
@@ -30,6 +30,7 @@ from eth_utils import keccak
 
 from agents.shared.client import get_w3, rpc_read, vault_contract
 from agents.shared.config import DEPLOYMENTS_DIR
+from agents.shared.receipt import canonical_json
 
 DEFAULT_API_URL = "https://reef.gudman.xyz/api/proofs.json"
 
@@ -72,9 +73,15 @@ def main() -> int:
             continue
         reasoning = p.get("reasoning") or ""
         evidence = p.get("evidenceHash") or ""
-        recomputed = "0x" + keccak(reasoning.encode("utf-8")).hex()
-        crypto_ok = recomputed == evidence
-        published_ok = p.get("rationaleHash") == evidence
+        rationale_hash = "0x" + keccak(reasoning.encode("utf-8")).hex()
+        rationale_ok = p.get("rationaleHash") == rationale_hash
+        envelope = p.get("evidenceEnvelope")
+        if isinstance(envelope, dict):
+            recomputed = "0x" + keccak(canonical_json(envelope)).hex()
+            envelope_ok = recomputed == evidence
+        else:
+            recomputed = None
+            envelope_ok = False
 
         vault = vault_by_agent.get(agent_id)
         if vault is None:
@@ -86,15 +93,15 @@ def main() -> int:
         onchain_hex = "0x" + onchain.hex()
         onchain_ok = onchain_hex == evidence
 
-        if crypto_ok and published_ok and onchain_ok:
+        if envelope_ok and rationale_ok and onchain_ok:
             matched += 1
             print(
-                f"agent {agent_id}: OK - keccak(rationale)==evidence==on-chain {evidence}"
+                f"agent {agent_id}: OK - envelope==evidence==on-chain {evidence}; rationale={rationale_hash}"
             )
         else:
             failures += 1
             print(
-                f"agent {agent_id}: FAIL - crypto={crypto_ok} published={published_ok} "
+                f"agent {agent_id}: FAIL - envelope={envelope_ok} rationale={rationale_ok} "
                 f"on-chain={onchain_ok} (recomputed={recomputed} evidence={evidence} "
                 f"chain={onchain_hex})"
             )

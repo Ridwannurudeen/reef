@@ -16,11 +16,31 @@ interface IAgentVault {
         uint64 lastReceiptAt;
     }
 
+    struct Receipt {
+        uint256 agentId;
+        uint256 seq;
+        bytes32 evidenceHash;
+        bytes32 actionHash;
+        bytes32 policyHash;
+        bytes32 executionHash;
+        bytes32 postStateHash;
+        bytes32 outcomeHash;
+        bytes32 evidenceUriHash;
+        uint64 decisionTimestamp;
+        uint64 validUntil;
+        uint64 period;
+        uint256 decisionBlock;
+        int256 claimedDelta;
+    }
+
     event Deposited(address indexed depositor, uint256 assets, uint256 shares);
     event Withdrawn(address indexed depositor, uint256 assets, uint256 shares);
     event StrategyDeployed(address indexed adapter, uint256 amount);
     event StrategyRecalled(address indexed adapter, uint256 amount);
     event ReceiptPublished(uint256 indexed seq, bytes32 evidenceHash, int256 navDelta);
+    event ReceiptEnvelopePublished(
+        uint256 indexed seq, bytes32 evidenceHash, uint64 decisionTimestamp, uint64 validUntil
+    );
 
     function deposit(uint256 assets) external returns (uint256 shares);
     function withdraw(uint256 shares) external returns (uint256 assets);
@@ -31,13 +51,7 @@ interface IAgentVault {
     /// @notice Submit an operator-EIP-712-signed receipt covering the latest period.
     /// Callable by anyone (keeper/relayer); the signature must recover to the agent's
     /// operator. Forwards a NAV-derived reputation update to AgentIdentity.
-    function publishReceipt(
-        uint256 seq,
-        bytes32 evidenceHash,
-        int256 claimedDelta,
-        uint64 period,
-        bytes calldata signature
-    ) external;
+    function publishReceipt(Receipt calldata receipt, bytes calldata signature) external;
 
     function snapshot() external view returns (VaultView memory);
     function nav() external view returns (uint256);

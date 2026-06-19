@@ -87,16 +87,29 @@ python -m agents.nansen_agent.agent
 A `source=fallback` line means GLM was unreachable and the deterministic rule
 fired. The on-chain pipeline is unaffected — receipts still publish.
 
-## Verifying the receipt payload off-chain
+## Verifying the receipt envelope off-chain
 
 ```python
-from eth_abi import decode
-from agents.shared.receipt import build_payload, build_evidence
+from agents.shared.receipt import build_evidence, sign_receipt
 
-evidence, decision = build_evidence({"action": "hold", "seq": 0})
-payload = build_payload(seq=0, evidence_hash=evidence, nav_delta=12, period=30)
-print(decode(["uint256", "bytes32", "int256", "uint64"], payload))
-# -> (0, b'...32 bytes...', 12, 30)
+evidence, envelope = build_evidence({"schema": "reef.receipt.v2", "action": "hold", "seq": 0})
+receipt, signature = sign_receipt(
+    private_key,
+    vault=vault_address,
+    chain_id=5003,
+    agent_id=1,
+    seq=0,
+    evidence_hash=evidence,
+    claimed_delta=0,
+    period=600,
+    decision_block=123456,
+    action_hash={"action": "hold"},
+    policy_hash={},
+    execution_hash={},
+    post_state_hash={},
+    outcome_hash={},
+    evidence_uri="ipfs://bafy.../evidence.json",
+)
 ```
 
-This is the exact tuple `AgentVault.publishReceipt` decodes on-chain.
+This is the exact struct/signature pair `AgentVault.publishReceipt` verifies on-chain.

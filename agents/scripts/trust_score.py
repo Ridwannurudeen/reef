@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-"""Reef Trust Score — a Moody's-style credit rating for autonomous agents.
+"""Reef Trust Score - a T-tier risk signal for autonomous agents.
 
 Computes one 0-100 score per agent from data already emitted on-chain, so the
 ranking is verifiable, not asserted:
-  - reputation  (40%) : ERC-8004 cumulative NAV-derived reputation (vs cohort best)
+  - reputation  (40%) : ERC-8004 cumulative NAV-derived reputation (absolute by default)
   - freshness   (20%) : how recently the agent published a signed receipt
   - drawdown    (20%) : NAV vs its all-time high-water mark (less drawdown = better)
   - bond        (20%) : skin-in-the-game posted in ReputationBond
 
-Writes API_OUT_DIR/scores.json: per-agent {trustScore, rating, components, bonded, ...}.
+Writes API_OUT_DIR/scores.json: per-agent {trustScore, tier, components, bonded, ...}.
 Read-only (no txs) — safe to run on any cadence. Powers the Agent Passport + the
 trust-weighted Allocator.
 
@@ -61,19 +61,20 @@ _ORACLE_ABI = [
 
 FRESH_WINDOW_S = 86_400  # receipt older than 24h scores 0 on freshness
 BOND_TARGET = 50 * 10**18  # full marks at the cohort's standard 50e18 bond
+DEFAULT_REPUTATION_TARGET = 10 * 10**18
 WEIGHTS = {"reputation": 0.40, "freshness": 0.20, "drawdown": 0.20, "bond": 0.20}
 
 
 def _rating(score: float) -> str:
     if score >= 85:
-        return "AAA"
+        return "T1"
     if score >= 70:
-        return "AA"
+        return "T2"
     if score >= 55:
-        return "A"
+        return "T3"
     if score >= 40:
-        return "BBB"
-    return "BB"
+        return "T4"
+    return "T5"
 
 
 def main() -> int:
@@ -129,25 +130,28 @@ def main() -> int:
     # off-chain score reproduces scoreOf() exactly: max_rep mirrors _maxRep() over the
     # oracle's registered cohort, and reputationTarget selects the same repC branch.
     max_rep = max((r["rep"] for r in raw), default=0) or 1
-    rep_target = 0
+    rep_target = DEFAULT_REPUTATION_TARGET
     oracle_addr = (data.get("trustOracle") or {}).get("address")
     if oracle_addr:
         try:
             oracle = w3.eth.contract(
                 address=w3.to_checksum_address(oracle_addr), abi=_ORACLE_ABI
             )
-            ids, _wads = rpc_read(lambda: oracle.functions.allScores().call())
             rep_target = int(
                 rpc_read(lambda: oracle.functions.reputationTarget().call())
             )
-            cohort_max = 0
-            for cid in ids:
-                cum, _cnt = rpc_read(
-                    lambda cid=int(cid): identity.functions.getSummary(int(cid)).call()
-                )
-                cohort_max = max(cohort_max, max(0, int(cum)))
-            if cohort_max > 0:
-                max_rep = cohort_max
+            if rep_target == 0:
+                ids, _wads = rpc_read(lambda: oracle.functions.allScores().call())
+                cohort_max = 0
+                for cid in ids:
+                    cum, _cnt = rpc_read(
+                        lambda cid=int(cid): identity.functions.getSummary(
+                            int(cid)
+                        ).call()
+                    )
+                    cohort_max = max(cohort_max, max(0, int(cum)))
+                if cohort_max > 0:
+                    max_rep = cohort_max
         except Exception as e:  # noqa: BLE001 - oracle optional; keep off-chain fallback
             print(
                 f"warn: TrustOracle unreachable ({e}); using seeded cohort denominator",
@@ -174,6 +178,7 @@ def main() -> int:
                 "vault": r["vault"],
                 "trustScore": round(score, 1),
                 "rating": _rating(score),
+                "tier": _rating(score),
                 "bonded": r["bond"] > 0,
                 "components": {
                     "reputation": round(rep_c, 3),
@@ -191,7 +196,12 @@ def main() -> int:
     agents.sort(key=lambda a: a["trustScore"], reverse=True)
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / "scores.json"
-    doc = {"agents": agents, "weights": WEIGHTS, "updatedAt": now}
+    doc = {
+        "agents": agents,
+        "weights": WEIGHTS,
+        "reputationTargetE18": str(rep_target),
+        "updatedAt": now,
+    }
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(json.dumps(doc, indent=2), encoding="utf-8")
     os.replace(tmp, path)

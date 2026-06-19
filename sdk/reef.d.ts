@@ -3,6 +3,19 @@ export interface CanExecuteResult {
   reason: string;
 }
 
+export interface ActionInput {
+  target: string;
+  value?: bigint | number | string;
+  data?: string;
+  asset: string;
+  portfolioValue: bigint | number | string;
+}
+
+export interface CanExecuteActionResult extends CanExecuteResult {
+  amount: bigint;
+  sizeBps: number;
+}
+
 export interface TrustReport {
   score: number;
   rating: string;
@@ -67,6 +80,11 @@ export function encodeCanExecute(
   sizeBps: bigint | number | string,
 ): string;
 export function decodeCanExecute(hex: string): CanExecuteResult;
+export function encodeCanExecuteAction(
+  agentId: bigint | number | string,
+  action: ActionInput,
+): string;
+export function decodeCanExecuteAction(hex: string): CanExecuteActionResult;
 export function encodeScoreOf(agentId: bigint | number | string): string;
 export function encodeReport(
   agentId: bigint | number | string,
@@ -113,6 +131,10 @@ export class ReefClient {
     asset: string,
     sizeBps: bigint | number | string,
   ): Promise<CanExecuteResult>;
+  canExecuteAction(
+    agentId: bigint | number | string,
+    action: ActionInput,
+  ): Promise<CanExecuteActionResult>;
   trustScoreOf(agentId: bigint | number | string): Promise<number>;
   report(
     agentId: bigint | number | string,

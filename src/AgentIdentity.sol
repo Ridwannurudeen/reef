@@ -26,8 +26,25 @@ contract AgentIdentity is IIdentityRegistry, IReputationRegistry, IValidationReg
         string uri;
     }
 
+    struct CanonicalIdentity {
+        bytes32 namespace;
+        uint256 chainId;
+        address identityRegistry;
+        uint256 agentId;
+        bool bound;
+    }
+
     uint256 public nextAgentId = 1;
     mapping(uint256 => Agent) private agents;
+    mapping(uint256 => CanonicalIdentity) private canonicalIdentities;
+
+    event CanonicalIdentityBound(
+        uint256 indexed localAgentId,
+        bytes32 indexed namespace,
+        uint256 chainId,
+        address indexed identityRegistry,
+        uint256 canonicalAgentId
+    );
 
     // --- Reputation ---
 
@@ -99,6 +116,45 @@ contract AgentIdentity is IIdentityRegistry, IReputationRegistry, IValidationReg
 
     function getAgentURI(uint256 agentId) external view override returns (string memory) {
         return agents[agentId].uri;
+    }
+
+    /// @notice Bind the Reef-local id to the canonical ERC-8004 identity tuple once.
+    function bindCanonicalIdentity(
+        uint256 localAgentId,
+        bytes32 namespace,
+        uint256 chainId,
+        address identityRegistry,
+        uint256 canonicalAgentId
+    ) external onlyAgentWallet(localAgentId) {
+        require(namespace != bytes32(0), "zero namespace");
+        require(chainId != 0, "zero chain");
+        require(identityRegistry != address(0), "zero registry");
+        require(canonicalAgentId != 0, "zero canonical agent");
+        require(!canonicalIdentities[localAgentId].bound, "canonical already bound");
+        canonicalIdentities[localAgentId] = CanonicalIdentity({
+            namespace: namespace,
+            chainId: chainId,
+            identityRegistry: identityRegistry,
+            agentId: canonicalAgentId,
+            bound: true
+        });
+        emit CanonicalIdentityBound(localAgentId, namespace, chainId, identityRegistry, canonicalAgentId);
+    }
+
+    function canonicalIdentityOf(uint256 localAgentId)
+        external
+        view
+        exists(localAgentId)
+        returns (bytes32 namespace, uint256 chainId, address identityRegistry, uint256 canonicalAgentId, bool bound)
+    {
+        CanonicalIdentity storage c = canonicalIdentities[localAgentId];
+        return (c.namespace, c.chainId, c.identityRegistry, c.agentId, c.bound);
+    }
+
+    function canonicalIdentityHash(uint256 localAgentId) external view exists(localAgentId) returns (bytes32) {
+        CanonicalIdentity storage c = canonicalIdentities[localAgentId];
+        if (!c.bound) return bytes32(0);
+        return keccak256(abi.encode(c.namespace, c.chainId, c.identityRegistry, c.agentId));
     }
 
     /// @notice The agent's wallet designates which address may write its reputation

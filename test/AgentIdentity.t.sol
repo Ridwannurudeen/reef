@@ -55,6 +55,51 @@ contract AgentIdentityTest is Test {
         assertEq(identity.getAgentURI(id), "ipfs://bafy...");
     }
 
+    function test_bindCanonicalIdentity_onceByAgentWallet() public {
+        vm.prank(alice);
+        uint256 id = identity.register();
+        bytes32 namespace = keccak256("mantle-erc8004");
+        address registry = address(0x8004);
+
+        vm.prank(bob);
+        vm.expectRevert(bytes("not agent wallet"));
+        identity.bindCanonicalIdentity(id, namespace, 5003, registry, 197);
+
+        vm.prank(alice);
+        identity.bindCanonicalIdentity(id, namespace, 5003, registry, 197);
+
+        (bytes32 ns, uint256 chainId, address identityRegistry, uint256 canonicalAgentId, bool bound) =
+            identity.canonicalIdentityOf(id);
+        assertEq(ns, namespace);
+        assertEq(chainId, 5003);
+        assertEq(identityRegistry, registry);
+        assertEq(canonicalAgentId, 197);
+        assertTrue(bound);
+        assertEq(identity.canonicalIdentityHash(id), keccak256(abi.encode(namespace, uint256(5003), registry, uint256(197))));
+
+        vm.prank(alice);
+        vm.expectRevert(bytes("canonical already bound"));
+        identity.bindCanonicalIdentity(id, namespace, 5003, registry, 198);
+    }
+
+    function test_bindCanonicalIdentity_rejectsZeroFields() public {
+        vm.prank(alice);
+        uint256 id = identity.register();
+        bytes32 namespace = keccak256("mantle-erc8004");
+        address registry = address(0x8004);
+
+        vm.startPrank(alice);
+        vm.expectRevert(bytes("zero namespace"));
+        identity.bindCanonicalIdentity(id, bytes32(0), 5003, registry, 197);
+        vm.expectRevert(bytes("zero chain"));
+        identity.bindCanonicalIdentity(id, namespace, 0, registry, 197);
+        vm.expectRevert(bytes("zero registry"));
+        identity.bindCanonicalIdentity(id, namespace, 5003, address(0), 197);
+        vm.expectRevert(bytes("zero canonical agent"));
+        identity.bindCanonicalIdentity(id, namespace, 5003, registry, 0);
+        vm.stopPrank();
+    }
+
     // --- Reputation ---
 
     function test_giveFeedback_updatesSummary() public {
